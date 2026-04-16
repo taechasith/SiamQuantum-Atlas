@@ -1,0 +1,510 @@
+{
+  "name": "SiamQuantum Atlas",
+  "scene": {
+    "backgroundColor": "#ffffff",
+    "camera": {
+      "x": 0,
+      "y": 0,
+      "z": 150
+    }
+  },
+  "layers": [
+    {
+      "name": "Articles"
+    },
+    {
+      "name": "Videos"
+    },
+    {
+      "name": "Podcasts"
+    },
+    {
+      "name": "Films_TV"
+    },
+    {
+      "name": "Topics"
+    },
+    {
+      "name": "Frames"
+    },
+    {
+      "name": "Platforms"
+    },
+    {
+      "name": "Time"
+    },
+    {
+      "name": "Clusters"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "item:1",
+      "name": "นักวิจัยไทยจับตาคอมพิวเตอร์ควอนตัมกับอนาคตอุตสาหกรรม",
+      "layer": "Articles",
+      "size": 1.61,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "platform:gdelt_news",
+      "name": "gdelt_news",
+      "layer": "Platforms",
+      "size": 1.8,
+      "color": "#F18F01"
+    },
+    {
+      "id": "time:2024",
+      "name": "2024",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "topic:quantum_computing",
+      "name": "quantum_computing",
+      "layer": "Topics",
+      "size": 1.8,
+      "color": "#6A994E"
+    },
+    {
+      "id": "frame:educational_explainer",
+      "name": "educational_explainer",
+      "layer": "Frames",
+      "size": 1.5,
+      "color": "#7B2CBF"
+    },
+    {
+      "id": "frame:national_competitiveness",
+      "name": "national_competitiveness",
+      "layer": "Frames",
+      "size": 1.5,
+      "color": "#7B2CBF"
+    },
+    {
+      "id": "item:2",
+      "name": "รัฐบาลผลักดันการสื่อสารควอนตัมเพื่อความมั่นคงไซเบอร์",
+      "layer": "Articles",
+      "size": 1.71,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "time:2021",
+      "name": "2021",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "topic:quantum_communication",
+      "name": "quantum_communication",
+      "layer": "Topics",
+      "size": 1.8,
+      "color": "#6A994E"
+    },
+    {
+      "id": "item:3",
+      "name": "Quantum Computing ภาษาไทย: คิวบิตคืออะไร",
+      "layer": "Videos",
+      "size": 2.2,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "platform:youtube",
+      "name": "youtube",
+      "layer": "Platforms",
+      "size": 1.8,
+      "color": "#F18F01"
+    },
+    {
+      "id": "time:2023",
+      "name": "2023",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "item:4",
+      "name": "ควอนตัมฮีลลิงรักษาใจได้จริงหรือ",
+      "layer": "Videos",
+      "size": 1.88,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "time:2022",
+      "name": "2022",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "topic:quantum_spirituality",
+      "name": "quantum_spirituality",
+      "layer": "Topics",
+      "size": 1.8,
+      "color": "#6A994E"
+    },
+    {
+      "id": "frame:spirituality_healing",
+      "name": "spirituality_healing",
+      "layer": "Frames",
+      "size": 1.5,
+      "color": "#7B2CBF"
+    },
+    {
+      "id": "item:5",
+      "name": "พอดแคสต์วิทย์: ฟิสิกส์ควอนตัมในชีวิตประจําวัน",
+      "layer": "Podcasts",
+      "size": 1.48,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "platform:podcast",
+      "name": "podcast",
+      "layer": "Platforms",
+      "size": 1.8,
+      "color": "#F18F01"
+    },
+    {
+      "id": "time:2020",
+      "name": "2020",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "topic:quantum_science",
+      "name": "quantum_science",
+      "layer": "Topics",
+      "size": 1.8,
+      "color": "#6A994E"
+    },
+    {
+      "id": "frame:rigorous_science",
+      "name": "rigorous_science",
+      "layer": "Frames",
+      "size": 1.5,
+      "color": "#7B2CBF"
+    },
+    {
+      "id": "item:6",
+      "name": "ซีรีส์ไซไฟไทยกับการเดินทางข้ามจักรวาลแบบควอนตัม",
+      "layer": "Films_TV",
+      "size": 1.66,
+      "color": "#2E86AB"
+    },
+    {
+      "id": "platform:film_tv",
+      "name": "film_tv",
+      "layer": "Platforms",
+      "size": 1.8,
+      "color": "#F18F01"
+    },
+    {
+      "id": "time:2019",
+      "name": "2019",
+      "layer": "Time",
+      "size": 1.5,
+      "color": "#C73E1D"
+    },
+    {
+      "id": "frame:entertainment_scifi",
+      "name": "entertainment_scifi",
+      "layer": "Frames",
+      "size": 1.5,
+      "color": "#7B2CBF"
+    },
+    {
+      "id": "cluster:1",
+      "name": "semantic_0",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:2",
+      "name": "semantic_1",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:3",
+      "name": "semantic_2",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:4",
+      "name": "semantic_3",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:5",
+      "name": "community_0",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:6",
+      "name": "community_1",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:7",
+      "name": "community_2",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    },
+    {
+      "id": "cluster:8",
+      "name": "community_3",
+      "layer": "Clusters",
+      "size": 2.2,
+      "color": "#3A0CA3"
+    }
+  ],
+  "edges": [
+    {
+      "source": "item:1",
+      "target": "platform:gdelt_news",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:1",
+      "target": "time:2024",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:1",
+      "target": "topic:quantum_computing",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:1",
+      "target": "frame:educational_explainer",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:1",
+      "target": "frame:national_competitiveness",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:2",
+      "target": "platform:gdelt_news",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:2",
+      "target": "time:2021",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:2",
+      "target": "topic:quantum_communication",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:2",
+      "target": "frame:national_competitiveness",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:3",
+      "target": "platform:youtube",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:3",
+      "target": "time:2023",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:3",
+      "target": "topic:quantum_computing",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:3",
+      "target": "frame:educational_explainer",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:4",
+      "target": "platform:youtube",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:4",
+      "target": "time:2022",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:4",
+      "target": "topic:quantum_spirituality",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:4",
+      "target": "frame:educational_explainer",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:4",
+      "target": "frame:spirituality_healing",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:5",
+      "target": "platform:podcast",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:5",
+      "target": "time:2020",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:5",
+      "target": "topic:quantum_science",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:5",
+      "target": "frame:rigorous_science",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:6",
+      "target": "platform:film_tv",
+      "type": "published_on_platform",
+      "weight": 1.0
+    },
+    {
+      "source": "item:6",
+      "target": "time:2019",
+      "type": "occurs_in_time_period",
+      "weight": 1.0
+    },
+    {
+      "source": "item:6",
+      "target": "topic:quantum_science",
+      "type": "discusses_topic",
+      "weight": 1.0
+    },
+    {
+      "source": "item:6",
+      "target": "frame:entertainment_scifi",
+      "type": "belongs_to_frame",
+      "weight": 0.8
+    },
+    {
+      "source": "item:1",
+      "target": "cluster:1",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:2",
+      "target": "cluster:2",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:6",
+      "target": "cluster:2",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:3",
+      "target": "cluster:3",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:5",
+      "target": "cluster:3",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:4",
+      "target": "cluster:4",
+      "type": "cluster_member_of",
+      "weight": 1.0
+    },
+    {
+      "source": "item:1",
+      "target": "cluster:5",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    },
+    {
+      "source": "item:2",
+      "target": "cluster:6",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    },
+    {
+      "source": "item:3",
+      "target": "cluster:7",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    },
+    {
+      "source": "item:5",
+      "target": "cluster:7",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    },
+    {
+      "source": "item:6",
+      "target": "cluster:7",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    },
+    {
+      "source": "item:4",
+      "target": "cluster:8",
+      "type": "cluster_member_of",
+      "weight": 0.8
+    }
+  ],
+  "directed": true,
+  "channels": [
+    {
+      "name": "default",
+      "color": "#999999"
+    }
+  ]
+}

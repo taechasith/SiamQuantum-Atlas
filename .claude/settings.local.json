@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pygame; print\\('pygame', pygame.version.ver\\)\")",
+      "Bash(python -c \"import httpx; print\\('httpx ok'\\)\")",
+      "Bash(python -c \"import numpy; print\\('numpy ok'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('pygame_viewer.py'\\).read\\(\\)\\); print\\('Syntax OK'\\)\")",
+      "Bash(python -c ':*)",
+      "Bash(python pygame_viewer.py)",
+      "Bash(tasklist /fi \"imagename eq python.exe\" /fo csv)",
+      "Bash(tasklist)",
+      "Bash(tasklist /fi \"IMAGENAME eq python.exe\")",
+      "Bash(npm --version)",
+      "Bash(npm install:*)",
+      "Bash(uipro init:*)",
+      "Bash(claude install-skill:*)",
+      "Bash(npx:*)",
+      "WebFetch(domain:embed.kumu.io)",
+      "Bash(python viewer/server.py)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(start:*)",
+      "Bash(netstat -ano)",
+      "Bash(pip install:*)",
+      "Bash(claude mcp *)",
+      "Bash(pkill -f \"viewer/server.py\")",
+      "Bash(pkill -f \"server.py\")"
+    ]
+  }
+}

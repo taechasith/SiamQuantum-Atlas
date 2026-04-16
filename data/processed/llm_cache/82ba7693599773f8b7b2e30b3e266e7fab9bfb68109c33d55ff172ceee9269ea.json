@@ -1,0 +1,49 @@
+{
+  "title_th": "พอดแคสต์วิทย์: ฟิสิกส์ควอนตัมในชีวิตประจําวัน",
+  "title_en": "พอดแคสต์วิทย์: ฟิสิกส์ควอนตัมในชีวิตประจําวัน",
+  "summary_th": "พอดแคสต์วิทย์: ฟิสิกส์ควอนตัมในชีวิตประจําวัน ตอนพิเศษที่เชื่อม quantum sensing กับการแพทย์และการนําทาง ผู้จัดรายการเน้นการแปลศัพท์ยากให้เข้าใจง่าย และย้ําข้อจํากัดของเทคโนโลยีปัจจุบัน",
+  "summary_en": "พอดแคสต์วิทย์: ฟิสิกส์ควอนตัมในชีวิตประจําวัน ตอนพิเศษที่เชื่อม quantum sensing กับการแพทย์และการนําทาง ผู้จัดรายการเน้นการแปลศัพท์ยากให้เข้าใจง่าย และย้ําข้อจํากัดของเทคโนโลยีปัจจุบัน",
+  "main_topic": "quantum_science",
+  "secondary_topics": [
+    {
+      "label": "quantum_science",
+      "weight": 0.9,
+      "confidence": 0.7
+    }
+  ],
+  "media_type": "podcast",
+  "communicative_intent": "inform",
+  "audience_level": "general",
+  "frame_result": {
+    "frame_labels": [
+      "rigorous_science"
+    ],
+    "uses_and_gratifications": [
+      "information_seeking"
+    ],
+    "parasocial_signal": null,
+    "normalization_subscores": {
+      "accessibility": 0.8,
+      "explanatory_clarity": 0.5,
+      "scientific_integrity": 0.85,
+      "real_world_relevance": 0.8,
+      "hype_pressure": 0.25,
+      "spirituality_claim_strength": 0.1,
+      "uncertainty_confusion": 0.2
+    },
+    "normalization_score": 0.7525,
+    "distortion_risk": 0.1775,
+    "confidence": 0.65
+  },
+  "triplets": [
+    {
+      "subject": "quantum_science",
+      "predicate": "appears_in",
+      "object": "podcast",
+      "confidence": 0.6
+    }
+  ],
+  "entities": [
+    "quantum"
+  ]
+}

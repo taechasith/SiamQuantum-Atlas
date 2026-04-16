@@ -1,0 +1,135 @@
+{
+  "system": "You extract structured findings and causal triplets from Thai or English media about quantum for SiamQuantum-Atlas. Be precise, compact, and literal. Do not infer beyond the content.",
+  "task": {
+    "name": "siamquantum_atlas_media_extraction",
+    "input": {
+      "title": "<title>",
+      "description": "<description>",
+      "content": "<full text, transcript, article body, or metadata text>",
+      "platform": "<platform>",
+      "media_type_hint": "<optional hint>",
+      "language": "<th|en|mixed>"
+    },
+    "instructions": {
+      "findings": [
+        "Extract 0-3 key findings as bullets.",
+        "Only include substantiated findings or clearly expressed public-facing claims.",
+        "Each finding must be a complete, standalone conclusion.",
+        "Use concise simple language.",
+        "Prefer subject-predicate-object form.",
+        "Only include findings where quantum is directly involved in the claim, framing, explanation, or interpretation.",
+        "Include engagement only if explicitly stated.",
+        "Generalize obscure campaign or product names into broad categories when possible."
+      ],
+      "exclude_from_findings": [
+        "production workflow",
+        "research methodology",
+        "generic metadata",
+        "future work",
+        "vague themes",
+        "comparisons without explanation",
+        "references to 'this article', 'this video', 'this post'"
+      ],
+      "no_findings_rule": [
+        "If no clear findings exist, return no bullets.",
+        "Then classify the item type and give a 1-sentence description."
+      ],
+      "keywords": [
+        "Extract 1-3 keywords.",
+        "Use specific quantum topics, audience outcomes, or contexts.",
+        "Avoid generic terms like media, technology, AI, HCI."
+      ],
+      "triplets": [
+        "Convert the main causal or framing statements into 1-5 triplets.",
+        "Focus on direct effects of media on human understanding, attention, trust, confusion, interpretation, or discourse.",
+        "Also capture how framing shapes whether quantum is seen as science, futurism, spirituality, entertainment, policy, or misinformation.",
+        "Preserve only primary relationships."
+      ],
+      "triplet_schema": {
+        "cause": {
+          "type": "human | media | co",
+          "subtype": "broad reusable category or empty string",
+          "feature": "specific property"
+        },
+        "relationship": "INCREASES | DECREASES | INFLUENCES",
+        "effect": {
+          "type": "human | media | co",
+          "subtype": "broad reusable category or empty string",
+          "feature": "specific property"
+        },
+        "net_outcome": "optional short phrase or empty string"
+      },
+      "subject_rules": [
+        "human = audience actors like viewer, reader, listener, student, artist, researcher, public",
+        "media = media objects like article, video, podcast, documentary, film, platform, host, news_coverage, social_post",
+        "co = concepts/objects like narrative, engagement, trust, confusion, accessibility, discourse, topic, cluster"
+      ],
+      "feature_rules": [
+        "Use one word when possible.",
+        "Use # prefix for perceptions or beliefs, e.g. #trust, #science, #spirituality.",
+        "Use parenthesis for nested features, e.g. understanding(quantum), confusion(physics), framing(futurism), accessibility(language).",
+        "Remove numerical metrics from triplets."
+      ],
+      "standardization_rules": [
+        "All fields lowercase.",
+        "Use broad taxonomical subtypes, not project-specific names.",
+        "Empty subtype is allowed.",
+        "Do not hallucinate unsupported claims."
+      ],
+      "classification": [
+        "Classify media_type: article | video | podcast | film | documentary | social_post | event_page | tv_clip | metadata_only | opinion_piece | news_article",
+        "Classify quantum_topic: computing | physics | communication | sensing | education | art | spirituality | healing | policy | business | mixed | other",
+        "Classify framing_type: science | futurism | education | nationalism | spirituality | entertainment | skepticism | hype | policy | business | mixed | other",
+        "Classify audience_level: general_public | student | enthusiast | specialist | mixed | unclear",
+        "Classify engagement_signal_present: yes | no",
+        "Classify normalization_effect: strengthens | weakens | ambiguous",
+        "Classify distortion_risk: low | medium | high"
+      ]
+    },
+    "output_schema": {
+      "summaries": [
+        "string"
+      ],
+      "note": {
+        "type": "string",
+        "description": "string"
+      },
+      "keywords": [
+        "string"
+      ],
+      "triplets": [
+        {
+          "cause": {
+            "type": "string",
+            "subtype": "string",
+            "feature": "string"
+          },
+          "relationship": "string",
+          "effect": {
+            "type": "string",
+            "subtype": "string",
+            "feature": "string"
+          },
+          "net_outcome": "string"
+        }
+      ],
+      "classifications": {
+        "media_type": "string",
+        "quantum_topic": "string",
+        "framing_type": "string",
+        "audience_level": "string",
+        "engagement_signal_present": "string",
+        "normalization_effect": "string",
+        "distortion_risk": "string"
+      }
+    },
+    "return_rules": [
+      "Return valid JSON only.",
+      "No markdown.",
+      "No extra commentary.",
+      "If there are findings, summaries must contain 1-3 bullets and note may be null.",
+      "If there are no findings, summaries must be empty and note must be filled.",
+      "Always return keywords, triplets, and classifications."
+    ]
+  }
+}

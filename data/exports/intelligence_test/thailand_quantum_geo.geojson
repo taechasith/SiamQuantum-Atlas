@@ -1,0 +1,34 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          100.5018,
+          13.7563
+        ]
+      },
+      "properties": {
+        "province_th": "กรุงเทพมหานคร",
+        "province_en": "Bangkok",
+        "region": "Central",
+        "item_count": 1,
+        "hotspot_rank": 1,
+        "avg_normalized_engagement": 71.9,
+        "hotspot_intensity": 1.0,
+        "top_clusters": [
+          "high_engagement_hook"
+        ],
+        "centroid_source": "province_centroid"
+      }
+    }
+  ],
+  "metadata": {
+    "coordinate_system": "WGS84",
+    "centroid_source": "province_centroid",
+    "gee_compatible": true,
+    "note": "Coordinates are province centroids, not individual poster locations. No IP data used."
+  }
+}

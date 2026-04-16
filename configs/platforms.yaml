@@ -1,0 +1,13 @@
+platforms:
+  gdelt_news:
+    media_type: article
+    metric_type: hard_or_proxy_mixed
+  youtube:
+    media_type: video
+    metric_type: hard
+  podcast:
+    media_type: podcast
+    metric_type: proxy
+  film_tv:
+    media_type: film_tv
+    metric_type: proxy
