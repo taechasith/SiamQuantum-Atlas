@@ -94,16 +94,39 @@ def ingest_youtube(
     year: int = typer.Option(..., "--year"),
     all_years: bool = typer.Option(False, "--all-years"),
 ) -> None:
-    """Fetch YouTube quantum videos for Thailand. (Phase 3b — stub)"""
-    typer.echo("YouTube ingest: implemented in Phase 3b.")
+    """Fetch YouTube quantum videos for Thailand."""
+    from siamquantum.pipeline.ingest import ingest_youtube_year
+    from siamquantum.db.session import get_connection
+    from siamquantum.db.repos import SourceRepo
+
+    db_path = db_path_from_url(settings.database_url)
+    years = list(range(2020, year + 1)) if all_years else [year]
+
+    for yr in years:
+        typer.echo(f"Fetching YouTube year={yr} …")
+        try:
+            fetched, inserted = asyncio.run(ingest_youtube_year(yr, db_path))
+        except RuntimeError as exc:
+            typer.echo(f"  ERROR: {exc}", err=True)
+            continue
+
+        typer.echo(f"  fetched={fetched}  inserted={inserted}")
+
+        with get_connection(db_path) as conn:
+            repo = SourceRepo(conn)
+            samples = [s for s in repo.list_by_year(yr) if s.platform == "youtube"][:3]
+
+        typer.echo(f"  Sample records (up to 3):")
+        for s in samples:
+            typer.echo(f"    [{s.id}] {s.platform} | {s.published_year} | {s.url[:80]}")
 
 
 @ingest_app.command("geo")
 def ingest_geo(
     pending: bool = typer.Option(False, "--pending"),
 ) -> None:
-    """Run GeoIP lookup on sources missing geo rows. (Phase 3c — stub)"""
-    typer.echo("Geo ingest: implemented in Phase 3c.")
+    """Run GeoIP lookup on sources missing geo rows."""
+    raise NotImplementedError("phase 3c not yet implemented — see SPEC.md")
 
 
 # ---------------------------------------------------------------------------
@@ -112,20 +135,20 @@ def ingest_geo(
 
 @analyze_app.command("nlp")
 def analyze_nlp(year: int = typer.Option(..., "--year")) -> None:
-    """Run NLP pipeline for a year. (Phase 4 — stub)"""
-    typer.echo("NLP analysis: implemented in Phase 4.")
+    """Run NLP pipeline for a year."""
+    raise NotImplementedError("phase 4 not yet implemented — see SPEC.md")
 
 
 @analyze_app.command("stats")
 def analyze_stats() -> None:
-    """Run yearly stats + t-tests. (Phase 5 — stub)"""
-    typer.echo("Stats analysis: implemented in Phase 5.")
+    """Run yearly stats + t-tests."""
+    raise NotImplementedError("phase 5 not yet implemented — see SPEC.md")
 
 
 @analyze_app.command("full")
 def analyze_full() -> None:
-    """Run nlp + stats for all years. (Phase 5 — stub)"""
-    typer.echo("Full analysis: implemented in Phase 5.")
+    """Run nlp + stats for all years."""
+    raise NotImplementedError("phase 5 not yet implemented — see SPEC.md")
 
 
 # ---------------------------------------------------------------------------
@@ -137,5 +160,5 @@ def serve(
     port: int = typer.Option(settings.viewer_port, "--port"),
     reload: bool = typer.Option(False, "--reload"),
 ) -> None:
-    """Start the FastAPI viewer. (Phase 6 — stub)"""
-    typer.echo(f"Viewer: implemented in Phase 6. (port={port})")
+    """Start the FastAPI viewer."""
+    raise NotImplementedError("phase 6 not yet implemented — see SPEC.md")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime
 
 import httpx
@@ -8,6 +9,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from siamquantum.config import settings
 from siamquantum.models import ServiceResult, SourceRaw
+
+logger = logging.getLogger(__name__)
 
 _QUERY = "quantum sourcecountry:TH"
 _MAX_RECORDS = 250
@@ -23,6 +26,13 @@ def _year_from_seendate(seendate: str, fallback: int) -> int:
 
 def _parse_response(data: dict, year: int) -> list[SourceRaw]:
     articles = data.get("articles") or []
+    if len(articles) >= _MAX_RECORDS:
+        logger.warning(
+            "GDELT returned %d for year=%d — at maxrecords cap. "
+            "Implement monthly window splitting before next ingest.",
+            len(articles),
+            year,
+        )
     out: list[SourceRaw] = []
     seen_urls: set[str] = set()
     for art in articles:
@@ -69,7 +79,7 @@ async def _fetch(client: httpx.AsyncClient, params: dict[str, str]) -> dict:
 
 async def fetch_yearly(year: int) -> ServiceResult:
     """
-    Fetch GDELT articles matching quantum/ควอนตัม from Thai sources for `year`.
+    Fetch GDELT articles matching quantum from Thai sources for `year`.
     Returns ServiceResult with data=list[dict] (SourceRaw schema).
     """
     params: dict[str, str] = {
