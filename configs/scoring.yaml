@@ -1,8 +1,0 @@
-weights:
-  accessibility: 0.2
-  explanatory_clarity: 0.2
-  scientific_integrity: 0.25
-  real_world_relevance: 0.15
-  hype_pressure: -0.1
-  spirituality_claim_strength: -0.05
-  uncertainty_confusion: -0.05

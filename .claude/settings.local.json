@@ -24,7 +24,8 @@
       "Bash(pip install:*)",
       "Bash(claude mcp *)",
       "Bash(pkill -f \"viewer/server.py\")",
-      "Bash(pkill -f \"server.py\")"
+      "Bash(pkill -f \"server.py\")",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
