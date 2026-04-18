@@ -48,3 +48,19 @@ async def ingest_gdelt_year(year: int, db_path: Path) -> tuple[int, int]:
     raws = [SourceRaw(**item) for item in (result.data or [])]
     inserted = write_sources(raws, db_path)
     return len(raws), inserted
+
+
+async def ingest_youtube_year(year: int, db_path: Path) -> tuple[int, int]:
+    """
+    Fetch YouTube for `year`, write to DB.
+    Returns (fetched_count, inserted_count).
+    """
+    from siamquantum.services import youtube
+
+    result = await youtube.fetch_yearly(year)
+    if not result.ok:
+        raise RuntimeError(f"YouTube fetch failed: {result.error}")
+
+    raws = [SourceRaw(**item) for item in (result.data or [])]
+    inserted = write_sources(raws, db_path)
+    return len(raws), inserted
