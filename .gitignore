@@ -1,2 +1,21 @@
 .env
 .claude/
+doc.md
+
+# data
+data/raw/
+data/processed/*.db
+data/geoip/*.mmdb
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# tools
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

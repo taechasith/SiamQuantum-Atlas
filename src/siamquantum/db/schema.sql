@@ -1,0 +1,1 @@
+-- Stub — full DDL in Phase 2
