@@ -25,7 +25,24 @@
       "Bash(claude mcp *)",
       "Bash(pkill -f \"viewer/server.py\")",
       "Bash(pkill -f \"server.py\")",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(grep \"^\\\\.env$\" .gitignore)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(grep -E \"^\\\\.env$|data/raw/|data/processed/\\\\*\\\\.db|data/geoip/\\\\*\\\\.mmdb|__pycache__|\\\\.venv|\\\\.mypy_cache|\\\\.ruff_cache\")",
+      "Bash(grep -E \"\\\\.env$|\\\\.mmdb$|\\\\.db$\")",
+      "Bash(grep -E \"\\\\.\\(env|mmdb|db\\)$\")",
+      "Bash(echo \"exit:$?\")",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db \".tables\")",
+      "Bash(timeout 20)",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db \"SELECT id, title, url, published_year, fetched_at FROM sources ORDER BY RANDOM\\(\\) LIMIT 3;\")",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db \"SELECT id, title, view_count, like_count, comment_count FROM sources WHERE platform='youtube' LIMIT 3;\")",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db \"DELETE FROM sources WHERE platform='youtube';\")",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db \"SELECT id, view_count, like_count, comment_count FROM sources WHERE platform='youtube' LIMIT 3;\")",
+      "Bash(chmod +x scripts/download_geoip.sh)",
+      "Bash(bash scripts/download_geoip.sh)",
+      "Bash(sqlite3 data/processed/siamquantum_atlas.db ' *)",
+      "Bash(.venv/Scripts/python -m mypy src/siamquantum/services/geoip.py --ignore-missing-imports)"
     ]
   }
 }

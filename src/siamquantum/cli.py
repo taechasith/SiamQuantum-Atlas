@@ -123,10 +123,19 @@ def ingest_youtube(
 
 @ingest_app.command("geo")
 def ingest_geo(
-    pending: bool = typer.Option(False, "--pending"),
+    pending: bool = typer.Option(True, "--pending/--no-pending"),
 ) -> None:
-    """Run GeoIP lookup on sources missing geo rows."""
-    raise NotImplementedError("phase 3c not yet implemented — see SPEC.md")
+    """Run GeoIP lookup for GDELT sources missing geo rows."""
+    from siamquantum.pipeline.ingest import backfill_geo
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Running GeoIP backfill for pending GDELT sources…")
+    counts = backfill_geo(db_path)
+    typer.echo(
+        f"  success={counts['success']}"
+        f"  failure={counts['failure']}"
+        f"  skipped_youtube={counts['skipped_youtube']}"
+    )
 
 
 # ---------------------------------------------------------------------------

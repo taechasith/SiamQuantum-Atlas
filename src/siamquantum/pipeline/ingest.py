@@ -64,3 +64,43 @@ async def ingest_youtube_year(year: int, db_path: Path) -> tuple[int, int]:
     raws = [SourceRaw(**item) for item in (result.data or [])]
     inserted = write_sources(raws, db_path)
     return len(raws), inserted
+
+
+def backfill_geo(db_path: Path) -> dict[str, int]:
+    """
+    GeoIP lookup for GDELT sources missing geo rows. Skips YouTube.
+    Returns counts: {success, failure, skipped_youtube}.
+    """
+    from siamquantum.services.geoip import lookup
+    from siamquantum.db.repos import GeoRepo
+    from siamquantum.models import GeoCreate
+
+    counts: dict[str, int] = {"success": 0, "failure": 0, "skipped_youtube": 0}
+
+    with get_connection(db_path) as conn:
+        pending = SourceRepo(conn).list_missing_geo()
+
+    for source in pending:
+        if source.platform != "gdelt":
+            counts["skipped_youtube"] += 1
+            continue
+
+        result = lookup(source.url)
+        if result:
+            with get_connection(db_path) as conn:
+                GeoRepo(conn).upsert(
+                    GeoCreate(
+                        source_id=source.id,
+                        ip=result.ip,
+                        lat=result.lat,
+                        lng=result.lng,
+                        city=result.city,
+                        region=result.region,
+                        isp=result.isp,
+                    )
+                )
+            counts["success"] += 1
+        else:
+            counts["failure"] += 1
+
+    return counts
