@@ -29,6 +29,14 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
     _migrations = [
         "ALTER TABLE geo ADD COLUMN asn_org TEXT",
         "ALTER TABLE geo ADD COLUMN is_cdn_resolved INTEGER",
+        # DQ-1: relevance classifier columns on sources
+        "ALTER TABLE sources ADD COLUMN is_quantum_tech INTEGER",
+        "ALTER TABLE sources ADD COLUMN is_thailand_related INTEGER",
+        "ALTER TABLE sources ADD COLUMN quantum_domain TEXT",
+        "ALTER TABLE sources ADD COLUMN rejection_reason TEXT",
+        "ALTER TABLE sources ADD COLUMN relevance_confidence REAL",
+        "ALTER TABLE sources ADD COLUMN relevance_checked_at TEXT",
+        "CREATE INDEX IF NOT EXISTS idx_sources_relevant ON sources(is_quantum_tech, is_thailand_related)",
     ]
     for sql in _migrations:
         try:

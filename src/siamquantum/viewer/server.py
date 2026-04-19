@@ -132,26 +132,32 @@ def page_community(request: Request) -> Any:
 # ---------------------------------------------------------------------------
 
 @app.get("/api/geo/list")
-def api_geo_list(cdn: bool = Query(False, description="Include CDN-resolved rows")) -> JSONResponse:
+def api_geo_list(
+    cdn: bool = Query(False, description="Include CDN-resolved rows"),
+    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+) -> JSONResponse:
     """
     Returns geo rows joined with source metadata.
     Default (cdn=false): only origin IPs (is_cdn_resolved=0 or NULL).
+    Default: only quantum+thai relevant sources (is_quantum_tech=1 AND is_thailand_related=1).
     """
     db = _db()
+    relevance_clause = "" if include_filtered else "AND (s.is_quantum_tech = 1 AND s.is_thailand_related = 1)"
     try:
         with get_connection(db) as conn:
             if cdn:
-                rows = conn.execute("""
+                rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
                            s.platform, s.url, s.title, s.published_year
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
+                    {relevance_clause}
                     ORDER BY g.source_id
                 """).fetchall()
             else:
-                rows = conn.execute("""
+                rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
                            s.platform, s.url, s.title, s.published_year
@@ -159,6 +165,7 @@ def api_geo_list(cdn: bool = Query(False, description="Include CDN-resolved rows
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                       AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
+                    {relevance_clause}
                     ORDER BY g.source_id
                 """).fetchall()
     except Exception as exc:
@@ -191,25 +198,32 @@ def api_geo_list(cdn: bool = Query(False, description="Include CDN-resolved rows
 # ---------------------------------------------------------------------------
 
 @app.get("/api/graph")
-def api_graph() -> JSONResponse:
+def api_graph(
+    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+) -> JSONResponse:
     """
     Returns nodes (entities joined with sources) and edges (triplets).
+    Default: only quantum+thai relevant sources.
     """
     db = _db()
+    relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
-            node_rows = conn.execute("""
+            node_rows = conn.execute(f"""
                 SELECT e.source_id,
                        e.content_type, e.production_type, e.area, e.engagement_level,
                        s.url, s.title, s.published_year AS year, s.platform
                 FROM entities e
                 JOIN sources s ON e.source_id = s.id
+                WHERE 1=1 {relevance_clause}
                 ORDER BY e.source_id
             """).fetchall()
 
-            edge_rows = conn.execute("""
+            edge_rows = conn.execute(f"""
                 SELECT t.id, t.source_id, t.subject, t.relation, t.object, t.confidence
                 FROM triplets t
+                JOIN sources s ON t.source_id = s.id
+                WHERE 1=1 {relevance_clause}
                 ORDER BY t.id
             """).fetchall()
     except Exception as exc:
@@ -282,24 +296,31 @@ def api_graph() -> JSONResponse:
 # ---------------------------------------------------------------------------
 
 @app.get("/api/stats/yearly")
-def api_stats_yearly() -> JSONResponse:
+def api_stats_yearly(
+    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+) -> JSONResponse:
     """
     Yearly source counts, engagement distribution, and cached t-test results.
+    Default: only quantum+thai relevant sources.
     """
     db = _db()
+    relevance_clause = "" if include_filtered else "WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+    relevance_join_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
-            count_rows = conn.execute("""
-                SELECT published_year, platform, COUNT(*) AS n
-                FROM sources
-                GROUP BY published_year, platform
-                ORDER BY published_year, platform
+            count_rows = conn.execute(f"""
+                SELECT s.published_year, s.platform, COUNT(*) AS n
+                FROM sources s
+                {relevance_clause}
+                GROUP BY s.published_year, s.platform
+                ORDER BY s.published_year, s.platform
             """).fetchall()
 
-            eng_rows = conn.execute("""
+            eng_rows = conn.execute(f"""
                 SELECT s.published_year, e.engagement_level, COUNT(*) AS n
                 FROM entities e
                 JOIN sources s ON e.source_id = s.id
+                WHERE 1=1 {relevance_join_clause}
                 GROUP BY s.published_year, e.engagement_level
                 ORDER BY s.published_year, e.engagement_level
             """).fetchall()
@@ -395,14 +416,18 @@ def api_sources(
     year: int | None = Query(None),
     platform: str | None = Query(None),
     content_type: str | None = Query(None),
+    include_filtered: bool = Query(False, description="Include non-relevant sources"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> JSONResponse:
-    """Paginated source list with optional filters."""
+    """Paginated source list with optional filters. Default: quantum+thai relevant only."""
     db = _db()
     conditions = []
     params: list[Any] = []
 
+    if not include_filtered:
+        conditions.append("s.is_quantum_tech = 1")
+        conditions.append("s.is_thailand_related = 1")
     if year is not None:
         conditions.append("s.published_year = ?")
         params.append(year)

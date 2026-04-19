@@ -8,7 +8,7 @@ import anthropic
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from siamquantum.config import settings
-from siamquantum.models import EntityClassification, Triplet
+from siamquantum.models import EntityClassification, RelevanceVerdict, Triplet
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,49 @@ Return ONLY valid JSON with no explanation or markdown:
 _DEDUPE_SYSTEM = """\
 Determine if these two texts describe the same piece of content (same article or video, possibly republished).
 Return ONLY valid JSON: {"is_duplicate": true} or {"is_duplicate": false}"""
+
+_RELEVANCE_SYSTEM = """\
+You are a quantum technology content classifier for a Thai research platform.
+
+REJECT (is_quantum_tech=false) if the content is:
+- Pseudoscience using 'quantum' as buzzword: quantum healing, quantum manifestation,
+  quantum leap (self-help sense), quantum mysticism, law of attraction
+- Music/entertainment with 'Quantum' in name only (band names, song titles, product names)
+- Products/vehicles with 'Quantum' as brand/model (VW Santana Quantum, etc.)
+- Tangential mentions where quantum is not the topic
+
+ACCEPT (is_quantum_tech=true) only if the content substantively discusses:
+- Quantum computing, quantum algorithms, quantum hardware
+- Quantum communication/cryptography/networking
+- Quantum sensing/metrology
+- Quantum materials (superconductors, topological, etc.)
+- Quantum physics fundamentals (entanglement, superposition — as physics, not metaphor)
+- Quantum technology policy, industry, education
+
+REJECT (is_thailand_related=false) if the content is:
+- Entirely about non-Thai events, non-Thai companies, non-Thai researchers,
+  with no Thai audience or local angle
+- Example: "Willow chip Google" (global), "Brian Cox lecture" (UK academia),
+  "VW Santana Brazil" (Brazilian auto)
+
+ACCEPT (is_thailand_related=true) if:
+- Thai publisher + Thai audience (even if covering global quantum news, it's framed for Thai readers)
+- Thai researcher, company, or institution mentioned
+- Thailand policy/education/industry angle
+- Thai-language content targeting Thai audience
+
+Be strict. When in doubt, reject with rejection_reason.
+Return ONLY valid JSON matching this schema exactly:
+{
+  "is_quantum_tech": true,
+  "is_thailand_related": true,
+  "quantum_domain": "quantum_computing",
+  "rejection_reason": null,
+  "confidence": 0.95
+}
+quantum_domain must be one of: quantum_computing, quantum_communication, quantum_sensing,
+quantum_materials, quantum_fundamentals, quantum_education, quantum_policy_industry, not_applicable.
+No preamble."""
 
 
 class _APIError(Exception):
@@ -143,6 +186,39 @@ def classify_entity(
             return None
         except _APIError as exc:
             logger.warning("classify_entity: API error: %s", exc)
+            return None
+
+    return None
+
+
+def is_relevant_source(
+    title: str | None,
+    raw_text: str | None,
+    platform: str,
+) -> RelevanceVerdict | None:
+    """
+    2-gate LLM classifier: quantum tech relevance + Thailand relatedness.
+    temperature=0, 1 parse retry. Returns None on unrecoverable failure.
+    """
+    snippet = (
+        f"Platform: {platform}\n"
+        f"Title: {title or '(no title)'}\n\n"
+        f"Text:\n{(raw_text or '')[:3000]}"
+    )
+
+    for attempt in range(2):
+        try:
+            raw = _call(_RELEVANCE_SYSTEM, snippet)
+            data = _parse_json(raw)
+            return RelevanceVerdict(**data)
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            if attempt == 0:
+                logger.debug("Relevance parse failed (attempt 1), retrying: %s", exc)
+                continue
+            logger.warning("is_relevant_source: parse failed after 2 attempts: %s", exc)
+            return None
+        except _APIError as exc:
+            logger.warning("is_relevant_source: API error: %s", exc)
             return None
 
     return None

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
@@ -190,3 +190,20 @@ class ServiceResult(BaseModel):
     ok: bool
     data: Any | None = None
     error: str | None = None
+
+
+class RelevanceVerdict(BaseModel):
+    is_quantum_tech: bool
+    is_thailand_related: bool
+    quantum_domain: Literal[
+        "quantum_computing",
+        "quantum_communication",
+        "quantum_sensing",
+        "quantum_materials",
+        "quantum_fundamentals",
+        "quantum_education",
+        "quantum_policy_industry",
+        "not_applicable",
+    ]
+    rejection_reason: str | None = None
+    confidence: float = Field(ge=0.0, le=1.0)

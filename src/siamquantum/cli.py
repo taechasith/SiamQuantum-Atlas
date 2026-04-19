@@ -17,10 +17,12 @@ app = typer.Typer(help="SiamQuantum Atlas CLI")
 db_app = typer.Typer(help="Database commands")
 ingest_app = typer.Typer(help="Data ingestion commands")
 analyze_app = typer.Typer(help="Analysis commands")
+filter_app = typer.Typer(help="Content quality filter commands")
 
 app.add_typer(db_app, name="db")
 app.add_typer(ingest_app, name="ingest")
 app.add_typer(analyze_app, name="analyze")
+app.add_typer(filter_app, name="filter")
 
 
 # ---------------------------------------------------------------------------
@@ -240,6 +242,57 @@ def analyze_full() -> None:
     typer.echo(
         f"  macro_clusters={result['macro_clusters']}"
         f" ttest_pairs={result['ttest_pairs_computed']}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# filter commands
+# ---------------------------------------------------------------------------
+
+@filter_app.command("relevance")
+def filter_relevance(
+    all_sources: bool = typer.Option(False, "--all", help="Run on all unchecked sources"),
+) -> None:
+    """Classify sources for quantum-tech relevance and Thailand relatedness."""
+    if not all_sources:
+        typer.echo("Pass --all to run on all unchecked sources.", err=True)
+        raise typer.Exit(1)
+
+    from siamquantum.db.session import get_connection
+    db_path = db_path_from_url(settings.database_url)
+    with get_connection(db_path) as conn:
+        pending = conn.execute(
+            "SELECT COUNT(*) FROM sources WHERE relevance_checked_at IS NULL"
+        ).fetchone()[0]
+
+    # Cost estimate: ~400 input + 80 output tokens per source (Sonnet pricing)
+    est_input_tok = pending * 400
+    est_output_tok = pending * 80
+    est_cost = est_input_tok * 3.0 / 1_000_000 + est_output_tok * 15.0 / 1_000_000
+    typer.echo(
+        f"Pending sources: {pending}\n"
+        f"Cost estimate: input={est_input_tok:,} tok  output={est_output_tok:,} tok"
+        f"  ~${est_cost:.2f} USD"
+    )
+    if est_cost > 3.0:
+        typer.echo(f"BUDGET EXCEEDED: ${est_cost:.2f} > $3.00. Aborting.", err=True)
+        raise typer.Exit(1)
+
+    from siamquantum.pipeline.filter import backfill_relevance
+    typer.echo("Running relevance classifier...")
+    counts = backfill_relevance(db_path)
+
+    actual_cost = counts.get("cost_usd_cents", 0) / 100
+    typer.echo(
+        f"\nDone.\n"
+        f"  checked:              {counts['checked']}\n"
+        f"  accepted (Q+TH):      {counts['accepted']}\n"
+        f"  rejected not quantum: {counts['rejected_not_quantum']}\n"
+        f"  rejected not thai:    {counts['rejected_not_thai']}\n"
+        f"  rejected both:        {counts['rejected_both']}\n"
+        f"  failed:               {counts['failed']}\n"
+        f"  tokens in/out: {counts.get('token_input', 0):,} / {counts.get('token_output', 0):,}\n"
+        f"  actual cost: ${actual_cost:.4f} USD"
     )
 
 
