@@ -231,7 +231,6 @@ def analyze_full() -> None:
 @app.command("serve")
 def serve(
     port: int = typer.Option(settings.viewer_port, "--port"),
-    reload: bool = typer.Option(False, "--reload"),
 ) -> None:
     """Start the FastAPI viewer on port 8765."""
     import uvicorn
@@ -240,5 +239,6 @@ def serve(
         "siamquantum.viewer.server:app",
         host="0.0.0.0",
         port=port,
-        reload=reload,
+        reload=False,
+        log_level="info",
     )
