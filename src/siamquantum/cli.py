@@ -186,14 +186,42 @@ def analyze_nlp(year: int = typer.Option(..., "--year")) -> None:
 
 @analyze_app.command("stats")
 def analyze_stats() -> None:
-    """Run yearly stats + t-tests."""
-    raise NotImplementedError("phase 5 not yet implemented — see SPEC.md")
+    """Run DenStream clustering + Welch t-tests + update engagement levels."""
+    from siamquantum.pipeline.analyze import run_stats
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Running stats pipeline…")
+    result = run_stats(db_path)
+    typer.echo(
+        f"  sources_processed={result['sources_processed']}"
+        f"  engagement_levels_updated={result['engagement_levels_updated']}"
+    )
+    typer.echo(
+        f"  micro_clusters={result['micro_clusters']}"
+        f"  macro_clusters={result['macro_clusters']}"
+    )
+    typer.echo(
+        f"  ttest_pairs_computed={result['ttest_pairs_computed']}"
+        f"  ttest_pairs_skipped={result['ttest_pairs_skipped']}"
+    )
 
 
 @analyze_app.command("full")
 def analyze_full() -> None:
-    """Run nlp + stats for all years."""
-    raise NotImplementedError("phase 5 not yet implemented — see SPEC.md")
+    """Run nlp (all years) + stats pipeline."""
+    from siamquantum.pipeline.nlp import analyze_year
+    from siamquantum.pipeline.analyze import run_stats
+    import datetime
+
+    db_path = db_path_from_url(settings.database_url)
+    current_year = datetime.date.today().year
+    for year in range(2020, current_year + 1):
+        typer.echo(f"NLP year={year}…")
+        counts = analyze_year(year, db_path)
+        typer.echo(f"  processed={counts['processed']} skipped={counts['skipped_already_done']}")
+    typer.echo("Running stats…")
+    result = run_stats(db_path)
+    typer.echo(f"  macro_clusters={result['macro_clusters']} ttest_pairs={result['ttest_pairs_computed']}")
 
 
 # ---------------------------------------------------------------------------
