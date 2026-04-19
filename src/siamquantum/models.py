@@ -39,6 +39,8 @@ class GeoRow(_Row):
     city: str | None
     region: str | None
     isp: str | None
+    asn_org: str | None = None
+    is_cdn_resolved: bool | None = None
 
 
 class EntityRow(_Row):
@@ -102,6 +104,8 @@ class GeoCreate(BaseModel):
     city: str | None = None
     region: str | None = None
     isp: str | None = None
+    asn_org: str | None = None
+    is_cdn_resolved: bool | None = None
 
 
 class EntityCreate(BaseModel):
@@ -149,6 +153,8 @@ class GeoResult(BaseModel):
     city: str | None = None
     region: str | None = None
     isp: str | None = None
+    asn_org: str | None = None
+    is_cdn_resolved: bool | None = None
 
 
 class Triplet(BaseModel):

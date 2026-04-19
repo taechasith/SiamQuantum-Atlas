@@ -102,13 +102,18 @@ class GeoRepo:
     def upsert(self, geo: GeoCreate) -> None:
         self._c.execute(
             """
-            INSERT INTO geo (source_id, ip, lat, lng, city, region, isp)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO geo (source_id, ip, lat, lng, city, region, isp, asn_org, is_cdn_resolved)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(source_id) DO UPDATE SET
               ip=excluded.ip, lat=excluded.lat, lng=excluded.lng,
-              city=excluded.city, region=excluded.region, isp=excluded.isp
+              city=excluded.city, region=excluded.region, isp=excluded.isp,
+              asn_org=excluded.asn_org, is_cdn_resolved=excluded.is_cdn_resolved
             """,
-            (geo.source_id, geo.ip, geo.lat, geo.lng, geo.city, geo.region, geo.isp),
+            (
+                geo.source_id, geo.ip, geo.lat, geo.lng,
+                geo.city, geo.region, geo.isp,
+                geo.asn_org, geo.is_cdn_resolved,
+            ),
         )
         self._c.commit()
 

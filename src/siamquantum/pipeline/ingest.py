@@ -97,10 +97,55 @@ def backfill_geo(db_path: Path) -> dict[str, int]:
                         city=result.city,
                         region=result.region,
                         isp=result.isp,
+                        asn_org=result.asn_org,
+                        is_cdn_resolved=result.is_cdn_resolved,
                     )
                 )
             counts["success"] += 1
         else:
             counts["failure"] += 1
+
+    return counts
+
+
+def backfill_asn(db_path: Path) -> dict[str, int]:
+    """
+    Populate asn_org / is_cdn_resolved for existing geo rows where is_cdn_resolved IS NULL.
+    Reads ip from geo table directly — no DNS re-resolution needed.
+    Returns counts: {updated, skipped_no_ip, skipped_no_asn_db}.
+    """
+    from siamquantum.services.geoip import lookup_asn, _get_asn_reader
+    from siamquantum.db.repos import GeoRepo
+
+    counts: dict[str, int] = {"updated": 0, "skipped_no_ip": 0, "skipped_no_asn_db": 0}
+
+    if not _get_asn_reader():
+        with get_connection(db_path) as conn:
+            total = conn.execute(
+                "SELECT COUNT(*) FROM geo WHERE is_cdn_resolved IS NULL"
+            ).fetchone()[0]
+        counts["skipped_no_asn_db"] = total
+        return counts
+
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT source_id, ip FROM geo WHERE is_cdn_resolved IS NULL"
+        ).fetchall()
+
+    for row in rows:
+        source_id: int = row["source_id"]
+        ip: str | None = row["ip"]
+        if not ip:
+            counts["skipped_no_ip"] += 1
+            continue
+
+        asn_org, is_cdn = lookup_asn(ip)
+        with get_connection(db_path) as conn:
+            conn.execute(
+                "UPDATE geo SET asn_org = ?, is_cdn_resolved = ? WHERE source_id = ?",
+                (asn_org, is_cdn, source_id),
+            )
+            conn.commit()
+        counts["updated"] += 1
 
     return counts

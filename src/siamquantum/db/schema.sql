@@ -15,14 +15,16 @@ CREATE TABLE IF NOT EXISTS sources (
 );
 
 CREATE TABLE IF NOT EXISTS geo (
-    source_id INTEGER PRIMARY KEY
-              REFERENCES sources(id) ON DELETE CASCADE,
-    ip        TEXT,
-    lat       REAL,
-    lng       REAL,
-    city      TEXT,
-    region    TEXT,
-    isp       TEXT
+    source_id       INTEGER PRIMARY KEY
+                    REFERENCES sources(id) ON DELETE CASCADE,
+    ip              TEXT,
+    lat             REAL,
+    lng             REAL,
+    city            TEXT,
+    region          TEXT,
+    isp             TEXT,
+    asn_org         TEXT,       -- MaxMind ASN organisation name
+    is_cdn_resolved INTEGER     -- 1 = CDN/cloud IP, 0 = likely origin, NULL = unknown
 );
 
 CREATE TABLE IF NOT EXISTS entities (

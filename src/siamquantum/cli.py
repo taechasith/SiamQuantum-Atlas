@@ -138,6 +138,21 @@ def ingest_geo(
     )
 
 
+@ingest_app.command("asn-backfill")
+def ingest_asn_backfill() -> None:
+    """Populate asn_org / is_cdn_resolved for existing geo rows (requires GeoLite2-ASN.mmdb)."""
+    from siamquantum.pipeline.ingest import backfill_asn
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Running ASN backfill for existing geo rows…")
+    counts = backfill_asn(db_path)
+    typer.echo(
+        f"  updated={counts['updated']}"
+        f"  skipped_no_ip={counts['skipped_no_ip']}"
+        f"  skipped_no_asn_db={counts['skipped_no_asn_db']}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # analyze commands
 # ---------------------------------------------------------------------------
