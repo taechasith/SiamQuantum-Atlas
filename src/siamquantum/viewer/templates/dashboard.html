@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}แผนที่ — SiamQuantum Atlas{% endblock %}
+{% set active = 'dashboard' %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<style>
+  #map { width: 100%; height: calc(100vh - 52px - 72px); }
+  .legend { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; }
+  .legend h4 { font-size: 0.8rem; margin-bottom: 0.5rem; color: #8b949e; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.25rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  #status { padding: 0.5rem 1.5rem; font-size: 0.8rem; color: #8b949e; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="header">
+  <h1>แผนที่แหล่งข้อมูลควอนตัมไทย &nbsp;|&nbsp; Thai Quantum Source Map</h1>
+  <p>แสดงเฉพาะ IP ต้นทางจริง (ไม่รวม CDN) &nbsp;|&nbsp; Origin IPs only (CDN-resolved excluded)</p>
+</div>
+<div id="status">กำลังโหลด… / Loading…</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const map = L.map('map', { center: [13.0, 101.0], zoom: 6 });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+
+const markers = L.markerClusterGroup();
+const platformColor = { gdelt: '#58a6ff', youtube: '#f85149' };
+
+fetch('/api/geo/list?cdn=false')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('status').textContent =
+      `${data.length} แหล่งข้อมูล / sources (origin IPs only)`;
+    data.forEach(pt => {
+      const color = platformColor[pt.platform] || '#8b949e';
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid #fff;"></div>`,
+        iconSize: [10, 10], iconAnchor: [5, 5],
+      });
+      const m = L.marker([pt.lat, pt.lng], { icon });
+      m.bindPopup(`
+        <b>${pt.platform.toUpperCase()}</b><br>
+        ${pt.title || pt.url}<br>
+        <small>${pt.city || ''} ${pt.region || ''}</small><br>
+        <a href="${pt.url}" target="_blank" rel="noopener">เปิดลิงก์ / Open</a>
+      `);
+      markers.addLayer(m);
+    });
+    map.addLayer(markers);
+  })
+  .catch(e => {
+    document.getElementById('status').textContent = 'Error: ' + e.message;
+  });
+</script>
+{% endblock %}

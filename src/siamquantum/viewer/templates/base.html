@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 0 1.5rem; display: flex; align-items: center; gap: 2rem; height: 52px; }
+    nav .brand { font-weight: 700; font-size: 1rem; color: #58a6ff; text-decoration: none; }
+    nav a { color: #8b949e; text-decoration: none; font-size: 0.875rem; padding: 0.25rem 0.5rem; border-radius: 6px; transition: color .15s, background .15s; }
+    nav a:hover, nav a.active { color: #e6edf3; background: #21262d; }
+    .header { padding: 1.5rem; border-bottom: 1px solid #21262d; }
+    .header h1 { font-size: 1.25rem; font-weight: 600; }
+    .header p { color: #8b949e; font-size: 0.875rem; margin-top: 0.25rem; }
+    .content { padding: 1.5rem; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-sig { background: #388bfd26; color: #58a6ff; border: 1px solid #388bfd; }
+    .badge-ns  { background: #8b949e26; color: #8b949e; border: 1px solid #8b949e; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav>
+    <a class="brand" href="/dashboard">⚛ SiamQuantum Atlas</a>
+    <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>แผนที่ / Map</a>
+    <a href="/network"   {% if active == 'network'   %}class="active"{% endif %}>เครือข่าย / Network</a>
+    <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>สถิติ / Analytics</a>
+    <a href="/database"  {% if active == 'database'  %}class="active"{% endif %}>ฐานข้อมูล / Database</a>
+    <a href="/community" {% if active == 'community' %}class="active"{% endif %}>ชุมชน / Community</a>
+  </nav>
+  {% block body %}{% endblock %}
+</body>
+</html>

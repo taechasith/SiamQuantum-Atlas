@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}ชุมชน — SiamQuantum Atlas{% endblock %}
+{% set active = 'community' %}
+
+{% block head %}
+<style>
+  .form-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; max-width: 540px; }
+  .form-card label { display: block; font-size: 0.8rem; color: #8b949e; margin-bottom: 0.3rem; }
+  .form-card input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.875rem; margin-bottom: 1rem; }
+  .form-card input:focus { outline: none; border-color: #388bfd; }
+  .form-card button { background: #238636; border: 1px solid #2ea043; color: #fff; border-radius: 6px; padding: 0.5rem 1.25rem; font-size: 0.875rem; cursor: pointer; }
+  #msg { margin-top: 1rem; font-size: 0.875rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: none; }
+  .msg-ok { background: #238636cc; border: 1px solid #2ea043; color: #3fb950; }
+  .msg-err { background: #da363a22; border: 1px solid #f85149; color: #f85149; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="header">
+  <h1>ส่งแหล่งข้อมูล / Submit a Source</h1>
+  <p>แชร์ลิงก์บทความหรือวิดีโอควอนตัมที่น่าสนใจ / Share a quantum technology article or video URL</p>
+</div>
+<div class="content">
+  <div class="form-card">
+    <label for="url">URL *</label>
+    <input id="url" type="url" placeholder="https://…" required>
+    <label for="handle">ชื่อผู้ส่ง / Handle (optional)</label>
+    <input id="handle" type="text" placeholder="@username">
+    <button onclick="submit()">ส่ง / Submit</button>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<script>
+function submit() {
+  const url = document.getElementById('url').value.trim();
+  const handle = document.getElementById('handle').value.trim();
+  const msg = document.getElementById('msg');
+  if (!url) { showMsg('กรุณาใส่ URL / URL is required', false); return; }
+  fetch('/api/community/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, handle: handle || null }),
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r))
+  .then(d => {
+    showMsg(`ส่งสำเร็จ ID=${d.id} / Submitted successfully (ID=${d.id})`, true);
+    document.getElementById('url').value = '';
+    document.getElementById('handle').value = '';
+  })
+  .catch(() => showMsg('เกิดข้อผิดพลาด / Submission failed', false));
+}
+function showMsg(text, ok) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = ok ? 'msg-ok' : 'msg-err';
+  el.style.display = 'block';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}ฐานข้อมูล — SiamQuantum Atlas{% endblock %}
+{% set active = 'database' %}
+
+{% block head %}
+<style>
+  .filters { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: flex-end; }
+  .filters select, .filters input { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.875rem; }
+  .filters button { background: #238636; border: 1px solid #2ea043; color: #fff; border-radius: 6px; padding: 0.4rem 1rem; font-size: 0.875rem; cursor: pointer; }
+  .filters .export-btn { background: #1f6feb; border-color: #388bfd; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+  .src-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem; }
+  .src-card .platform { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #8b949e; margin-bottom: 0.25rem; }
+  .src-card .platform.gdelt { color: #58a6ff; }
+  .src-card .platform.youtube { color: #f85149; }
+  .src-card h4 { font-size: 0.875rem; margin-bottom: 0.5rem; line-height: 1.4; }
+  .src-card .meta { font-size: 0.75rem; color: #8b949e; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .src-card a { color: #58a6ff; font-size: 0.75rem; text-decoration: none; }
+  .pagination { display: flex; gap: 0.5rem; margin-top: 1.25rem; align-items: center; font-size: 0.875rem; }
+  .pagination button { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.3rem 0.75rem; cursor: pointer; }
+  .pagination button:disabled { opacity: 0.4; cursor: default; }
+  #total-label { color: #8b949e; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="header">
+  <h1>ฐานข้อมูล / Database</h1>
+</div>
+<div class="content">
+  <div class="filters">
+    <select id="f-year"><option value="">ทุกปี / All years</option></select>
+    <select id="f-platform">
+      <option value="">ทุกแพลตฟอร์ม / All</option>
+      <option value="gdelt">GDELT</option>
+      <option value="youtube">YouTube</option>
+    </select>
+    <select id="f-content">
+      <option value="">ทุกประเภท / All types</option>
+      <option value="academic">Academic</option>
+      <option value="news">News</option>
+      <option value="educational">Educational</option>
+      <option value="entertainment">Entertainment</option>
+    </select>
+    <button onclick="loadPage(1)">ค้นหา / Search</button>
+    <button class="export-btn" onclick="exportXlsx()">ส่งออก XLSX / Export</button>
+  </div>
+  <div id="total-label"></div>
+  <div id="card-grid" class="card-grid"></div>
+  <div class="pagination">
+    <button id="btn-prev" onclick="loadPage(currentPage-1)" disabled>‹ ก่อน</button>
+    <span id="page-label"></span>
+    <button id="btn-next" onclick="loadPage(currentPage+1)">ถัดไป ›</button>
+  </div>
+</div>
+
+<script>
+let currentPage = 1;
+let totalPages = 1;
+
+// Populate year filter
+fetch('/api/stats/yearly').then(r => r.json()).then(d => {
+  const sel = document.getElementById('f-year');
+  d.years.sort().forEach(y => {
+    const o = document.createElement('option'); o.value = y; o.textContent = y; sel.appendChild(o);
+  });
+});
+
+function buildQS(page) {
+  const p = new URLSearchParams({ page, page_size: 20 });
+  const yr = document.getElementById('f-year').value;
+  const pl = document.getElementById('f-platform').value;
+  const ct = document.getElementById('f-content').value;
+  if (yr) p.set('year', yr);
+  if (pl) p.set('platform', pl);
+  if (ct) p.set('content_type', ct);
+  return p.toString();
+}
+
+function exportXlsx() {
+  const yr = document.getElementById('f-year').value;
+  const pl = document.getElementById('f-platform').value;
+  const p = new URLSearchParams();
+  if (yr) p.set('year', yr);
+  if (pl) p.set('platform', pl);
+  window.location = '/api/export/xlsx?' + p.toString();
+}
+
+function loadPage(page) {
+  currentPage = page;
+  fetch('/api/sources?' + buildQS(page))
+    .then(r => r.json())
+    .then(data => {
+      totalPages = Math.ceil(data.total / data.page_size) || 1;
+      document.getElementById('total-label').textContent =
+        `${data.total} รายการ / items`;
+      document.getElementById('page-label').textContent =
+        `หน้า ${currentPage} / ${totalPages}`;
+      document.getElementById('btn-prev').disabled = currentPage <= 1;
+      document.getElementById('btn-next').disabled = currentPage >= totalPages;
+
+      const grid = document.getElementById('card-grid');
+      grid.innerHTML = data.items.map(s => `
+        <div class="src-card">
+          <div class="platform ${s.platform}">${s.platform.toUpperCase()} · ${s.published_year}</div>
+          <h4>${s.title || s.url}</h4>
+          <div class="meta">
+            <span>${s.content_type || '—'}</span>
+            <span>${s.production_type || '—'}</span>
+            <span>${s.engagement_level || '—'}</span>
+            ${s.view_count != null ? `<span>👁 ${s.view_count.toLocaleString()}</span>` : ''}
+          </div>
+          <a href="${s.url}" target="_blank" rel="noopener">เปิด / Open →</a>
+        </div>`).join('');
+    });
+}
+
+loadPage(1);
+</script>
+{% endblock %}

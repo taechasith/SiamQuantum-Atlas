@@ -233,5 +233,12 @@ def serve(
     port: int = typer.Option(settings.viewer_port, "--port"),
     reload: bool = typer.Option(False, "--reload"),
 ) -> None:
-    """Start the FastAPI viewer."""
-    raise NotImplementedError("phase 6 not yet implemented — see SPEC.md")
+    """Start the FastAPI viewer on port 8765."""
+    import uvicorn
+    typer.echo(f"Starting SiamQuantum Atlas viewer on http://localhost:{port}")
+    uvicorn.run(
+        "siamquantum.viewer.server:app",
+        host="0.0.0.0",
+        port=port,
+        reload=reload,
+    )

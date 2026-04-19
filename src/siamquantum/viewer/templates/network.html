@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}เครือข่าย — SiamQuantum Atlas{% endblock %}
+{% set active = 'network' %}
+
+{% block head %}
+<style>
+  body { overflow: hidden; }
+  #graph { width: 100%; height: calc(100vh - 52px); }
+  #legend { position: fixed; top: 68px; right: 1rem; z-index: 999; }
+  .legend { background: #161b22cc; backdrop-filter: blur(4px); border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; }
+  .legend h4 { font-size: 0.8rem; margin-bottom: 0.5rem; color: #8b949e; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; margin-bottom: 0.2rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  #info { position: fixed; bottom: 1rem; left: 1rem; z-index: 999; background: #161b22cc; border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.8rem; max-width: 320px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div id="graph"></div>
+<div id="legend">
+  <div class="legend">
+    <h4>Production Type</h4>
+    <div class="legend-item"><div class="dot" style="background:#f85149"></div>state_research</div>
+    <div class="legend-item"><div class="dot" style="background:#3fb950"></div>university</div>
+    <div class="legend-item"><div class="dot" style="background:#58a6ff"></div>corporate_media</div>
+    <div class="legend-item"><div class="dot" style="background:#d2a8ff"></div>independent</div>
+  </div>
+</div>
+<div id="info">คลิกโหนดเพื่อดูรายละเอียด / Click a node for details</div>
+
+<script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+<script>
+const ptColor = {
+  state_research: '#f85149', university: '#3fb950',
+  corporate_media: '#58a6ff', independent: '#d2a8ff',
+};
+
+fetch('/api/graph')
+  .then(r => r.json())
+  .then(({ nodes, edges }) => {
+    const graphData = {
+      nodes: nodes.map(n => ({
+        id: n.id, name: n.title || n.url, url: n.url,
+        color: ptColor[n.production_type] || '#8b949e',
+        val: n.engagement_level === 'high' ? 3 : n.engagement_level === 'medium' ? 2 : 1,
+        ...n,
+      })),
+      links: edges.map(e => ({
+        source: e.source_id, target: e.source_id,  // self-loops show triplets on node
+        label: `${e.subject} ${e.relation} ${e.object}`,
+      })),
+    };
+
+    const Graph = ForceGraph3D()(document.getElementById('graph'))
+      .backgroundColor('#0d1117')
+      .nodeColor(n => n.color)
+      .nodeVal(n => n.val)
+      .nodeLabel(n => `<span style="color:#e6edf3;font-size:12px">${n.name}</span>`)
+      .linkOpacity(0.3)
+      .onNodeClick(n => {
+        document.getElementById('info').innerHTML =
+          `<b>${n.title || ''}</b><br>
+           ${n.content_type} / ${n.production_type}<br>
+           Area: ${n.area || '—'}<br>
+           Engagement: ${n.engagement_level}<br>
+           <a href="${n.url}" target="_blank" rel="noopener" style="color:#58a6ff">Open →</a>`;
+      })
+      .graphData(graphData);
+  });
+</script>
+{% endblock %}

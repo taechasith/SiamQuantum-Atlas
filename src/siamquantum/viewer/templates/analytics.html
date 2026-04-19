@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}สถิติ — SiamQuantum Atlas{% endblock %}
+{% set active = 'analytics' %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.25rem; }
+  .card h3 { font-size: 0.875rem; color: #8b949e; margin-bottom: 1rem; }
+  canvas { max-height: 280px; }
+  .ttest-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .ttest-table th { text-align: left; color: #8b949e; border-bottom: 1px solid #30363d; padding: 0.4rem 0.6rem; }
+  .ttest-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #21262d; }
+  @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="header">
+  <h1>สถิติ / Analytics</h1>
+  <p>การกระจายรายปีและผลการทดสอบ t-test / Yearly distribution and t-test results</p>
+</div>
+<div class="content">
+  <div id="charts-grid" class="charts-grid">
+    <div class="card"><h3>Sources per Year (by Platform)</h3><canvas id="chart-yearly"></canvas></div>
+    <div class="card"><h3>Engagement Level Distribution</h3><canvas id="chart-engagement"></canvas></div>
+    <div class="card" style="grid-column:1/-1">
+      <h3>Welch's t-test Results (YouTube Engagement)</h3>
+      <table class="ttest-table" id="ttest-table">
+        <thead><tr><th>Year A</th><th>Year B</th><th>t</th><th>df</th><th>p-value</th><th>Result</th></tr></thead>
+        <tbody id="ttest-body"><tr><td colspan="6" style="color:#8b949e">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = { gdelt: '#58a6ff', youtube: '#f85149' };
+const ENG_COLORS = { low: '#8b949e', medium: '#d2a8ff', high: '#3fb950' };
+
+fetch('/api/stats/yearly')
+  .then(r => r.json())
+  .then(data => {
+    const years = data.years.sort();
+
+    // --- Yearly bar chart ---
+    const platforms = ['gdelt', 'youtube'];
+    new Chart(document.getElementById('chart-yearly'), {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: platforms.map(p => ({
+          label: p.toUpperCase(),
+          data: years.map(y => (data.counts[y] || {})[p] || 0),
+          backgroundColor: COLORS[p] + 'cc',
+          borderColor: COLORS[p],
+          borderWidth: 1,
+        })),
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#e6edf3' } } },
+        scales: {
+          x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+          y: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+        },
+      },
+    });
+
+    // --- Engagement doughnut ---
+    const engTotals = { low: 0, medium: 0, high: 0 };
+    years.forEach(y => {
+      const d = data.engagement_distribution[y] || {};
+      Object.keys(engTotals).forEach(k => { engTotals[k] += d[k] || 0; });
+    });
+    new Chart(document.getElementById('chart-engagement'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Low', 'Medium', 'High'],
+        datasets: [{ data: [engTotals.low, engTotals.medium, engTotals.high],
+          backgroundColor: [ENG_COLORS.low + 'cc', ENG_COLORS.medium + 'cc', ENG_COLORS.high + 'cc'],
+          borderColor: [ENG_COLORS.low, ENG_COLORS.medium, ENG_COLORS.high], borderWidth: 1 }],
+      },
+      options: { plugins: { legend: { labels: { color: '#e6edf3' } } } },
+    });
+
+    // --- t-test table ---
+    const tbody = document.getElementById('ttest-body');
+    if (!data.ttest_results || data.ttest_results.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:#8b949e">ยังไม่มีข้อมูลเพียงพอสำหรับ t-test (ต้องการข้อมูลหลายปี) / Insufficient data — need multi-year corpus.</td></tr>';
+    } else {
+      tbody.innerHTML = data.ttest_results.map(r => `
+        <tr>
+          <td>${r.year_a}</td><td>${r.year_b}</td>
+          <td>${r.t.toFixed(3)}</td><td>${r.df.toFixed(1)}</td>
+          <td>${r.p_value.toFixed(4)}</td>
+          <td><span class="badge ${r.significant ? 'badge-sig' : 'badge-ns'}">
+            ${r.significant ? 'Significant ✓' : 'n.s.'}
+          </span></td>
+        </tr>`).join('');
+    }
+  });
+</script>
+{% endblock %}
