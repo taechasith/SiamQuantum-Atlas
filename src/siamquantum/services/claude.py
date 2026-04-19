@@ -35,6 +35,21 @@ class _APIError(Exception):
     pass
 
 
+# Module-level token accumulator — reset between runs via reset_usage()
+_usage_input: int = 0
+_usage_output: int = 0
+
+
+def get_usage() -> tuple[int, int]:
+    return _usage_input, _usage_output
+
+
+def reset_usage() -> None:
+    global _usage_input, _usage_output
+    _usage_input = 0
+    _usage_output = 0
+
+
 def _client() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
@@ -47,6 +62,7 @@ def _client() -> anthropic.Anthropic:
 )
 def _call(system: str, user: str) -> str:
     """Single Claude API call. Returns raw text content. Retries on API errors."""
+    global _usage_input, _usage_output
     try:
         msg = _client().messages.create(
             model=settings.claude_model,
@@ -55,6 +71,8 @@ def _call(system: str, user: str) -> str:
             system=system,
             messages=[{"role": "user", "content": user}],
         )
+        _usage_input += msg.usage.input_tokens
+        _usage_output += msg.usage.output_tokens
         return msg.content[0].text  # type: ignore[union-attr]
     except anthropic.RateLimitError as exc:
         raise _APIError(str(exc)) from exc

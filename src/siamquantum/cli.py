@@ -165,11 +165,22 @@ def analyze_nlp(year: int = typer.Option(..., "--year")) -> None:
     db_path = db_path_from_url(settings.database_url)
     typer.echo(f"Running NLP pipeline for year={year}…")
     counts = analyze_year(year, db_path)
+    tok_in = counts.get("token_input", 0)
+    tok_out = counts.get("token_output", 0)
+    cost = tok_in * 3.0 / 1_000_000 + tok_out * 15.0 / 1_000_000
     typer.echo(
         f"  processed={counts['processed']}"
         f"  skipped_already_done={counts['skipped_already_done']}"
         f"  skipped_no_text={counts['skipped_no_text']}"
         f"  discarded_duplicate={counts['discarded_duplicate']}"
+    )
+    typer.echo(
+        f"  triplets_written={counts.get('triplets_written', '?')}"
+        f"  entities_written={counts.get('entities_written', '?')}"
+    )
+    typer.echo(
+        f"  tokens: input={tok_in} output={tok_out}"
+        f"  cost_usd=${cost:.4f}"
     )
 
 

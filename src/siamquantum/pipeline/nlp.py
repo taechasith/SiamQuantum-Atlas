@@ -7,6 +7,7 @@ from siamquantum.db.repos import EntityRepo, SourceRepo, TripletRepo
 from siamquantum.db.session import get_connection
 from siamquantum.models import EntityCreate, TripletCreate
 from siamquantum.services import claude
+from siamquantum.services.claude import get_usage, reset_usage
 from siamquantum.services.dedup import find_duplicates
 
 logger = logging.getLogger(__name__)
@@ -23,11 +24,14 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
     Dedup: TF-IDF cosine on raw_text, Claude in ambiguous zone [0.6, 0.85].
     Returns counts: {processed, skipped_already_done, skipped_no_text, discarded_duplicate}.
     """
+    reset_usage()
     counts: dict[str, int] = {
         "processed": 0,
         "skipped_already_done": 0,
         "skipped_no_text": 0,
         "discarded_duplicate": 0,
+        "triplets_written": 0,
+        "entities_written": 0,
     }
 
     with get_connection(db_path) as conn:
@@ -75,6 +79,7 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
                         for t in triplets
                     ]
                 )
+                counts["triplets_written"] += len(triplets)
             if entity:
                 EntityRepo(conn).upsert(
                     EntityCreate(
@@ -85,6 +90,7 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
                         engagement_level=entity.engagement_level,
                     )
                 )
+                counts["entities_written"] += 1
 
         counts["processed"] += 1
         logger.info(
@@ -94,4 +100,7 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
             entity.content_type if entity else "none",
         )
 
+    tok_in, tok_out = get_usage()
+    counts["token_input"] = tok_in
+    counts["token_output"] = tok_out
     return counts
