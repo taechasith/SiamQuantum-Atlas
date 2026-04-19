@@ -1,105 +1,488 @@
 {% extends "base.html" %}
-{% block title %}สถิติ — SiamQuantum Atlas{% endblock %}
+{% block title %}สถิติประจำปี | SiamQuantum Atlas{% endblock %}
 {% set active = 'analytics' %}
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.25rem; }
-  .card h3 { font-size: 0.875rem; color: #8b949e; margin-bottom: 1rem; }
-  canvas { max-height: 280px; }
-  .ttest-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-  .ttest-table th { text-align: left; color: #8b949e; border-bottom: 1px solid #30363d; padding: 0.4rem 0.6rem; }
-  .ttest-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #21262d; }
-  @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+  :root {
+    --panel: rgba(10, 16, 35, 0.84);
+    --panel-border: rgba(112, 147, 255, 0.24);
+    --text: #f3f7ff;
+    --muted: #99a7d3;
+    --accent: #70e1ff;
+    --accent-2: #c79bff;
+    --success: #56f39a;
+    --warning: #ffb347;
+    --danger: #ff7a90;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
+      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  }
+
+  .analytics-shell {
+    padding: 1.5rem;
+  }
+
+  .hero-card,
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-card {
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-card h1 {
+    color: var(--text);
+    font-size: clamp(1.7rem, 3vw, 2.8rem);
+    line-height: 1.08;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-card p {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.6;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem;
+    margin-top: 1.2rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-value {
+    color: var(--text);
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-top: 0.35rem;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    border: 1px solid rgba(112, 225, 255, 0.25);
+    background: rgba(112, 225, 255, 0.08);
+    border-radius: 999px;
+    color: var(--accent);
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    margin-top: 1rem;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .card h3 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .wide-card {
+    grid-column: 1 / -1;
+  }
+
+  canvas {
+    width: 100%;
+    max-height: 340px;
+  }
+
+  .significance-list {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .sig-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sig-copy {
+    color: var(--muted);
+    line-height: 1.5;
+    font-size: 0.92rem;
+  }
+
+  .sig-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .sig-yes {
+    background: rgba(86, 243, 154, 0.12);
+    color: var(--success);
+    border: 1px solid rgba(86, 243, 154, 0.32);
+  }
+
+  .sig-no {
+    background: rgba(199, 155, 255, 0.12);
+    color: var(--accent-2);
+    border: 1px solid rgba(199, 155, 255, 0.32);
+  }
+
+  .empty-state,
+  .error-state {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2.4rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(4, 8, 22, 0.9), rgba(8, 14, 30, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 1.25rem;
+  }
+
+  .empty-state.is-visible,
+  .error-state.is-visible {
+    display: flex;
+  }
+
+  .state-title {
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+
+  .state-copy {
+    color: var(--muted);
+    max-width: 54ch;
+    line-height: 1.6;
+  }
+
+  .error-state .state-title {
+    color: var(--danger);
+  }
+
+  @media (max-width: 860px) {
+    .analytics-shell {
+      padding: 1rem;
+    }
+
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sig-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="header">
-  <h1>สถิติ / Analytics</h1>
-  <p>การกระจายรายปีและผลการทดสอบ t-test / Yearly distribution and t-test results</p>
-</div>
-<div class="content">
-  <div id="charts-grid" class="charts-grid">
-    <div class="card"><h3>Sources per Year (by Platform)</h3><canvas id="chart-yearly"></canvas></div>
-    <div class="card"><h3>Engagement Level Distribution</h3><canvas id="chart-engagement"></canvas></div>
-    <div class="card" style="grid-column:1/-1">
-      <h3>Welch's t-test Results (YouTube Engagement)</h3>
-      <table class="ttest-table" id="ttest-table">
-        <thead><tr><th>Year A</th><th>Year B</th><th>t</th><th>df</th><th>p-value</th><th>Result</th></tr></thead>
-        <tbody id="ttest-body"><tr><td colspan="6" style="color:#8b949e">Loading…</td></tr></tbody>
-      </table>
+<section class="analytics-shell">
+  <div class="hero-card">
+    <div class="eyebrow">Yearly Statistical View</div>
+    <h1>สถิติรายปีของข้อมูลควอนตัมไทย<br>Thai Quantum Yearly Analytics</h1>
+    <p>
+      หน้านี้สรุปแนวโน้มรายปีจากฐานข้อมูล โดยผสานจำนวนแหล่งข้อมูลกับสัญญาณ engagement ระดับสูง
+      และแสดงผลการทดสอบนัยสำคัญทางสถิติเมื่อมีข้อมูลใน cache พร้อมใช้งาน.
+    </p>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">ปีที่มีข้อมูล / Years</div>
+        <div class="stat-value" id="stat-years">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">แหล่งข้อมูลรวม / Sources</div>
+        <div class="stat-value" id="stat-sources">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ผลทดสอบ / Significance</div>
+        <div class="stat-value" id="stat-significance">0</div>
+      </div>
+    </div>
+    <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading analytics</div>
+  </div>
+
+  <div class="empty-state" id="empty-state">
+    <div>
+      <div class="state-title">ยังไม่มีสถิติรายปี / No yearly stats available</div>
+      <div class="state-copy">
+        หน้า analytics ยังเปิดได้ตามปกติ แต่ฐานข้อมูลยังไม่มีข้อมูลรายปีเพียงพอสำหรับเรนเดอร์กราฟในตอนนี้.
+      </div>
     </div>
   </div>
-</div>
+
+  <div class="error-state" id="error-state">
+    <div>
+      <div class="state-title">โหลดข้อมูลสถิติไม่สำเร็จ / Yearly stats API error</div>
+      <div class="state-copy" id="error-message">
+        ไม่สามารถโหลดข้อมูลจาก `/api/stats/yearly` ได้ในขณะนี้.
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-grid" id="charts-grid">
+    <div class="card wide-card">
+      <h3>แนวโน้มรายปี / Annual Trend + Engagement Comparison</h3>
+      <p>Bar + line composite chart แสดงจำนวนแหล่งข้อมูลทั้งหมดเทียบกับจำนวน high-engagement ต่อปี</p>
+      <canvas id="trend-chart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>แยกตามแพลตฟอร์ม / Platform Breakdown</h3>
+      <p>จำนวนแหล่งข้อมูลจากแต่ละแพลตฟอร์มในแต่ละปี</p>
+      <canvas id="platform-chart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>นัยสำคัญทางสถิติ / Significance</h3>
+      <p>รายการคู่ปีที่มีผล t-test พร้อมป้ายกำกับ p-value significance</p>
+      <div class="significance-list" id="significance-list"></div>
+    </div>
+  </div>
+</section>
 
 <script>
-const COLORS = { gdelt: '#58a6ff', youtube: '#f85149' };
-const ENG_COLORS = { low: '#8b949e', medium: '#d2a8ff', high: '#3fb950' };
+  const chartDefaults = {
+    color: "#f3f7ff",
+    grid: "rgba(153, 167, 211, 0.14)",
+    muted: "#99a7d3"
+  };
 
-fetch('/api/stats/yearly')
-  .then(r => r.json())
-  .then(data => {
-    const years = data.years.sort();
+  const elements = {
+    status: document.getElementById("status-pill"),
+    years: document.getElementById("stat-years"),
+    sources: document.getElementById("stat-sources"),
+    significance: document.getElementById("stat-significance"),
+    empty: document.getElementById("empty-state"),
+    error: document.getElementById("error-state"),
+    errorMessage: document.getElementById("error-message"),
+    charts: document.getElementById("charts-grid"),
+    significanceList: document.getElementById("significance-list")
+  };
 
-    // --- Yearly bar chart ---
-    const platforms = ['gdelt', 'youtube'];
-    new Chart(document.getElementById('chart-yearly'), {
-      type: 'bar',
-      data: {
-        labels: years,
-        datasets: platforms.map(p => ({
-          label: p.toUpperCase(),
-          data: years.map(y => (data.counts[y] || {})[p] || 0),
-          backgroundColor: COLORS[p] + 'cc',
-          borderColor: COLORS[p],
-          borderWidth: 1,
-        })),
+  function setStatus(text) {
+    elements.status.textContent = text;
+  }
+
+  function showEmpty(message) {
+    elements.empty.querySelector(".state-copy").textContent = message;
+    elements.empty.classList.add("is-visible");
+    elements.error.classList.remove("is-visible");
+    elements.charts.style.display = "none";
+    setStatus("ไม่มีข้อมูล / No yearly stats");
+  }
+
+  function showError(message) {
+    elements.errorMessage.textContent = message;
+    elements.error.classList.add("is-visible");
+    elements.empty.classList.remove("is-visible");
+    elements.charts.style.display = "none";
+    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+  }
+
+  function hideStates() {
+    elements.empty.classList.remove("is-visible");
+    elements.error.classList.remove("is-visible");
+    elements.charts.style.display = "grid";
+  }
+
+  function chartOptions() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: chartDefaults.color
+          }
+        }
       },
-      options: {
-        responsive: true,
-        plugins: { legend: { labels: { color: '#e6edf3' } } },
-        scales: {
-          x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
-          y: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+      scales: {
+        x: {
+          ticks: { color: chartDefaults.muted },
+          grid: { color: chartDefaults.grid }
         },
-      },
-    });
+        y: {
+          beginAtZero: true,
+          ticks: { color: chartDefaults.muted },
+          grid: { color: chartDefaults.grid }
+        }
+      }
+    };
+  }
 
-    // --- Engagement doughnut ---
-    const engTotals = { low: 0, medium: 0, high: 0 };
-    years.forEach(y => {
-      const d = data.engagement_distribution[y] || {};
-      Object.keys(engTotals).forEach(k => { engTotals[k] += d[k] || 0; });
-    });
-    new Chart(document.getElementById('chart-engagement'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Low', 'Medium', 'High'],
-        datasets: [{ data: [engTotals.low, engTotals.medium, engTotals.high],
-          backgroundColor: [ENG_COLORS.low + 'cc', ENG_COLORS.medium + 'cc', ENG_COLORS.high + 'cc'],
-          borderColor: [ENG_COLORS.low, ENG_COLORS.medium, ENG_COLORS.high], borderWidth: 1 }],
-      },
-      options: { plugins: { legend: { labels: { color: '#e6edf3' } } } },
-    });
-
-    // --- t-test table ---
-    const tbody = document.getElementById('ttest-body');
-    if (!data.ttest_results || data.ttest_results.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:#8b949e">ยังไม่มีข้อมูลเพียงพอสำหรับ t-test (ต้องการข้อมูลหลายปี) / Insufficient data — need multi-year corpus.</td></tr>';
-    } else {
-      tbody.innerHTML = data.ttest_results.map(r => `
-        <tr>
-          <td>${r.year_a}</td><td>${r.year_b}</td>
-          <td>${r.t.toFixed(3)}</td><td>${r.df.toFixed(1)}</td>
-          <td>${r.p_value.toFixed(4)}</td>
-          <td><span class="badge ${r.significant ? 'badge-sig' : 'badge-ns'}">
-            ${r.significant ? 'Significant ✓' : 'n.s.'}
-          </span></td>
-        </tr>`).join('');
+  function renderSignificance(items) {
+    if (!items.length) {
+      elements.significanceList.innerHTML = `
+        <div class="sig-item">
+          <div class="sig-copy">ยังไม่มีผล t-test ใน cache สำหรับเปรียบเทียบรายปี / No cached significance results yet.</div>
+          <span class="sig-badge sig-no">No tests</span>
+        </div>
+      `;
+      return;
     }
-  });
+
+    elements.significanceList.innerHTML = items.map((item) => {
+      const significant = Boolean(item.significant);
+      const badgeClass = significant ? "sig-yes" : "sig-no";
+      const badgeText = significant ? "p < 0.05" : "n.s.";
+      const pValue = typeof item.p_value === "number" ? item.p_value.toFixed(4) : "n/a";
+      return `
+        <div class="sig-item">
+          <div class="sig-copy">
+            <strong>${item.year_a} vs ${item.year_b}</strong><br>
+            p-value = ${pValue}
+          </div>
+          <span class="sig-badge ${badgeClass}">${badgeText}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function loadAnalytics() {
+    try {
+      const response = await fetch("/api/stats/yearly");
+      const payload = await response.json();
+
+      if (!response.ok || !payload.ok) {
+        const message = payload && payload.error ? payload.error.message : "Unknown yearly stats error";
+        throw new Error(message);
+      }
+
+      const data = payload.data || {};
+      const years = Array.isArray(data.years) ? data.years : [];
+      const counts = data.counts || {};
+      const trendlines = data.trendlines || { total_sources: [], high_engagement: [] };
+      const significance = Array.isArray(data.significance) ? data.significance : [];
+
+      if (!years.length) {
+        showEmpty("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล significance.");
+        return;
+      }
+
+      hideStates();
+
+      const totalSources = trendlines.total_sources || years.map((year) => (counts[year] || {}).total || 0);
+      const highEngagement = trendlines.high_engagement || years.map(() => 0);
+      const gdelt = years.map((year) => (counts[year] || {}).gdelt || 0);
+      const youtube = years.map((year) => (counts[year] || {}).youtube || 0);
+
+      elements.years.textContent = String(years.length);
+      elements.sources.textContent = String(totalSources.reduce((sum, value) => sum + Number(value || 0), 0));
+      elements.significance.textContent = String(significance.filter((item) => item.significant).length);
+
+      new Chart(document.getElementById("trend-chart"), {
+        data: {
+          labels: years,
+          datasets: [
+            {
+              type: "bar",
+              label: "Total Sources",
+              data: totalSources,
+              backgroundColor: "rgba(112, 225, 255, 0.45)",
+              borderColor: "#70e1ff",
+              borderWidth: 1.2
+            },
+            {
+              type: "line",
+              label: "High Engagement",
+              data: highEngagement,
+              borderColor: "#ffb347",
+              backgroundColor: "rgba(255, 179, 71, 0.2)",
+              tension: 0.28,
+              fill: false,
+              pointRadius: 4
+            }
+          ]
+        },
+        options: chartOptions()
+      });
+
+      new Chart(document.getElementById("platform-chart"), {
+        type: "bar",
+        data: {
+          labels: years,
+          datasets: [
+            {
+              label: "GDELT",
+              data: gdelt,
+              backgroundColor: "rgba(112, 225, 255, 0.45)",
+              borderColor: "#70e1ff",
+              borderWidth: 1.2
+            },
+            {
+              label: "YouTube",
+              data: youtube,
+              backgroundColor: "rgba(199, 155, 255, 0.42)",
+              borderColor: "#c79bff",
+              borderWidth: 1.2
+            }
+          ]
+        },
+        options: chartOptions()
+      });
+
+      renderSignificance(significance);
+      setStatus(`โหลดแล้ว ${years.length} ปี / ${significance.length} significance rows`);
+    } catch (error) {
+      showError(`ไม่สามารถโหลดข้อมูลสถิติรายปีได้: ${error.message}`);
+    }
+  }
+
+  loadAnalytics();
 </script>
 {% endblock %}

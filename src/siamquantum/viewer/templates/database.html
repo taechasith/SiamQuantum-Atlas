@@ -1,120 +1,521 @@
 {% extends "base.html" %}
-{% block title %}ฐานข้อมูล — SiamQuantum Atlas{% endblock %}
+{% block title %}ฐานข้อมูลแหล่งข้อมูล | SiamQuantum Atlas{% endblock %}
 {% set active = 'database' %}
 
 {% block head %}
 <style>
-  .filters { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: flex-end; }
-  .filters select, .filters input { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.875rem; }
-  .filters button { background: #238636; border: 1px solid #2ea043; color: #fff; border-radius: 6px; padding: 0.4rem 1rem; font-size: 0.875rem; cursor: pointer; }
-  .filters .export-btn { background: #1f6feb; border-color: #388bfd; }
-  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-  .src-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem; }
-  .src-card .platform { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #8b949e; margin-bottom: 0.25rem; }
-  .src-card .platform.gdelt { color: #58a6ff; }
-  .src-card .platform.youtube { color: #f85149; }
-  .src-card h4 { font-size: 0.875rem; margin-bottom: 0.5rem; line-height: 1.4; }
-  .src-card .meta { font-size: 0.75rem; color: #8b949e; display: flex; gap: 0.75rem; flex-wrap: wrap; }
-  .src-card a { color: #58a6ff; font-size: 0.75rem; text-decoration: none; }
-  .pagination { display: flex; gap: 0.5rem; margin-top: 1.25rem; align-items: center; font-size: 0.875rem; }
-  .pagination button { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.3rem 0.75rem; cursor: pointer; }
-  .pagination button:disabled { opacity: 0.4; cursor: default; }
-  #total-label { color: #8b949e; }
+  :root {
+    --panel: rgba(10, 16, 35, 0.84);
+    --panel-border: rgba(112, 147, 255, 0.24);
+    --text: #f3f7ff;
+    --muted: #99a7d3;
+    --accent: #70e1ff;
+    --accent-2: #c79bff;
+    --success: #56f39a;
+    --danger: #ff7a90;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
+      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  }
+
+  .database-shell {
+    padding: 1.5rem;
+  }
+
+  .hero-card,
+  .panel-card,
+  .source-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-card {
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-card h1 {
+    color: var(--text);
+    font-size: clamp(1.7rem, 3vw, 2.8rem);
+    line-height: 1.08;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-card p {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.6;
+  }
+
+  .panel-card {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto;
+    gap: 0.9rem;
+    align-items: end;
+  }
+
+  .field label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .field select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.92rem;
+  }
+
+  .btn {
+    border-radius: 12px;
+    padding: 0.78rem 1rem;
+    font-size: 0.92rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-primary {
+    background: rgba(112, 225, 255, 0.14);
+    border-color: rgba(112, 225, 255, 0.36);
+    color: var(--accent);
+  }
+
+  .btn-secondary {
+    background: rgba(199, 155, 255, 0.12);
+    border-color: rgba(199, 155, 255, 0.34);
+    color: var(--accent-2);
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .status-copy {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .source-card {
+    padding: 1rem;
+  }
+
+  .source-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .source-platform {
+    color: var(--accent);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .source-year {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .source-card h3 {
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.45;
+    margin-bottom: 0.75rem;
+  }
+
+  .meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.28rem 0.62rem;
+    font-size: 0.76rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .source-url {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    margin-bottom: 0.8rem;
+    word-break: break-all;
+  }
+
+  .source-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1.25rem;
+  }
+
+  .page-copy {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .page-actions {
+    display: flex;
+    gap: 0.65rem;
+  }
+
+  .empty-state,
+  .error-state {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2.4rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(4, 8, 22, 0.9), rgba(8, 14, 30, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 1rem;
+  }
+
+  .empty-state.is-visible,
+  .error-state.is-visible {
+    display: flex;
+  }
+
+  .state-title {
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+
+  .state-copy {
+    color: var(--muted);
+    max-width: 54ch;
+    line-height: 1.6;
+  }
+
+  .error-state .state-title {
+    color: var(--danger);
+  }
+
+  @media (max-width: 960px) {
+    .database-shell {
+      padding: 1rem;
+    }
+
+    .filters {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .filters,
+    .pagination,
+    .toolbar {
+      grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="header">
-  <h1>ฐานข้อมูล / Database</h1>
-</div>
-<div class="content">
-  <div class="filters">
-    <select id="f-year"><option value="">ทุกปี / All years</option></select>
-    <select id="f-platform">
-      <option value="">ทุกแพลตฟอร์ม / All</option>
-      <option value="gdelt">GDELT</option>
-      <option value="youtube">YouTube</option>
-    </select>
-    <select id="f-content">
-      <option value="">ทุกประเภท / All types</option>
-      <option value="academic">Academic</option>
-      <option value="news">News</option>
-      <option value="educational">Educational</option>
-      <option value="entertainment">Entertainment</option>
-    </select>
-    <button onclick="loadPage(1)">ค้นหา / Search</button>
-    <button class="export-btn" onclick="exportXlsx()">ส่งออก XLSX / Export</button>
+<section class="database-shell">
+  <div class="hero-card">
+    <div class="eyebrow">Source Database View</div>
+    <h1>ฐานข้อมูลแหล่งข้อมูลควอนตัมไทย<br>Thai Quantum Source Database</h1>
+    <p>
+      หน้านี้ใช้สำหรับไล่ดูแหล่งข้อมูลที่อยู่ในฐานข้อมูลแบบรวดเร็ว พร้อมตัวกรองตามปี แพลตฟอร์ม และ content type
+      และสามารถส่งออกผลลัพธ์ที่กรองแล้วเป็นไฟล์ `.xlsx` ได้โดยตรง.
+    </p>
   </div>
-  <div id="total-label"></div>
-  <div id="card-grid" class="card-grid"></div>
+
+  <div class="panel-card">
+    <div class="filters">
+      <div class="field">
+        <label for="filter-year">ปี / Year</label>
+        <select id="filter-year">
+          <option value="">ทุกปี / All years</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-platform">แพลตฟอร์ม / Platform</label>
+        <select id="filter-platform">
+          <option value="">ทั้งหมด / All platforms</option>
+          <option value="gdelt">GDELT</option>
+          <option value="youtube">YouTube</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-content-type">ประเภทเนื้อหา / Content Type</label>
+        <select id="filter-content-type">
+          <option value="">ทั้งหมด / All types</option>
+          <option value="academic">Academic</option>
+          <option value="news">News</option>
+          <option value="educational">Educational</option>
+          <option value="entertainment">Entertainment</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" id="apply-filters" type="button">ค้นหา / Apply</button>
+      </div>
+      <button class="btn btn-secondary" id="export-xlsx" type="button">ส่งออก XLSX / Export</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="status-copy" id="status-copy">กำลังโหลดข้อมูล / Loading sources</div>
+    <div class="page-copy" id="total-copy">0 รายการ / 0 items</div>
+  </div>
+
+  <div class="empty-state" id="empty-state">
+    <div>
+      <div class="state-title">ไม่พบข้อมูลตามตัวกรอง / No matching sources</div>
+      <div class="state-copy">
+        หน้า database ยังทำงานได้ตามปกติ แต่ยังไม่มีแถวที่ตรงกับตัวกรองที่เลือกไว้ในตอนนี้.
+      </div>
+    </div>
+  </div>
+
+  <div class="error-state" id="error-state">
+    <div>
+      <div class="state-title">โหลดข้อมูลฐานข้อมูลไม่สำเร็จ / Sources API error</div>
+      <div class="state-copy" id="error-message">
+        ไม่สามารถโหลดข้อมูลจาก `/api/sources` ได้ในขณะนี้.
+      </div>
+    </div>
+  </div>
+
+  <div class="source-grid" id="source-grid"></div>
+
   <div class="pagination">
-    <button id="btn-prev" onclick="loadPage(currentPage-1)" disabled>‹ ก่อน</button>
-    <span id="page-label"></span>
-    <button id="btn-next" onclick="loadPage(currentPage+1)">ถัดไป ›</button>
+    <div class="page-copy" id="page-copy">หน้า 1 / 1</div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="prev-page" type="button">ก่อนหน้า / Prev</button>
+      <button class="btn btn-primary" id="next-page" type="button">ถัดไป / Next</button>
+    </div>
   </div>
-</div>
+</section>
 
 <script>
-let currentPage = 1;
-let totalPages = 1;
+  const state = {
+    page: 1,
+    pageSize: 12,
+    totalPages: 1
+  };
 
-// Populate year filter
-fetch('/api/stats/yearly').then(r => r.json()).then(d => {
-  const sel = document.getElementById('f-year');
-  d.years.sort().forEach(y => {
-    const o = document.createElement('option'); o.value = y; o.textContent = y; sel.appendChild(o);
+  const elements = {
+    filterYear: document.getElementById("filter-year"),
+    filterPlatform: document.getElementById("filter-platform"),
+    filterContentType: document.getElementById("filter-content-type"),
+    apply: document.getElementById("apply-filters"),
+    exportBtn: document.getElementById("export-xlsx"),
+    status: document.getElementById("status-copy"),
+    total: document.getElementById("total-copy"),
+    page: document.getElementById("page-copy"),
+    grid: document.getElementById("source-grid"),
+    prev: document.getElementById("prev-page"),
+    next: document.getElementById("next-page"),
+    empty: document.getElementById("empty-state"),
+    error: document.getElementById("error-state"),
+    errorMessage: document.getElementById("error-message")
+  };
+
+  function setStatus(text) {
+    elements.status.textContent = text;
+  }
+
+  function queryString(includePaging = true) {
+    const params = new URLSearchParams();
+    if (includePaging) {
+      params.set("page", String(state.page));
+      params.set("page_size", String(state.pageSize));
+    }
+    if (elements.filterYear.value) params.set("year", elements.filterYear.value);
+    if (elements.filterPlatform.value) params.set("platform", elements.filterPlatform.value);
+    if (elements.filterContentType.value) params.set("content_type", elements.filterContentType.value);
+    return params.toString();
+  }
+
+  function hideStates() {
+    elements.empty.classList.remove("is-visible");
+    elements.error.classList.remove("is-visible");
+  }
+
+  function showEmpty(message) {
+    elements.empty.querySelector(".state-copy").textContent = message;
+    elements.empty.classList.add("is-visible");
+    elements.error.classList.remove("is-visible");
+    elements.grid.innerHTML = "";
+    setStatus("ไม่พบข้อมูล / No matching rows");
+  }
+
+  function showError(message) {
+    elements.errorMessage.textContent = message;
+    elements.error.classList.add("is-visible");
+    elements.empty.classList.remove("is-visible");
+    elements.grid.innerHTML = "";
+    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+  }
+
+  function renderCard(item) {
+    const title = item.title || item.url || `Source ${item.id}`;
+    const chips = [
+      item.content_type || "unknown content",
+      item.production_type || "unknown production",
+      item.area || "unknown area",
+      item.engagement_level || "unknown engagement"
+    ];
+    const counts = [];
+    if (item.view_count !== null && item.view_count !== undefined) counts.push(`views ${Number(item.view_count).toLocaleString()}`);
+    if (item.like_count !== null && item.like_count !== undefined) counts.push(`likes ${Number(item.like_count).toLocaleString()}`);
+    if (item.comment_count !== null && item.comment_count !== undefined) counts.push(`comments ${Number(item.comment_count).toLocaleString()}`);
+
+    return `
+      <article class="source-card">
+        <div class="source-top">
+          <div class="source-platform">${(item.platform || "unknown").toUpperCase()}</div>
+          <div class="source-year">${item.published_year || "unknown year"}</div>
+        </div>
+        <h3>${title}</h3>
+        <div class="meta-grid">
+          ${chips.map((chip) => `<span class="chip">${chip}</span>`).join("")}
+          ${counts.map((chip) => `<span class="chip">${chip}</span>`).join("")}
+        </div>
+        <div class="source-url">${item.url || "No URL available"}</div>
+        <a class="source-link" href="${item.url}" target="_blank" rel="noopener">เปิดต้นฉบับ / Open source</a>
+      </article>
+    `;
+  }
+
+  async function populateYears() {
+    try {
+      const response = await fetch("/api/stats/yearly");
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) return;
+      const years = payload.data && Array.isArray(payload.data.years) ? payload.data.years : [];
+      years.forEach((year) => {
+        const option = document.createElement("option");
+        option.value = year;
+        option.textContent = year;
+        elements.filterYear.appendChild(option);
+      });
+    } catch (error) {
+      // Year filter falls back to "all years" when stats endpoint is unavailable.
+    }
+  }
+
+  async function loadSources(page = 1) {
+    state.page = page;
+    try {
+      const response = await fetch(`/api/sources?${queryString(true)}`);
+      const payload = await response.json();
+
+      if (!response.ok || !payload.ok) {
+        const message = payload && payload.error ? payload.error.message : "Unknown sources API error";
+        throw new Error(message);
+      }
+
+      const data = payload.data || {};
+      const items = Array.isArray(data.items) ? data.items : [];
+      const total = Number(data.total || 0);
+      const pageSize = Number(data.page_size || state.pageSize);
+      const currentPage = Number(data.page || state.page);
+
+      state.pageSize = pageSize;
+      state.totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+      elements.total.textContent = `${total} รายการ / ${total} items`;
+      elements.page.textContent = `หน้า ${currentPage} / ${state.totalPages}`;
+      elements.prev.disabled = currentPage <= 1;
+      elements.next.disabled = currentPage >= state.totalPages;
+
+      if (!items.length) {
+        showEmpty("ยังไม่มีข้อมูลที่ตรงกับ year, platform หรือ content type ที่เลือกไว้.");
+        return;
+      }
+
+      hideStates();
+      elements.grid.innerHTML = items.map(renderCard).join("");
+      setStatus(`โหลดแล้ว ${items.length} รายการ / page ${currentPage}`);
+    } catch (error) {
+      showError(`ไม่สามารถโหลดข้อมูลแหล่งข้อมูลได้: ${error.message}`);
+      elements.total.textContent = "0 รายการ / 0 items";
+      elements.page.textContent = "หน้า 1 / 1";
+    }
+  }
+
+  function exportXlsx() {
+    const url = `/api/export/xlsx?${queryString(false)}`;
+    window.location.href = url;
+  }
+
+  elements.apply.addEventListener("click", () => loadSources(1));
+  elements.exportBtn.addEventListener("click", exportXlsx);
+  elements.prev.addEventListener("click", () => {
+    if (state.page > 1) loadSources(state.page - 1);
   });
-});
+  elements.next.addEventListener("click", () => {
+    if (state.page < state.totalPages) loadSources(state.page + 1);
+  });
 
-function buildQS(page) {
-  const p = new URLSearchParams({ page, page_size: 20 });
-  const yr = document.getElementById('f-year').value;
-  const pl = document.getElementById('f-platform').value;
-  const ct = document.getElementById('f-content').value;
-  if (yr) p.set('year', yr);
-  if (pl) p.set('platform', pl);
-  if (ct) p.set('content_type', ct);
-  return p.toString();
-}
-
-function exportXlsx() {
-  const yr = document.getElementById('f-year').value;
-  const pl = document.getElementById('f-platform').value;
-  const p = new URLSearchParams();
-  if (yr) p.set('year', yr);
-  if (pl) p.set('platform', pl);
-  window.location = '/api/export/xlsx?' + p.toString();
-}
-
-function loadPage(page) {
-  currentPage = page;
-  fetch('/api/sources?' + buildQS(page))
-    .then(r => r.json())
-    .then(data => {
-      totalPages = Math.ceil(data.total / data.page_size) || 1;
-      document.getElementById('total-label').textContent =
-        `${data.total} รายการ / items`;
-      document.getElementById('page-label').textContent =
-        `หน้า ${currentPage} / ${totalPages}`;
-      document.getElementById('btn-prev').disabled = currentPage <= 1;
-      document.getElementById('btn-next').disabled = currentPage >= totalPages;
-
-      const grid = document.getElementById('card-grid');
-      grid.innerHTML = data.items.map(s => `
-        <div class="src-card">
-          <div class="platform ${s.platform}">${s.platform.toUpperCase()} · ${s.published_year}</div>
-          <h4>${s.title || s.url}</h4>
-          <div class="meta">
-            <span>${s.content_type || '—'}</span>
-            <span>${s.production_type || '—'}</span>
-            <span>${s.engagement_level || '—'}</span>
-            ${s.view_count != null ? `<span>👁 ${s.view_count.toLocaleString()}</span>` : ''}
-          </div>
-          <a href="${s.url}" target="_blank" rel="noopener">เปิด / Open →</a>
-        </div>`).join('');
-    });
-}
-
-loadPage(1);
+  populateYears();
+  loadSources(1);
 </script>
 {% endblock %}

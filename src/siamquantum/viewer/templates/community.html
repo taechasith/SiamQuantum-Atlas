@@ -1,60 +1,275 @@
 {% extends "base.html" %}
-{% block title %}ชุมชน — SiamQuantum Atlas{% endblock %}
+{% block title %}ชุมชนและการส่งลิงก์ | SiamQuantum Atlas{% endblock %}
 {% set active = 'community' %}
 
 {% block head %}
 <style>
-  .form-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; max-width: 540px; }
-  .form-card label { display: block; font-size: 0.8rem; color: #8b949e; margin-bottom: 0.3rem; }
-  .form-card input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.875rem; margin-bottom: 1rem; }
-  .form-card input:focus { outline: none; border-color: #388bfd; }
-  .form-card button { background: #238636; border: 1px solid #2ea043; color: #fff; border-radius: 6px; padding: 0.5rem 1.25rem; font-size: 0.875rem; cursor: pointer; }
-  #msg { margin-top: 1rem; font-size: 0.875rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: none; }
-  .msg-ok { background: #238636cc; border: 1px solid #2ea043; color: #3fb950; }
-  .msg-err { background: #da363a22; border: 1px solid #f85149; color: #f85149; }
+  :root {
+    --panel: rgba(10, 16, 35, 0.84);
+    --panel-border: rgba(112, 147, 255, 0.24);
+    --text: #f3f7ff;
+    --muted: #99a7d3;
+    --accent: #70e1ff;
+    --accent-2: #c79bff;
+    --success: #56f39a;
+    --danger: #ff7a90;
+    --warning: #ffb347;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
+      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  }
+
+  .community-shell {
+    padding: 1.5rem;
+  }
+
+  .hero-card,
+  .form-card,
+  .note-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-card {
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-card h1 {
+    color: var(--text);
+    font-size: clamp(1.7rem, 3vw, 2.8rem);
+    line-height: 1.08;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-card p {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.6;
+  }
+
+  .community-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 540px) minmax(260px, 1fr);
+    gap: 1.25rem;
+  }
+
+  .form-card,
+  .note-card {
+    padding: 1.25rem;
+  }
+
+  .form-card h2,
+  .note-card h2 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .form-card p,
+  .note-card p,
+  .note-card li {
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .field {
+    margin-top: 1rem;
+  }
+
+  .field label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.84rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .field input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.94rem;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: rgba(112, 225, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(112, 225, 255, 0.12);
+  }
+
+  .actions {
+    margin-top: 1.1rem;
+  }
+
+  .submit-btn {
+    border-radius: 12px;
+    padding: 0.82rem 1.1rem;
+    font-size: 0.94rem;
+    cursor: pointer;
+    border: 1px solid rgba(112, 225, 255, 0.34);
+    background: rgba(112, 225, 255, 0.14);
+    color: var(--accent);
+  }
+
+  .status-box {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    line-height: 1.6;
+  }
+
+  .status-box.is-visible {
+    display: block;
+  }
+
+  .status-success {
+    background: rgba(86, 243, 154, 0.08);
+    color: var(--success);
+    border-color: rgba(86, 243, 154, 0.28);
+  }
+
+  .status-error {
+    background: rgba(255, 122, 144, 0.08);
+    color: var(--danger);
+    border-color: rgba(255, 122, 144, 0.28);
+  }
+
+  .status-warning {
+    background: rgba(255, 179, 71, 0.08);
+    color: var(--warning);
+    border-color: rgba(255, 179, 71, 0.28);
+  }
+
+  .note-list {
+    margin: 0.75rem 0 0;
+    padding-left: 1.1rem;
+  }
+
+  @media (max-width: 920px) {
+    .community-shell {
+      padding: 1rem;
+    }
+
+    .community-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="header">
-  <h1>ส่งแหล่งข้อมูล / Submit a Source</h1>
-  <p>แชร์ลิงก์บทความหรือวิดีโอควอนตัมที่น่าสนใจ / Share a quantum technology article or video URL</p>
-</div>
-<div class="content">
-  <div class="form-card">
-    <label for="url">URL *</label>
-    <input id="url" type="url" placeholder="https://…" required>
-    <label for="handle">ชื่อผู้ส่ง / Handle (optional)</label>
-    <input id="handle" type="text" placeholder="@username">
-    <button onclick="submit()">ส่ง / Submit</button>
-    <div id="msg"></div>
+<section class="community-shell">
+  <div class="hero-card">
+    <div class="eyebrow">Community Submission</div>
+    <h1>ส่งลิงก์จากชุมชนเข้าสู่ระบบ<br>Thai Quantum Community Submission</h1>
+    <p>
+      หากคุณพบข่าว บทความ หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เกี่ยวข้องกับประเทศไทย
+      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกและจัดคิวประมวลผลแบบเบื้องต้นได้จากหน้านี้.
+    </p>
   </div>
-</div>
+
+  <div class="community-grid">
+    <div class="form-card">
+      <h2>ฟอร์มส่งลิงก์ / Submission form</h2>
+      <p>กรอก `url` และ `handle` ตามต้องการ ระบบจะรับรายการก่อน แล้วค่อยทำงานเบื้องหลังแบบ best-effort.</p>
+
+      <form id="community-form">
+        <div class="field">
+          <label for="url">URL *</label>
+          <input id="url" name="url" type="url" placeholder="https://example.com/article-or-video" required>
+        </div>
+
+        <div class="field">
+          <label for="handle">ชื่อผู้ส่ง / Handle</label>
+          <input id="handle" name="handle" type="text" placeholder="@username">
+        </div>
+
+        <div class="actions">
+          <button class="submit-btn" type="submit">ส่งข้อมูล / Submit</button>
+        </div>
+      </form>
+
+      <div class="status-box" id="status-box"></div>
+    </div>
+
+    <div class="note-card">
+      <h2>สถานะหลังส่ง / What happens next</h2>
+      <p>เมื่อรับ submission แล้ว ระบบจะบันทึกแถวใน `community_submissions` และจัดคิวทำงานเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
+      <ul class="note-list">
+        <li>รับค่า `handle` และ `url` แล้วตั้งสถานะเริ่มต้นเป็น accepted/queued</li>
+        <li>พยายามเรียก `claude.extract_triplets` หากมี source text พร้อมใช้งาน</li>
+        <li>รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต DenStream/stat state เท่าที่ทำได้</li>
+        <li>ล้าง cache เฉพาะ `ttest:` entries โดยไม่กระทบ cache อื่น</li>
+      </ul>
+    </div>
+  </div>
+</section>
 
 <script>
-function submit() {
-  const url = document.getElementById('url').value.trim();
-  const handle = document.getElementById('handle').value.trim();
-  const msg = document.getElementById('msg');
-  if (!url) { showMsg('กรุณาใส่ URL / URL is required', false); return; }
-  fetch('/api/community/submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url, handle: handle || null }),
-  })
-  .then(r => r.ok ? r.json() : Promise.reject(r))
-  .then(d => {
-    showMsg(`ส่งสำเร็จ ID=${d.id} / Submitted successfully (ID=${d.id})`, true);
-    document.getElementById('url').value = '';
-    document.getElementById('handle').value = '';
-  })
-  .catch(() => showMsg('เกิดข้อผิดพลาด / Submission failed', false));
-}
-function showMsg(text, ok) {
-  const el = document.getElementById('msg');
-  el.textContent = text;
-  el.className = ok ? 'msg-ok' : 'msg-err';
-  el.style.display = 'block';
-}
+  const form = document.getElementById("community-form");
+  const statusBox = document.getElementById("status-box");
+
+  function showStatus(text, kind) {
+    statusBox.textContent = text;
+    statusBox.className = `status-box is-visible ${kind}`;
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const url = document.getElementById("url").value.trim();
+    const handle = document.getElementById("handle").value.trim();
+
+    if (!url) {
+      showStatus("กรุณาระบุ URL / URL is required.", "status-error");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/community/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url,
+          handle: handle || null
+        })
+      });
+
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) {
+        const message = payload && payload.error ? payload.error.message : "Submission failed";
+        showStatus(`ส่งข้อมูลไม่สำเร็จ / ${message}`, "status-error");
+        return;
+      }
+
+      const data = payload.data || {};
+      showStatus(
+        `รับรายการแล้ว ID=${data.id} สถานะ=${data.status} / Submission accepted with ID=${data.id}, status=${data.status}.`,
+        "status-success"
+      );
+      form.reset();
+    } catch (error) {
+      showStatus(`ระบบส่งข้อมูลล้มเหลว / ${error.message}`, "status-error");
+    }
+  });
 </script>
 {% endblock %}

@@ -208,20 +208,39 @@ def analyze_stats() -> None:
 
 @analyze_app.command("full")
 def analyze_full() -> None:
-    """Run nlp (all years) + stats pipeline."""
+    """Run NLP for years present in the DB, then run stats."""
     from siamquantum.pipeline.nlp import analyze_year
     from siamquantum.pipeline.analyze import run_stats
-    import datetime
+    from siamquantum.db.session import get_connection
 
     db_path = db_path_from_url(settings.database_url)
-    current_year = datetime.date.today().year
-    for year in range(2020, current_year + 1):
-        typer.echo(f"NLP year={year}…")
+    with get_connection(db_path) as conn:
+        years = [
+            int(row[0])
+            for row in conn.execute(
+                "SELECT DISTINCT published_year FROM sources ORDER BY published_year"
+            ).fetchall()
+            if row[0] is not None
+        ]
+
+    if not years:
+        typer.echo("No source rows found. Run ingest first.", err=True)
+        raise typer.Exit(1)
+
+    for year in years:
+        typer.echo(f"NLP year={year}...")
         counts = analyze_year(year, db_path)
-        typer.echo(f"  processed={counts['processed']} skipped={counts['skipped_already_done']}")
-    typer.echo("Running stats…")
+        typer.echo(
+            f"  processed={counts['processed']}"
+            f" skipped={counts['skipped_already_done']}"
+            f" no_text={counts['skipped_no_text']}"
+        )
+    typer.echo("Running stats...")
     result = run_stats(db_path)
-    typer.echo(f"  macro_clusters={result['macro_clusters']} ttest_pairs={result['ttest_pairs_computed']}")
+    typer.echo(
+        f"  macro_clusters={result['macro_clusters']}"
+        f" ttest_pairs={result['ttest_pairs_computed']}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -231,14 +250,17 @@ def analyze_full() -> None:
 @app.command("serve")
 def serve(
     port: int = typer.Option(settings.viewer_port, "--port"),
+    reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for local development"),
 ) -> None:
     """Start the FastAPI viewer on port 8765."""
     import uvicorn
+
     typer.echo(f"Starting SiamQuantum Atlas viewer on http://localhost:{port}")
+    # uvicorn.run is the blocking entrypoint for the CLI serve command.
     uvicorn.run(
         "siamquantum.viewer.server:app",
         host="0.0.0.0",
         port=port,
-        reload=False,
+        reload=reload,
         log_level="info",
     )

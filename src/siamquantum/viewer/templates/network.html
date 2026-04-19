@@ -1,72 +1,455 @@
 {% extends "base.html" %}
-{% block title %}เครือข่าย — SiamQuantum Atlas{% endblock %}
+{% block title %}เครือข่ายควอนตัม | SiamQuantum Atlas{% endblock %}
 {% set active = 'network' %}
 
 {% block head %}
 <style>
-  body { overflow: hidden; }
-  #graph { width: 100%; height: calc(100vh - 52px); }
-  #legend { position: fixed; top: 68px; right: 1rem; z-index: 999; }
-  .legend { background: #161b22cc; backdrop-filter: blur(4px); border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; }
-  .legend h4 { font-size: 0.8rem; margin-bottom: 0.5rem; color: #8b949e; }
-  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; margin-bottom: 0.2rem; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  #info { position: fixed; bottom: 1rem; left: 1rem; z-index: 999; background: #161b22cc; border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.8rem; max-width: 320px; }
+  :root {
+    --panel: rgba(10, 16, 35, 0.84);
+    --panel-border: rgba(112, 147, 255, 0.24);
+    --text: #f3f7ff;
+    --muted: #99a7d3;
+    --accent: #70e1ff;
+    --danger: #ff7a90;
+    --bg-top: rgba(112, 225, 255, 0.16);
+    --bg-bottom: rgba(168, 85, 247, 0.14);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, var(--bg-top), transparent 26%),
+      radial-gradient(circle at top right, var(--bg-bottom), transparent 22%),
+      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  }
+
+  .network-shell {
+    padding: 1.5rem;
+  }
+
+  .hero-card,
+  .graph-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-card {
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-card h1 {
+    color: var(--text);
+    font-size: clamp(1.7rem, 3vw, 2.8rem);
+    line-height: 1.08;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-card p {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.6;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem;
+    margin-top: 1.2rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-value {
+    color: var(--text);
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-top: 0.35rem;
+  }
+
+  .graph-card {
+    overflow: hidden;
+  }
+
+  .graph-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .graph-title {
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .graph-subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+  }
+
+  .status-pill {
+    border: 1px solid rgba(112, 225, 255, 0.25);
+    background: rgba(112, 225, 255, 0.08);
+    border-radius: 999px;
+    color: var(--accent);
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .graph-stack {
+    position: relative;
+  }
+
+  #network-graph {
+    width: 100%;
+    height: min(70vh, 760px);
+    min-height: 500px;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 1.25rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(4, 8, 22, 0.9), rgba(8, 14, 30, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 5;
+  }
+
+  .overlay.is-visible {
+    display: flex;
+  }
+
+  .overlay-title {
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+
+  .overlay-copy {
+    color: var(--muted);
+    max-width: 54ch;
+    line-height: 1.6;
+  }
+
+  .error-copy .overlay-title {
+    color: var(--danger);
+  }
+
+  .panel-footer {
+    display: grid;
+    grid-template-columns: minmax(220px, 360px) minmax(240px, 1fr);
+    gap: 1rem;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .legend,
+  .info-panel {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1rem;
+  }
+
+  .legend h3,
+  .info-panel h3 {
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .legend-dot {
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 999px;
+    box-shadow: 0 0 16px currentColor;
+    flex-shrink: 0;
+  }
+
+  .info-panel {
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .info-panel strong,
+  .info-panel a {
+    color: var(--text);
+  }
+
+  .info-panel a {
+    color: var(--accent);
+  }
+
+  @media (max-width: 820px) {
+    .network-shell {
+      padding: 1rem;
+    }
+
+    .graph-toolbar,
+    .panel-footer {
+      grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #network-graph {
+      min-height: 440px;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
-<div id="graph"></div>
-<div id="legend">
-  <div class="legend">
-    <h4>Production Type</h4>
-    <div class="legend-item"><div class="dot" style="background:#f85149"></div>state_research</div>
-    <div class="legend-item"><div class="dot" style="background:#3fb950"></div>university</div>
-    <div class="legend-item"><div class="dot" style="background:#58a6ff"></div>corporate_media</div>
-    <div class="legend-item"><div class="dot" style="background:#d2a8ff"></div>independent</div>
+<section class="network-shell">
+  <div class="hero-card">
+    <div class="eyebrow">Quantum Relationship View</div>
+    <h1>เครือข่ายข้อมูลควอนตัมไทย<br>Thai Quantum Network View</h1>
+    <p>
+      หน้านี้แสดงโครงสร้างเครือข่ายจากข้อมูล `entities` และ `triplets` ในฐานข้อมูล โดยใช้ 3D force graph
+      เพื่อดูแหล่งข้อมูลและ relation text ในมุมมองเดียวกันแบบเบื้องต้น.
+    </p>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">โหนด / Nodes</div>
+        <div class="stat-value" id="stat-nodes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ลิงก์ / Links</div>
+        <div class="stat-value" id="stat-links">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">สีหลัก / Coloring</div>
+        <div class="stat-value" id="stat-coloring">Production</div>
+      </div>
+    </div>
   </div>
-</div>
-<div id="info">คลิกโหนดเพื่อดูรายละเอียด / Click a node for details</div>
+
+  <div class="graph-card">
+    <div class="graph-toolbar">
+      <div>
+        <div class="graph-title">3D Force Graph / กราฟความสัมพันธ์สามมิติ</div>
+        <div class="graph-subtitle">Rendered from `/api/graph` using `3d-force-graph` from CDN</div>
+      </div>
+      <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading graph</div>
+    </div>
+    <div class="graph-stack">
+      <div id="network-graph" aria-label="Thai quantum network graph"></div>
+      <div class="overlay" id="empty-state">
+        <div>
+          <div class="overlay-title">ยังไม่มีข้อมูลเครือข่าย / No graph data available</div>
+          <div class="overlay-copy">
+            ระบบสามารถเปิดหน้า `/network` ได้ตามปกติ แต่ยังไม่มีโหนดหรือความสัมพันธ์ที่เพียงพอสำหรับการเรนเดอร์กราฟในตอนนี้.
+          </div>
+        </div>
+      </div>
+      <div class="overlay error-copy" id="error-state">
+        <div>
+          <div class="overlay-title">โหลดกราฟไม่สำเร็จ / Graph API error</div>
+          <div class="overlay-copy" id="error-message">
+            ไม่สามารถโหลดข้อมูลจาก `/api/graph` ได้ในขณะนี้.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="legend">
+        <h3>Production Type</h3>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#70e1ff; color:#70e1ff;"></span>
+          <span>state_research</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#56f39a; color:#56f39a;"></span>
+          <span>university</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#ffb347; color:#ffb347;"></span>
+          <span>corporate_media</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#c79bff; color:#c79bff;"></span>
+          <span>independent</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#8b95b5; color:#8b95b5;"></span>
+          <span>other / unknown</span>
+        </div>
+      </div>
+      <div class="info-panel" id="info-panel">
+        <h3>รายละเอียดโหนด / Node details</h3>
+        เลือกโหนดเพื่อดูชื่อแหล่งข้อมูล ประเภทการผลิต เนื้อหา และลิงก์ต้นฉบับ.
+      </div>
+    </div>
+  </div>
+</section>
 
 <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
 <script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
 <script>
-const ptColor = {
-  state_research: '#f85149', university: '#3fb950',
-  corporate_media: '#58a6ff', independent: '#d2a8ff',
-};
+  const colors = {
+    state_research: "#70e1ff",
+    university: "#56f39a",
+    corporate_media: "#ffb347",
+    independent: "#c79bff",
+    unknown: "#8b95b5"
+  };
 
-fetch('/api/graph')
-  .then(r => r.json())
-  .then(({ nodes, edges }) => {
-    const graphData = {
-      nodes: nodes.map(n => ({
-        id: n.id, name: n.title || n.url, url: n.url,
-        color: ptColor[n.production_type] || '#8b949e',
-        val: n.engagement_level === 'high' ? 3 : n.engagement_level === 'medium' ? 2 : 1,
-        ...n,
-      })),
-      links: edges.map(e => ({
-        source: e.source_id, target: e.source_id,  // self-loops show triplets on node
-        label: `${e.subject} ${e.relation} ${e.object}`,
-      })),
-    };
+  const elements = {
+    status: document.getElementById("status-pill"),
+    nodes: document.getElementById("stat-nodes"),
+    links: document.getElementById("stat-links"),
+    empty: document.getElementById("empty-state"),
+    error: document.getElementById("error-state"),
+    errorMessage: document.getElementById("error-message"),
+    info: document.getElementById("info-panel"),
+    graph: document.getElementById("network-graph")
+  };
 
-    const Graph = ForceGraph3D()(document.getElementById('graph'))
-      .backgroundColor('#0d1117')
-      .nodeColor(n => n.color)
-      .nodeVal(n => n.val)
-      .nodeLabel(n => `<span style="color:#e6edf3;font-size:12px">${n.name}</span>`)
-      .linkOpacity(0.3)
-      .onNodeClick(n => {
-        document.getElementById('info').innerHTML =
-          `<b>${n.title || ''}</b><br>
-           ${n.content_type} / ${n.production_type}<br>
-           Area: ${n.area || '—'}<br>
-           Engagement: ${n.engagement_level}<br>
-           <a href="${n.url}" target="_blank" rel="noopener" style="color:#58a6ff">Open →</a>`;
-      })
-      .graphData(graphData);
-  });
+  function setStatus(text) {
+    elements.status.textContent = text;
+  }
+
+  function showEmpty(message) {
+    elements.empty.querySelector(".overlay-copy").textContent = message;
+    elements.empty.classList.add("is-visible");
+    elements.error.classList.remove("is-visible");
+    setStatus("ไม่มีข้อมูล / No graph data");
+  }
+
+  function showError(message) {
+    elements.errorMessage.textContent = message;
+    elements.error.classList.add("is-visible");
+    elements.empty.classList.remove("is-visible");
+    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+  }
+
+  function hideStates() {
+    elements.empty.classList.remove("is-visible");
+    elements.error.classList.remove("is-visible");
+  }
+
+  function nodeColor(node) {
+    return colors[node.production_type] || colors.unknown;
+  }
+
+  function nodeLabel(node) {
+    const label = node.label || "Untitled source";
+    const production = node.production_type || "unknown";
+    const contentType = node.content_type || "unknown";
+    const year = node.year ?? "unknown";
+    return `
+      <div style="color:#f3f7ff; padding:0.25rem 0.4rem; line-height:1.5;">
+        <strong>${label}</strong><br>
+        <span style="color:#99a7d3;">${production} | ${contentType} | ${year}</span>
+      </div>
+    `;
+  }
+
+  async function loadGraph() {
+    try {
+      const response = await fetch("/api/graph");
+      const payload = await response.json();
+
+      if (!response.ok || !payload.ok) {
+        const message = payload && payload.error ? payload.error.message : "Unknown graph API error";
+        throw new Error(message);
+      }
+
+      const nodes = payload.data && Array.isArray(payload.data.nodes) ? payload.data.nodes : [];
+      const links = payload.data && Array.isArray(payload.data.links) ? payload.data.links : [];
+
+      elements.nodes.textContent = String(nodes.length);
+      elements.links.textContent = String(links.length);
+
+      if (!nodes.length || !links.length) {
+        showEmpty("ยังไม่มีโหนดหรือความสัมพันธ์จากฐานข้อมูลเพียงพอสำหรับการเรนเดอร์กราฟในตอนนี้.");
+        return;
+      }
+
+      hideStates();
+
+      const graph = ForceGraph3D()(elements.graph)
+        .backgroundColor("#050816")
+        .graphData({ nodes, links })
+        .nodeId("id")
+        .nodeLabel(nodeLabel)
+        .nodeColor(nodeColor)
+        .nodeVal((node) => {
+          if (node.engagement_level === "high") return 4;
+          if (node.engagement_level === "medium") return 2.8;
+          return 1.8;
+        })
+        .linkColor(() => "rgba(153, 167, 211, 0.35)")
+        .linkOpacity(0.38)
+        .linkWidth((link) => Math.max(0.5, Number(link.confidence || 0.3) * 2))
+        .linkDirectionalParticles(1)
+        .linkDirectionalParticleWidth(1.2)
+        .onNodeClick((node) => {
+          elements.info.innerHTML = `
+            <h3>รายละเอียดโหนด / Node details</h3>
+            <strong>${node.label || "Untitled source"}</strong><br>
+            production_type: ${node.production_type || "unknown"}<br>
+            content_type: ${node.content_type || "unknown"}<br>
+            area: ${node.area || "unknown"}<br>
+            engagement: ${node.engagement_level || "unknown"}<br>
+            platform: ${node.platform || "unknown"}<br>
+            <a href="${node.url}" target="_blank" rel="noopener">เปิดต้นฉบับ / Open source</a>
+          `;
+        });
+
+      setStatus(`โหลดแล้ว ${nodes.length} โหนด / ${links.length} ลิงก์`);
+
+      setTimeout(() => {
+        graph.zoomToFit(600, 60);
+      }, 350);
+    } catch (error) {
+      showError(`ไม่สามารถโหลดข้อมูลกราฟได้: ${error.message}`);
+    }
+  }
+
+  loadGraph();
 </script>
 {% endblock %}

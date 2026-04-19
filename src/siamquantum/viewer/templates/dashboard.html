@@ -1,65 +1,488 @@
 {% extends "base.html" %}
-{% block title %}แผนที่ — SiamQuantum Atlas{% endblock %}
+{% block title %}แผนที่แดชบอร์ด | SiamQuantum Atlas{% endblock %}
 {% set active = 'dashboard' %}
 
 {% block head %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+/>
 <style>
-  #map { width: 100%; height: calc(100vh - 52px - 72px); }
-  .legend { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem 1rem; }
-  .legend h4 { font-size: 0.8rem; margin-bottom: 0.5rem; color: #8b949e; }
-  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.25rem; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; }
-  #status { padding: 0.5rem 1.5rem; font-size: 0.8rem; color: #8b949e; }
+  :root {
+    --bg: #050816;
+    --panel: rgba(10, 16, 35, 0.84);
+    --panel-border: rgba(112, 147, 255, 0.24);
+    --text: #f3f7ff;
+    --muted: #99a7d3;
+    --accent: #70e1ff;
+    --accent-2: #a855f7;
+    --glow: rgba(112, 225, 255, 0.22);
+    --danger: #ff7a90;
+    --empty: rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(112, 225, 255, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.16), transparent 24%),
+      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  }
+
+  .dashboard-shell {
+    padding: 1.5rem;
+  }
+
+  .hero {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(14px);
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    line-height: 1.05;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .hero p {
+    color: var(--muted);
+    max-width: 68ch;
+    line-height: 1.6;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.9rem;
+    margin-top: 1.25rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-value {
+    color: var(--text);
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-top: 0.35rem;
+  }
+
+  .map-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+  }
+
+  .map-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    align-items: center;
+  }
+
+  .map-title {
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .map-subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+  }
+
+  .status-pill {
+    border: 1px solid rgba(112, 225, 255, 0.25);
+    background: rgba(112, 225, 255, 0.08);
+    border-radius: 999px;
+    color: var(--accent);
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  #dashboard-map {
+    height: min(70vh, 720px);
+    min-height: 480px;
+    width: 100%;
+  }
+
+  .panel-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 1.25rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .legend-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .empty-state,
+  .error-state {
+    position: absolute;
+    inset: 84px 1.25rem 4.5rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(4, 8, 22, 0.88), rgba(8, 14, 30, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    z-index: 500;
+  }
+
+  .empty-state.is-visible,
+  .error-state.is-visible {
+    display: flex;
+  }
+
+  .state-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+
+  .state-copy {
+    color: var(--muted);
+    max-width: 52ch;
+    line-height: 1.6;
+  }
+
+  .error-state .state-title {
+    color: var(--danger);
+  }
+
+  .map-stack {
+    position: relative;
+  }
+
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: #0f172f;
+    color: var(--text);
+  }
+
+  .leaflet-popup-content {
+    margin: 0.9rem 1rem;
+    line-height: 1.5;
+  }
+
+  .popup-meta {
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .popup-link {
+    color: var(--accent);
+  }
+
+  .quantum-marker {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 0 16px currentColor;
+  }
+
+  .marker-gdelt {
+    color: #70e1ff;
+    background: #70e1ff;
+  }
+
+  .marker-youtube {
+    color: #ff7a90;
+    background: #ff7a90;
+  }
+
+  .marker-other {
+    color: #b59cff;
+    background: #b59cff;
+  }
+
+  @media (max-width: 720px) {
+    .dashboard-shell {
+      padding: 1rem;
+    }
+
+    .map-toolbar,
+    .panel-footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #dashboard-map {
+      min-height: 420px;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="header">
-  <h1>แผนที่แหล่งข้อมูลควอนตัมไทย &nbsp;|&nbsp; Thai Quantum Source Map</h1>
-  <p>แสดงเฉพาะ IP ต้นทางจริง (ไม่รวม CDN) &nbsp;|&nbsp; Origin IPs only (CDN-resolved excluded)</p>
-</div>
-<div id="status">กำลังโหลด… / Loading…</div>
-<div id="map"></div>
+<section class="dashboard-shell">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="eyebrow">Thailand Quantum Signals</div>
+      <h1>แผนที่แหล่งข้อมูลควอนตัมไทย<br>Thai Quantum Geo Dashboard</h1>
+      <p>
+        แดชบอร์ดนี้แสดงตำแหน่งต้นทางของแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทย โดยเน้นจุดที่มีพิกัดจริงจากฐานข้อมูล
+        และจัดกลุ่ม marker เมื่อพื้นที่หนาแน่นเพื่ออ่านภาพรวมได้เร็วขึ้น.
+      </p>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">แหล่งข้อมูล / Sources</div>
+          <div class="stat-value" id="stat-count">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">แพลตฟอร์ม / Platforms</div>
+          <div class="stat-value" id="stat-platforms">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">โหมดข้อมูล / Mode</div>
+          <div class="stat-value" id="stat-mode">Origin</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <div class="map-card">
+    <div class="map-toolbar">
+      <div>
+        <div class="map-title">แผนที่ประเทศไทย / Thailand Focus</div>
+        <div class="map-subtitle">Leaflet + marker clustering, backed by `/api/geo/list`</div>
+      </div>
+      <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading data</div>
+    </div>
+    <div class="map-stack">
+      <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
+      <div class="empty-state" id="empty-state">
+        <div>
+          <div class="state-title">ยังไม่มีข้อมูลพิกัด / No geo rows available</div>
+          <div class="state-copy">
+            หน้าแดชบอร์ดยังทำงานได้ตามปกติ แต่ฐานข้อมูลยังไม่มีแถว `geo` ที่มี `lat` และ `lng`
+            สำหรับการแสดงผลบนแผนที่ในตอนนี้.
+          </div>
+        </div>
+      </div>
+      <div class="error-state" id="error-state">
+        <div>
+          <div class="state-title">โหลดข้อมูลแผนที่ไม่สำเร็จ / Geo API error</div>
+          <div class="state-copy" id="error-copy">
+            ไม่สามารถอ่านข้อมูลพิกัดจาก `/api/geo/list` ได้ในขณะนี้.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#70e1ff; color:#70e1ff;"></span>
+          <span>GDELT</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#ff7a90; color:#ff7a90;"></span>
+          <span>YouTube</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#b59cff; color:#b59cff;"></span>
+          <span>Other</span>
+        </div>
+      </div>
+      <div id="footer-summary">แสดงผลเฉพาะ origin IP โดยค่าเริ่มต้น</div>
+    </div>
+  </div>
+</section>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
-const map = L.map('map', { center: [13.0, 101.0], zoom: 6 });
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors', maxZoom: 18
-}).addTo(map);
+  const thailandCenter = [13.736717, 100.523186];
+  const map = L.map("dashboard-map", {
+    zoomControl: true,
+    minZoom: 5,
+    maxZoom: 18
+  }).setView(thailandCenter, 6);
 
-const markers = L.markerClusterGroup();
-const platformColor = { gdelt: '#58a6ff', youtube: '#f85149' };
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
 
-fetch('/api/geo/list?cdn=false')
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById('status').textContent =
-      `${data.length} แหล่งข้อมูล / sources (origin IPs only)`;
-    data.forEach(pt => {
-      const color = platformColor[pt.platform] || '#8b949e';
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid #fff;"></div>`,
-        iconSize: [10, 10], iconAnchor: [5, 5],
-      });
-      const m = L.marker([pt.lat, pt.lng], { icon });
-      m.bindPopup(`
-        <b>${pt.platform.toUpperCase()}</b><br>
-        ${pt.title || pt.url}<br>
-        <small>${pt.city || ''} ${pt.region || ''}</small><br>
-        <a href="${pt.url}" target="_blank" rel="noopener">เปิดลิงก์ / Open</a>
-      `);
-      markers.addLayer(m);
-    });
-    map.addLayer(markers);
-  })
-  .catch(e => {
-    document.getElementById('status').textContent = 'Error: ' + e.message;
+  const clusters = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    maxClusterRadius: 42
   });
+
+  const elements = {
+    status: document.getElementById("status-pill"),
+    count: document.getElementById("stat-count"),
+    platforms: document.getElementById("stat-platforms"),
+    mode: document.getElementById("stat-mode"),
+    footer: document.getElementById("footer-summary"),
+    empty: document.getElementById("empty-state"),
+    error: document.getElementById("error-state"),
+    errorCopy: document.getElementById("error-copy")
+  };
+
+  const platformClass = {
+    gdelt: "marker-gdelt",
+    youtube: "marker-youtube"
+  };
+
+  function setStatus(text) {
+    elements.status.textContent = text;
+  }
+
+  function showEmpty() {
+    elements.empty.classList.add("is-visible");
+    elements.error.classList.remove("is-visible");
+    setStatus("ไม่มีข้อมูลพิกัด / No geo rows");
+  }
+
+  function showError(message) {
+    elements.errorCopy.textContent = message;
+    elements.error.classList.add("is-visible");
+    elements.empty.classList.remove("is-visible");
+    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+  }
+
+  function hideStates() {
+    elements.empty.classList.remove("is-visible");
+    elements.error.classList.remove("is-visible");
+  }
+
+  function markerHtml(platform) {
+    const klass = platformClass[platform] || "marker-other";
+    return `<div class="quantum-marker ${klass}"></div>`;
+  }
+
+  function popupHtml(item) {
+    const location = [item.city, item.region].filter(Boolean).join(", ") || "Unknown location";
+    const title = item.title || item.url || "Untitled source";
+    const year = item.published_year ?? "Unknown year";
+    const platform = (item.platform || "other").toUpperCase();
+    return `
+      <strong>${title}</strong><br>
+      <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
+      <span class="popup-meta">${item.isp || "Unknown ISP"}</span><br>
+      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">เปิดลิงก์ / Open source</a>
+    `;
+  }
+
+  async function loadGeo() {
+    try {
+      const response = await fetch("/api/geo/list");
+      const payload = await response.json();
+
+      if (!response.ok || !payload.ok) {
+        const message = payload && payload.error ? payload.error.message : "Unknown geo API error";
+        throw new Error(message);
+      }
+
+      const rows = Array.isArray(payload.data) ? payload.data : [];
+      const platformSet = new Set(rows.map((row) => row.platform || "other"));
+
+      elements.count.textContent = String(payload.count || rows.length);
+      elements.platforms.textContent = String(platformSet.size);
+      elements.mode.textContent = "Origin";
+      elements.footer.textContent = "ค่าเริ่มต้นไม่รวม CDN-resolved rows";
+
+      if (!rows.length) {
+        showEmpty();
+        return;
+      }
+
+      hideStates();
+      rows.forEach((item) => {
+        const marker = L.marker([item.lat, item.lng], {
+          icon: L.divIcon({
+            className: "",
+            html: markerHtml(item.platform),
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          })
+        });
+        marker.bindPopup(popupHtml(item));
+        clusters.addLayer(marker);
+      });
+
+      map.addLayer(clusters);
+      map.fitBounds(clusters.getBounds(), { padding: [28, 28], maxZoom: 9 });
+      setStatus(`โหลดแล้ว ${rows.length} จุด / ${rows.length} mapped sources`);
+    } catch (error) {
+      showError(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`);
+      elements.footer.textContent = "ตรวจสอบสถานะ `/api/geo/list` และข้อมูลฐานข้อมูล";
+    }
+  }
+
+  loadGeo();
 </script>
 {% endblock %}
