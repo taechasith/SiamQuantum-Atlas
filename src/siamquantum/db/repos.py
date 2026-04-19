@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime, timezone
+from typing import TypeVar, cast
+
+from pydantic import BaseModel
 
 from siamquantum.models import (
     CommunitySubmissionCreate,
@@ -19,8 +22,10 @@ from siamquantum.models import (
     TripletRow,
 )
 
+_M = TypeVar("_M", bound=BaseModel)
 
-def _row(model: type, row: sqlite3.Row) -> object:
+
+def _row(model: type[_M], row: sqlite3.Row) -> _M:
     return model.model_validate(dict(row))
 
 
@@ -86,9 +91,9 @@ class SourceRepo:
         return [SourceRow.model_validate(dict(r)) for r in rows]
 
     def count_by_year(self, year: int) -> int:
-        return self._c.execute(
+        return int(self._c.execute(
             "SELECT COUNT(*) FROM sources WHERE published_year = ?", (year,)
-        ).fetchone()[0]
+        ).fetchone()[0])
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +219,7 @@ class StatsCacheRepo:
         age = (datetime.now(timezone.utc) - computed_at.replace(tzinfo=timezone.utc)).total_seconds()
         if age > self._TTL_SECONDS:
             return None
-        return json.loads(row["value"])
+        return cast(object, json.loads(row["value"]))
 
     def set(self, key: str, value: object) -> None:
         self._c.execute(

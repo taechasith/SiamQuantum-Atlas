@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timezone
+from typing import Any, cast
 
 import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
@@ -28,19 +29,19 @@ class _QuotaError(Exception):
     retry=retry_if_exception_type(_QuotaError),
     reraise=True,
 )
-async def _get(client: httpx.AsyncClient, url: str, params: dict[str, str]) -> dict:
+async def _get(client: httpx.AsyncClient, url: str, params: dict[str, str]) -> dict[str, Any]:
     resp = await client.get(url, params=params, timeout=30.0)
     if resp.status_code == 429:
         raise _QuotaError("YouTube quota exceeded (429)")
     resp.raise_for_status()
-    return resp.json()
+    return cast(dict[str, Any], resp.json())
 
 
 async def _search_page(
     client: httpx.AsyncClient,
     year: int,
     page_token: str | None,
-) -> tuple[list[dict], str | None]:
+) -> tuple[list[dict[str, Any]], str | None]:
     """One search.list call. Returns (items, next_page_token)."""
     params: dict[str, str] = {
         "part": "snippet",
@@ -65,7 +66,7 @@ async def _search_page(
 async def _fetch_stats(
     client: httpx.AsyncClient,
     video_ids: list[str],
-) -> dict[str, dict]:
+) -> dict[str, dict[str, Any]]:
     """videos.list for statistics. Returns {video_id: stats_dict}."""
     if not video_ids:
         return {}
@@ -76,7 +77,7 @@ async def _fetch_stats(
         "key": settings.youtube_api_key,
     }
     data = await _get(client, _VIDEOS_URL, params)
-    result: dict[str, dict] = {}
+    result: dict[str, dict[str, Any]] = {}
     for item in data.get("items") or []:
         vid_id = item.get("id") or ""
         if vid_id:
@@ -91,7 +92,7 @@ def _parse_published_year(published_at: str, fallback: int) -> int:
         return fallback
 
 
-def _build_source(item: dict, stats: dict, year: int) -> SourceRaw | None:
+def _build_source(item: dict[str, Any], stats: dict[str, Any], year: int) -> SourceRaw | None:
     vid_id = (item.get("id") or {}).get("videoId") or ""
     if not vid_id:
         return None
@@ -127,7 +128,7 @@ async def fetch_yearly(year: int) -> ServiceResult:
     try:
         async with httpx.AsyncClient() as client:
             # Pass 1: collect up to 100 videos via two search pages
-            all_items: list[dict] = []
+            all_items: list[dict[str, Any]] = []
             page_token: str | None = None
 
             for page_num in range(2):  # max 2 pages = 100 results
@@ -149,7 +150,7 @@ async def fetch_yearly(year: int) -> ServiceResult:
             video_ids = [v for v in video_ids if v]
 
             # videos.list accepts up to 50 IDs; split into batches
-            stats_map: dict[str, dict] = {}
+            stats_map: dict[str, dict[str, Any]] = {}
             for i in range(0, len(video_ids), 50):
                 batch = video_ids[i : i + 50]
                 batch_stats = await _fetch_stats(client, batch)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
+from typing import Any, cast
 
 import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
@@ -24,7 +25,7 @@ def _year_from_seendate(seendate: str, fallback: int) -> int:
         return fallback
 
 
-def _parse_response(data: dict, year: int) -> list[SourceRaw]:
+def _parse_response(data: dict[str, Any], year: int) -> list[SourceRaw]:
     articles = data.get("articles") or []
     if len(articles) >= _MAX_RECORDS:
         logger.warning(
@@ -65,7 +66,7 @@ class _RateLimitError(Exception):
     retry=retry_if_exception_type(_RateLimitError),
     reraise=True,
 )
-async def _fetch(client: httpx.AsyncClient, params: dict[str, str]) -> dict:
+async def _fetch(client: httpx.AsyncClient, params: dict[str, str]) -> dict[str, Any]:
     await asyncio.sleep(_MIN_INTERVAL)
     resp = await client.get(settings.gdelt_base_url, params=params, timeout=30.0)
     if resp.status_code == 429:
@@ -74,7 +75,7 @@ async def _fetch(client: httpx.AsyncClient, params: dict[str, str]) -> dict:
     text = resp.text.strip()
     if not text:
         return {}  # GDELT returns empty body when no results
-    return resp.json()
+    return cast(dict[str, Any], resp.json())
 
 
 async def fetch_yearly(year: int) -> ServiceResult:
