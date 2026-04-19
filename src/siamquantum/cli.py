@@ -159,8 +159,18 @@ def ingest_asn_backfill() -> None:
 
 @analyze_app.command("nlp")
 def analyze_nlp(year: int = typer.Option(..., "--year")) -> None:
-    """Run NLP pipeline for a year."""
-    raise NotImplementedError("phase 4 not yet implemented — see SPEC.md")
+    """Run NLP pipeline (triplet extraction + entity classification) for a year."""
+    from siamquantum.pipeline.nlp import analyze_year
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo(f"Running NLP pipeline for year={year}…")
+    counts = analyze_year(year, db_path)
+    typer.echo(
+        f"  processed={counts['processed']}"
+        f"  skipped_already_done={counts['skipped_already_done']}"
+        f"  skipped_no_text={counts['skipped_no_text']}"
+        f"  discarded_duplicate={counts['discarded_duplicate']}"
+    )
 
 
 @analyze_app.command("stats")
