@@ -97,11 +97,18 @@ def test_root_redirects_to_dashboard(client: TestClient) -> None:
 # Page routes render HTML
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("path", ["/dashboard", "/network", "/analytics", "/database", "/community"])
-def test_pages_return_html(client: TestClient, path: str) -> None:
+@pytest.mark.parametrize("path,expected", [
+    ("/dashboard",  "Thai Quantum Source Map"),
+    ("/network",    "คลิกโหนดเพื่อดูรายละเอียด"),
+    ("/analytics",  "Welch"),
+    ("/database",   "ฐานข้อมูล / Database"),
+    ("/community",  "Submit a Source"),
+])
+def test_pages_return_html(client: TestClient, path: str, expected: str) -> None:
     resp = client.get(path)
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
+    assert expected in resp.text, f"{path} body missing {expected!r}"
 
 
 # ---------------------------------------------------------------------------
