@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
-from datetime import date, datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
@@ -16,15 +18,11 @@ from siamquantum.models import ServiceResult, SourceRaw
 logger = logging.getLogger(__name__)
 
 _CSE_URL = "https://www.googleapis.com/customsearch/v1"
-_QUOTA_FILE = Path(__file__).parent.parent / "data" / "cse_quota.json"
+_QUOTA_FILE = Path(__file__).parent.parent / "data" / "cse_quota_state.json"
 _DAILY_HARD_LIMIT = 90
+_PACIFIC = ZoneInfo("America/Los_Angeles")
 
 Tier = Literal["academic", "media"]
-
-_CX: dict[Tier, str] = {
-    "academic": "",  # populated at call time from settings
-    "media": "",
-}
 
 
 class QuotaExhaustedError(Exception):
@@ -36,38 +34,66 @@ class _APIError(Exception):
 
 
 # ---------------------------------------------------------------------------
-# Quota tracker
+# Persistent Pacific-date quota tracker
 # ---------------------------------------------------------------------------
+
+def _pacific_today() -> str:
+    return datetime.now(tz=_PACIFIC).strftime("%Y-%m-%d")
+
 
 def _load_quota() -> dict[str, Any]:
     if _QUOTA_FILE.exists():
         try:
-            data: dict[str, Any] = json.loads(_QUOTA_FILE.read_text())
+            data: dict[str, Any] = json.loads(_QUOTA_FILE.read_text(encoding="utf-8"))
             return data
         except Exception:
             pass
-    return {"date": "", "count": 0}
+    return {"last_reset_pacific_date": "", "queries_used_today": 0}
 
 
-def _save_quota(q: dict[str, Any]) -> None:
+def _save_quota_atomic(q: dict[str, Any]) -> None:
+    """Write quota file atomically via temp file + os.replace()."""
     _QUOTA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _QUOTA_FILE.write_text(json.dumps(q))
+    tmp = _QUOTA_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(q), encoding="utf-8")
+    os.replace(tmp, _QUOTA_FILE)
 
 
 def _increment_quota() -> int:
-    """Increment daily query counter. Raises QuotaExhaustedError if at limit."""
-    today = date.today().isoformat()
+    """
+    Increment daily query counter (Pacific-date reset).
+    Counter incremented BEFORE API call — Google charges quota regardless of response.
+    Raises QuotaExhaustedError at >= 90.
+    """
+    today = _pacific_today()
     q = _load_quota()
-    if q.get("date") != today:
-        q = {"date": today, "count": 0}
-    count: int = int(q.get("count") or 0) + 1
-    q["count"] = count
-    _save_quota(q)
+    if q.get("last_reset_pacific_date") != today:
+        q = {"last_reset_pacific_date": today, "queries_used_today": 0}
+    count: int = int(q.get("queries_used_today") or 0) + 1
+    q["queries_used_today"] = count
+    _save_quota_atomic(q)
     if count > _DAILY_HARD_LIMIT:
         raise QuotaExhaustedError(
-            f"CSE daily quota exhausted: {count} queries today (limit {_DAILY_HARD_LIMIT})"
+            f"CSE quota guard: {count}/100 used today (halting at {_DAILY_HARD_LIMIT} to preserve retry buffer)"
         )
     return count
+
+
+def get_quota_status() -> dict[str, Any]:
+    """Return current quota state for CLI reporting."""
+    q = _load_quota()
+    today = _pacific_today()
+    if q.get("last_reset_pacific_date") != today:
+        return {"pacific_date": today, "queries_used_today": 0, "remaining": _DAILY_HARD_LIMIT}
+    used: int = int(q.get("queries_used_today") or 0)
+    return {"pacific_date": today, "queries_used_today": used, "remaining": max(0, _DAILY_HARD_LIMIT - used)}
+
+
+# ---------------------------------------------------------------------------
+# Probe-once cache (module-level, per session)
+# ---------------------------------------------------------------------------
+
+_OR_QUERY_SUPPORTED: bool | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -76,12 +102,12 @@ def _increment_quota() -> int:
 
 @retry(
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
+    wait=wait_exponential(multiplier=5, min=5, max=30),
     retry=retry_if_exception_type(_APIError),
     reraise=True,
 )
 def _get_page(cx: str, query: str, start: int, date_restrict: str) -> list[dict[str, Any]]:
-    """One CSE page call (10 results). Increments quota counter."""
+    """One CSE page call (10 results). Increments quota BEFORE call."""
     _increment_quota()
     params = {
         "key": settings.google_cse_key,
@@ -96,11 +122,12 @@ def _get_page(cx: str, query: str, start: int, date_restrict: str) -> list[dict[
     except httpx.RequestError as exc:
         raise _APIError(str(exc)) from exc
 
-    if r.status_code in (500, 502, 503, 504, 429):
+    if r.status_code in (429, 500, 502, 503, 504):
+        time.sleep(5)
         raise _APIError(f"CSE HTTP {r.status_code}")
     if r.status_code == 403:
         msg = r.json().get("error", {}).get("message", r.text[:200])
-        raise RuntimeError(f"CSE 403 (API not enabled or key invalid): {msg}")
+        raise RuntimeError(f"CSE 403 (API not enabled or key restricted): {msg}")
     if r.status_code == 400:
         msg = r.json().get("error", {}).get("message", r.text[:200])
         raise RuntimeError(f"CSE 400 (bad query): {msg}")
@@ -120,26 +147,36 @@ def _cx_for_tier(tier: Tier) -> str:
 
 
 # ---------------------------------------------------------------------------
-# OR-query feasibility probe (run once, cached)
+# OR-query feasibility probe — probe-once cache
 # ---------------------------------------------------------------------------
 
 def probe_or_query(tier: Tier = "academic") -> bool:
     """
-    Test whether CSE accepts OR-syntax. Returns True if supported.
-    Falls back gracefully — does NOT raise on 403/400.
+    Test whether CSE accepts OR-syntax. Hits API only once per session.
+    Subsequent calls return cached result without API call.
     """
+    global _OR_QUERY_SUPPORTED
+    if _OR_QUERY_SUPPORTED is not None:
+        logger.debug("CSE OR-query probe: returning cached result=%s", _OR_QUERY_SUPPORTED)
+        return _OR_QUERY_SUPPORTED
+
     cx = _cx_for_tier(tier)
     try:
         items = _get_page(cx, "ควอนตัม OR quantum", 1, "y2024")
-        supported = len(items) > 0
-        logger.info("CSE OR-query probe: %s (%d items)", "supported" if supported else "no results", len(items))
-        return supported
+        _OR_QUERY_SUPPORTED = len(items) > 0
+        logger.info(
+            "CSE OR-query probe (first call): %s (%d items)",
+            "supported" if _OR_QUERY_SUPPORTED else "no results",
+            len(items),
+        )
     except (RuntimeError, QuotaExhaustedError) as exc:
         logger.warning("CSE OR-query probe failed: %s — falling back to Thai-only", exc)
-        return False
+        _OR_QUERY_SUPPORTED = False
     except _APIError as exc:
         logger.warning("CSE OR-query probe API error: %s — falling back to Thai-only", exc)
-        return False
+        _OR_QUERY_SUPPORTED = False
+
+    return _OR_QUERY_SUPPORTED
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +186,7 @@ def probe_or_query(tier: Tier = "academic") -> bool:
 def fetch_cse_yearly(year: int, tier: Tier, use_or_query: bool = True) -> ServiceResult:
     """
     Fetch up to 50 CSE results (5 pages × 10) for `year` and `tier`.
-    Respects daily quota (hard stop at 90 queries/day).
+    Respects daily quota (hard stop at 90 queries/day Pacific time).
     """
     cx = _cx_for_tier(tier)
     query = "ควอนตัม OR quantum" if use_or_query else "ควอนตัม"
