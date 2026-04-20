@@ -34,6 +34,12 @@ def write_sources(raws: list[SourceRaw], db_path: Path) -> int:
     return inserted
 
 
+def _insert_sources(records: list[dict], db_path: Path) -> int:
+    """Insert raw dicts (SourceRaw schema) into DB. Public alias for CLI commands."""
+    raws = [SourceRaw(**r) for r in records]
+    return write_sources(raws, db_path)
+
+
 async def ingest_gdelt_year(year: int, db_path: Path) -> tuple[int, int]:
     """
     Fetch GDELT for `year`, write to DB.

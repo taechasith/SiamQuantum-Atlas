@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     youtube_api_key: str = Field(default="")
     gdelt_base_url: str = "https://api.gdeltproject.org/api/v2/doc/doc"
     viewer_port: int = 8765
+    google_cse_key: str = Field(default="")
+    google_cse_cx_academic: str = Field(default="")
+    google_cse_cx_media: str = Field(default="")
 
 
 settings = Settings()

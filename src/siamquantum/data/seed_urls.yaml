@@ -1,0 +1,37 @@
+---
+# Hand-curated Thai quantum seed URLs — platform: manual_seed
+seeds:
+  - url: "https://www.bangkokpost.com/business/general/2380313/quantum-technology-thailand-forges-ahead-in-science-and-technology"
+    title_hint: "Quantum technology: Thailand forges ahead"
+    published_year: 2022
+    rationale: "Bangkok Post landmark feature on Thailand's national quantum program"
+
+  - url: "https://www.nstda.or.th/home/news_post/10-technologies-to-watch-2025-post-quantum-cryptography-pqc/"
+    title_hint: "10 Technologies to Watch 2025: Post-Quantum Cryptography"
+    published_year: 2025
+    rationale: "NSTDA flagship analysis of PQC for Thailand"
+
+  - url: "https://www.nxpo.or.th/th/8697/"
+    title_hint: "ทำความรู้จัก ควอนตัม เทคโนโลยีสุดล้ำกับผลกระทบที่มีต่อประเทศไทย"
+    published_year: 2023
+    rationale: "NXPO official quantum impact article (Thai-language policy)"
+
+  - url: "https://www.depa.or.th/th/article-view/quantum-the-new-technology"
+    title_hint: "การคำนวณเชิงควอนตัม Quantum Computing"
+    published_year: 2023
+    rationale: "depa quantum technology overview, well-cited in Thai discourse"
+
+  - url: "https://www.quantum-thai.org/what-quantum-is"
+    title_hint: "Quantum คืออะไร — Q-Thai Forum"
+    published_year: 2021
+    rationale: "Q-Thai Forum core explainer + fraud-prevention framing"
+
+  - url: "https://medium.com/qtft/the-future-of-thailand-and-the-second-quantum-revolution-7f8be39e6ad8"
+    title_hint: "The future of Thailand and the second quantum revolution"
+    published_year: 2019
+    rationale: "QTFT founding manifesto by Dr. Jirawat Tangpanitanon"
+
+  - url: "https://thestandard.co/quantum-computer-1/"
+    title_hint: "รู้จัก Quantum Computer เทคโนโลยีที่จะ Disrupt โลกทั้งใบ"
+    published_year: 2018
+    rationale: "The Standard's first deep quantum explainer for Thai mainstream audience"

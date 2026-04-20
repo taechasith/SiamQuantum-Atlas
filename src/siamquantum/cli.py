@@ -140,6 +140,85 @@ def ingest_geo(
     )
 
 
+@ingest_app.command("rss")
+def ingest_rss(
+    feed: str = typer.Option("all", "--feed", help="Feed name: narit|tint|sciencefocus|all"),
+) -> None:
+    """Fetch RSS feeds from Thai science/quantum sites and write to DB."""
+    from siamquantum.services.rss import fetch_rss, FEEDS
+    from siamquantum.pipeline.ingest import _insert_sources  # type: ignore[attr-defined]
+
+    db_path = db_path_from_url(settings.database_url)
+    feed_names = list(FEEDS.keys()) if feed == "all" else [feed]
+
+    for name in feed_names:
+        typer.echo(f"Fetching RSS feed: {name}")
+        result = fetch_rss(name)
+        if not result.ok:
+            typer.echo(f"  ERROR: {result.error}", err=True)
+            raise typer.Exit(1)
+        records = result.data or []
+        inserted = _insert_sources(records, db_path)
+        typer.echo(f"  fetched={len(records)}  inserted={inserted}")
+
+
+@ingest_app.command("cse")
+def ingest_cse(
+    tier: str = typer.Option("all", "--tier", help="Tier: academic|media|all"),
+    year: int | None = typer.Option(None, "--year", help="Single year"),
+    all_years: bool = typer.Option(False, "--all-years", help="Ingest 2018 to current year"),
+) -> None:
+    """Fetch Google Custom Search Engine results for Thai quantum content."""
+    from siamquantum.services.google_cse import fetch_cse_yearly, probe_or_query, QuotaExhaustedError
+    from siamquantum.pipeline.ingest import _insert_sources  # type: ignore[attr-defined]
+    import datetime as _dt
+
+    if year is None and not all_years:
+        typer.echo("Pass --year YYYY or --all-years", err=True)
+        raise typer.Exit(1)
+
+    db_path = db_path_from_url(settings.database_url)
+    current_year = _dt.date.today().year
+    years = list(range(2018, current_year + 1)) if all_years else [year]  # type: ignore[arg-type]
+    tiers: list[str] = ["academic", "media"] if tier == "all" else [tier]
+
+    typer.echo("Probing CSE OR-query support...")
+    use_or = probe_or_query("academic")
+    typer.echo(f"  OR-query: {'supported' if use_or else 'fallback to Thai-only'}")
+
+    for yr in years:
+        for t in tiers:
+            typer.echo(f"Fetching CSE tier={t} year={yr}")
+            try:
+                result = fetch_cse_yearly(yr, t, use_or_query=use_or)  # type: ignore[arg-type]
+            except QuotaExhaustedError as exc:
+                typer.echo(f"  QUOTA EXHAUSTED: {exc}", err=True)
+                raise typer.Exit(1)
+            if not result.ok:
+                typer.echo(f"  ERROR: {result.error}", err=True)
+                raise typer.Exit(1)
+            records = result.data or []
+            inserted = _insert_sources(records, db_path)
+            typer.echo(f"  fetched={len(records)}  inserted={inserted}")
+
+
+@ingest_app.command("seeds")
+def ingest_seeds() -> None:
+    """Fetch hand-curated seed URLs and write to DB."""
+    from siamquantum.services.seeds import fetch_seeds
+    from siamquantum.pipeline.ingest import _insert_sources  # type: ignore[attr-defined]
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Fetching seed URLs...")
+    result = fetch_seeds()
+    if not result.ok:
+        typer.echo(f"  ERROR: {result.error}", err=True)
+        raise typer.Exit(1)
+    records = result.data or []
+    inserted = _insert_sources(records, db_path)
+    typer.echo(f"  fetched={len(records)}  inserted={inserted}")
+
+
 @ingest_app.command("asn-backfill")
 def ingest_asn_backfill() -> None:
     """Populate asn_org / is_cdn_resolved for existing geo rows (requires GeoLite2-ASN.mmdb)."""
