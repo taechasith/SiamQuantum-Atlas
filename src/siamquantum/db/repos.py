@@ -43,8 +43,9 @@ class SourceRepo:
             """
             INSERT OR IGNORE INTO sources
               (platform, url, title, raw_text, published_year, fetched_at,
-               view_count, like_count, comment_count)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+               view_count, like_count, comment_count,
+               channel_id, channel_title, channel_country, channel_default_language)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 source.platform,
@@ -56,6 +57,10 @@ class SourceRepo:
                 source.view_count,
                 source.like_count,
                 source.comment_count,
+                source.channel_id,
+                source.channel_title,
+                source.channel_country,
+                source.channel_default_language,
             ),
         )
         self._c.commit()

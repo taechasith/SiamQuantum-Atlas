@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 from datetime import datetime
 from pathlib import Path
 
 from siamquantum.db.repos import SourceRepo
 from siamquantum.db.session import get_connection
 from siamquantum.models import SourceCreate, SourceRaw
+
+logger = logging.getLogger(__name__)
 
 
 def _to_create(raw: SourceRaw) -> SourceCreate:
@@ -19,6 +23,10 @@ def _to_create(raw: SourceRaw) -> SourceCreate:
         view_count=raw.view_count,
         like_count=raw.like_count,
         comment_count=raw.comment_count,
+        channel_id=raw.channel_id,
+        channel_title=raw.channel_title,
+        channel_country=raw.channel_country,
+        channel_default_language=raw.channel_default_language,
     )
 
 
@@ -154,4 +162,101 @@ def backfill_asn(db_path: Path) -> dict[str, int]:
             conn.commit()
         counts["updated"] += 1
 
+    return counts
+
+
+async def backfill_channel_metadata(db_path: Path) -> dict[str, int]:
+    """
+    Populate channel_id/title/country/default_language for existing YouTube rows where
+    channel_id IS NULL. Calls videos.list (get channelId+title) then channels.list
+    (get country/defaultLanguage). Idempotent — skips rows already populated.
+    YouTube quota cost: ~8 (videos.list) + ~3 (channels.list) units total.
+    """
+    from siamquantum.services.youtube import _fetch_channel_info, _get
+    from siamquantum.config import settings
+    import httpx
+
+    counts: dict[str, int] = {"updated": 0, "skipped_no_video": 0, "api_errors": 0}
+
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT id, url FROM sources WHERE platform='youtube' AND channel_id IS NULL"
+        ).fetchall()
+
+    if not rows:
+        logger.info("backfill_channel_metadata: nothing to backfill")
+        return counts
+
+    # Extract video_ids from URLs
+    url_to_id: dict[str, int] = {}
+    vid_ids: list[str] = []
+    for row in rows:
+        src_id: int = row["id"]
+        url: str = row["url"]
+        vid_id = url.split("?v=")[-1] if "?v=" in url else ""
+        if not vid_id:
+            counts["skipped_no_video"] += 1
+            continue
+        url_to_id[vid_id] = src_id
+        vid_ids.append(vid_id)
+
+    _VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
+
+    # Batch videos.list to get channelId + channelTitle
+    vid_to_channel: dict[str, dict[str, str]] = {}  # vid_id -> {channel_id, channel_title}
+    async with httpx.AsyncClient() as client:
+        for i in range(0, len(vid_ids), 50):
+            batch = vid_ids[i : i + 50]
+            params: dict[str, str] = {
+                "part": "snippet",
+                "id": ",".join(batch),
+                "key": settings.youtube_api_key,
+            }
+            try:
+                data = await _get(client, _VIDEOS_URL, params)
+                for item in data.get("items") or []:
+                    vid = item.get("id") or ""
+                    snippet = item.get("snippet") or {}
+                    if vid:
+                        vid_to_channel[vid] = {
+                            "channel_id": snippet.get("channelId") or "",
+                            "channel_title": snippet.get("channelTitle") or "",
+                        }
+            except Exception as exc:
+                logger.warning("backfill videos.list batch %d error: %s", i // 50, exc)
+                counts["api_errors"] += 1
+            if i + 50 < len(vid_ids):
+                await asyncio.sleep(1.0)
+
+        # Collect unique channel_ids for channels.list
+        channel_ids_seen: set[str] = set()
+        channel_ids: list[str] = []
+        for v in vid_to_channel.values():
+            cid = v.get("channel_id") or ""
+            if cid and cid not in channel_ids_seen:
+                channel_ids_seen.add(cid)
+                channel_ids.append(cid)
+
+        channel_info = await _fetch_channel_info(client, channel_ids)
+
+    # Write updates to DB
+    with get_connection(db_path) as conn:
+        for vid_id, ch in vid_to_channel.items():
+            src_id = url_to_id.get(vid_id)
+            if not src_id:
+                continue
+            cid = ch.get("channel_id") or None
+            ctitle = ch.get("channel_title") or None
+            info = channel_info.get(cid or "") if cid else {}
+            country = (info or {}).get("country") or None
+            default_lang = (info or {}).get("defaultLanguage") or None
+            conn.execute(
+                """UPDATE sources SET channel_id=?, channel_title=?,
+                   channel_country=?, channel_default_language=? WHERE id=?""",
+                (cid, ctitle, country, default_lang, src_id),
+            )
+            counts["updated"] += 1
+        conn.commit()
+
+    logger.info("backfill_channel_metadata: %s", counts)
     return counts

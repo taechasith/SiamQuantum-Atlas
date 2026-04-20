@@ -234,6 +234,21 @@ def ingest_asn_backfill() -> None:
     )
 
 
+@ingest_app.command("channel-backfill")
+def ingest_channel_backfill() -> None:
+    """Backfill channel_id/title/country/language for existing YouTube rows."""
+    from siamquantum.pipeline.ingest import backfill_channel_metadata
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Backfilling YouTube channel metadata (videos.list + channels.list)…")
+    counts = asyncio.run(backfill_channel_metadata(db_path))
+    typer.echo(
+        f"  updated={counts['updated']}"
+        f"  skipped_no_video={counts['skipped_no_video']}"
+        f"  api_errors={counts['api_errors']}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # analyze commands
 # ---------------------------------------------------------------------------

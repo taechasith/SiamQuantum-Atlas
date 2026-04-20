@@ -29,6 +29,10 @@ class SourceRow(_Row):
     view_count: int | None = None
     like_count: int | None = None
     comment_count: int | None = None
+    channel_id: str | None = None
+    channel_title: str | None = None
+    channel_country: str | None = None
+    channel_default_language: str | None = None
 
 
 class GeoRow(_Row):
@@ -94,6 +98,10 @@ class SourceCreate(BaseModel):
     view_count: int | None = None
     like_count: int | None = None
     comment_count: int | None = None
+    channel_id: str | None = None
+    channel_title: str | None = None
+    channel_country: str | None = None
+    channel_default_language: str | None = None
 
 
 class GeoCreate(BaseModel):
@@ -144,6 +152,10 @@ class SourceRaw(BaseModel):
     view_count: int | None = None
     like_count: int | None = None
     comment_count: int | None = None
+    channel_id: str | None = None
+    channel_title: str | None = None
+    channel_country: str | None = None
+    channel_default_language: str | None = None
 
 
 class GeoResult(BaseModel):

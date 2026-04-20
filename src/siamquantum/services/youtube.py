@@ -140,7 +140,12 @@ def _parse_published_year(published_at: str, fallback: int) -> int:
         return fallback
 
 
-def _build_source(item: dict[str, Any], stats: dict[str, Any], year: int) -> SourceRaw | None:
+def _build_source(
+    item: dict[str, Any],
+    stats: dict[str, Any],
+    year: int,
+    channel_info: dict[str, Any] | None = None,
+) -> SourceRaw | None:
     vid_id = (item.get("id") or {}).get("videoId") or ""
     if not vid_id:
         return None
@@ -149,6 +154,10 @@ def _build_source(item: dict[str, Any], stats: dict[str, Any], year: int) -> Sou
     description = snippet.get("description") or None
     raw_text = f"{title or ''}\n{description or ''}".strip() or None
     pub_year = _parse_published_year(snippet.get("publishedAt") or "", year)
+    cid = snippet.get("channelId") or None
+    channel_title = snippet.get("channelTitle") or None
+    channel_country = (channel_info or {}).get("country") or None
+    channel_default_language = (channel_info or {}).get("defaultLanguage") or None
 
     def _int(key: str) -> int | None:
         val = stats.get(key)
@@ -163,6 +172,10 @@ def _build_source(item: dict[str, Any], stats: dict[str, Any], year: int) -> Sou
         view_count=_int("viewCount"),
         like_count=_int("likeCount"),
         comment_count=_int("commentCount"),
+        channel_id=cid,
+        channel_title=channel_title,
+        channel_country=channel_country,
+        channel_default_language=channel_default_language,
     )
 
 
@@ -235,7 +248,7 @@ async def fetch_yearly(year: int) -> ServiceResult:
                 rejected += 1
                 continue
             vid_id = (item.get("id") or {}).get("videoId") or ""
-            src = _build_source(item, stats_map.get(vid_id, {}), year)
+            src = _build_source(item, stats_map.get(vid_id, {}), year, info)
             if src and src.url not in seen_urls:
                 seen_urls.add(src.url)
                 records.append(src)

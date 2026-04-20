@@ -37,6 +37,12 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
         "ALTER TABLE sources ADD COLUMN relevance_confidence REAL",
         "ALTER TABLE sources ADD COLUMN relevance_checked_at TEXT",
         "CREATE INDEX IF NOT EXISTS idx_sources_relevant ON sources(is_quantum_tech, is_thailand_related)",
+        # TI-4: YouTube channel metadata columns
+        "ALTER TABLE sources ADD COLUMN channel_id TEXT",
+        "ALTER TABLE sources ADD COLUMN channel_title TEXT",
+        "ALTER TABLE sources ADD COLUMN channel_country TEXT",
+        "ALTER TABLE sources ADD COLUMN channel_default_language TEXT",
+        "CREATE INDEX IF NOT EXISTS idx_sources_channel ON sources(channel_id)",
     ]
     for sql in _migrations:
         try:
