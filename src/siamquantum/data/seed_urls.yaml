@@ -26,10 +26,10 @@ seeds:
     published_year: 2021
     rationale: "Q-Thai Forum core explainer + fraud-prevention framing"
 
-  - url: "https://medium.com/qtft/the-future-of-thailand-and-the-second-quantum-revolution-7f8be39e6ad8"
-    title_hint: "The future of Thailand and the second quantum revolution"
+  - url: "https://web.archive.org/web/2023/https://medium.com/qtft/the-future-of-thailand-and-the-second-quantum-revolution-7f8be39e6ad8"
+    title_hint: "The future of Thailand and the second quantum revolution (Wayback)"
     published_year: 2019
-    rationale: "QTFT founding manifesto by Dr. Jirawat Tangpanitanon"
+    rationale: "QTFT founding manifesto by Dr. Jirawat Tangpanitanon (via Internet Archive)"
 
   - url: "https://thestandard.co/quantum-computer-1/"
     title_hint: "รู้จัก Quantum Computer เทคโนโลยีที่จะ Disrupt โลกทั้งใบ"
