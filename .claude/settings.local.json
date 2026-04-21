@@ -42,7 +42,9 @@
       "Bash(chmod +x scripts/download_geoip.sh)",
       "Bash(bash scripts/download_geoip.sh)",
       "Bash(sqlite3 data/processed/siamquantum_atlas.db ' *)",
-      "Bash(.venv/Scripts/python -m mypy src/siamquantum/services/geoip.py --ignore-missing-imports)"
+      "Bash(.venv/Scripts/python -m mypy src/siamquantum/services/geoip.py --ignore-missing-imports)",
+      "Bash(sqlite3 *)",
+      "Bash(git mv *)"
     ]
   }
 }

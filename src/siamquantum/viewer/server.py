@@ -300,12 +300,30 @@ def api_stats_yearly(
     include_filtered: bool = Query(False, description="Include non-relevant sources"),
 ) -> JSONResponse:
     """
-    Yearly source counts, engagement distribution, and cached t-test results.
+    Yearly source counts, bootstrap engagement inference, and trend tests.
     Default: only quantum+thai relevant sources.
+    Method: bootstrap geometric mean on log1p(view_count). Scope: Thai web/social engagement only.
     """
     db = _db()
     relevance_clause = "" if include_filtered else "WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     relevance_join_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+    _empty_payload: dict[str, Any] = {
+        "scope": "thai_web_engagement",
+        "scope_caveat": (
+            "Excludes academic publications in English journals and institutional reports "
+            "not indexed by GDELT/YouTube. Coverage: 0.4% academic/gov sources (3 of 768)."
+        ),
+        "method": "bootstrap_geometric_mean",
+        "years": [],
+        "counts": {},
+        "engagement_distribution": {},
+        "trendlines": {"total_sources": [], "high_engagement": []},
+        "yearly_bootstrap": [],
+        "pairwise": [],
+        "trend": {},
+        "macro_clusters": [],
+        "significance": [],
+    }
     try:
         with get_connection(db) as conn:
             count_rows = conn.execute(f"""
@@ -329,29 +347,16 @@ def api_stats_yearly(
             clusters_raw = cache.get("macro_clusters")
             clusters = clusters_raw if isinstance(clusters_raw, list) else []
 
-            ttest_rows = conn.execute("""
-                SELECT key, value FROM stats_cache WHERE key LIKE 'ttest:%'
-            """).fetchall()
+            bootstrap_yearly_rows = conn.execute(
+                "SELECT key, value FROM stats_cache WHERE key LIKE 'bootstrap_yearly:%'"
+            ).fetchall()
+            bootstrap_pairwise_rows = conn.execute(
+                "SELECT key, value FROM stats_cache WHERE key LIKE 'bootstrap_pairwise:%'"
+            ).fetchall()
+            trend_raw = cache.get("bootstrap_trend")
     except Exception as exc:
         return JSONResponse(
-            {
-                "ok": False,
-                "data": {
-                    "years": [],
-                    "counts": {},
-                    "engagement_distribution": {},
-                    "trendlines": {
-                        "total_sources": [],
-                        "high_engagement": [],
-                    },
-                    "significance": [],
-                    "macro_clusters": [],
-                },
-                "error": {
-                    "code": "yearly_stats_failed",
-                    "message": str(exc),
-                },
-            },
+            {"ok": False, "data": _empty_payload, "error": {"code": "yearly_stats_failed", "message": str(exc)}},
             status_code=500,
         )
 
@@ -370,41 +375,55 @@ def api_stats_yearly(
             eng_dist[yr] = {}
         eng_dist[yr][row["engagement_level"]] = row["n"]
 
-    significance = []
-    for row in ttest_rows:
+    yearly_bootstrap: list[Any] = []
+    for row in bootstrap_yearly_rows:
         try:
-            parsed = json.loads(row["value"])
+            yearly_bootstrap.append(json.loads(row["value"]))
         except Exception:
             continue
-        significance.append(parsed)
+    yearly_bootstrap.sort(key=lambda x: x.get("year", 0))
 
-    significance.sort(key=lambda item: (item.get("year_a", 0), item.get("year_b", 0)))
+    pairwise: list[Any] = []
+    for row in bootstrap_pairwise_rows:
+        try:
+            pairwise.append(json.loads(row["value"]))
+        except Exception:
+            continue
+    pairwise.sort(key=lambda x: (x.get("year_a", 0), x.get("year_b", 0)))
+
+    trend: dict[str, Any] = trend_raw if isinstance(trend_raw, dict) else {}
 
     year_numbers = sorted(
-        {int(year) for year in counts.keys()} | {int(year) for year in eng_dist.keys() if str(year).isdigit()}
+        {int(y) for y in counts.keys()} | {int(y) for y in eng_dist.keys() if str(y).isdigit()}
     )
-    years = [str(year) for year in year_numbers]
+    years = [str(y) for y in year_numbers]
+    trend_total_sources = [int((counts.get(y) or {}).get("total", 0)) for y in years]
+    trend_high_engagement = [int((eng_dist.get(y) or {}).get("high", 0)) for y in years]
 
-    trend_total_sources = [int((counts.get(year) or {}).get("total", 0)) for year in years]
-    trend_high_engagement = [int((eng_dist.get(year) or {}).get("high", 0)) for year in years]
-
-    return JSONResponse(
-        {
-            "ok": True,
-            "data": {
-                "years": years,
-                "counts": counts,
-                "engagement_distribution": eng_dist,
-                "trendlines": {
-                    "total_sources": trend_total_sources,
-                    "high_engagement": trend_high_engagement,
-                },
-                "significance": significance,
-                "macro_clusters": clusters,
+    return JSONResponse({
+        "ok": True,
+        "data": {
+            "scope": "thai_web_engagement",
+            "scope_caveat": (
+                "Excludes academic publications in English journals and institutional reports "
+                "not indexed by GDELT/YouTube. Coverage: 0.4% academic/gov sources (3 of 768)."
+            ),
+            "method": "bootstrap_geometric_mean",
+            "years": years,
+            "counts": counts,
+            "engagement_distribution": eng_dist,
+            "trendlines": {
+                "total_sources": trend_total_sources,
+                "high_engagement": trend_high_engagement,
             },
-            "error": None,
-        }
-    )
+            "yearly_bootstrap": yearly_bootstrap,
+            "pairwise": pairwise,
+            "trend": trend,
+            "macro_clusters": clusters,
+            "significance": [],
+        },
+        "error": None,
+    })
 
 
 # ---------------------------------------------------------------------------

@@ -178,6 +178,64 @@
     border: 1px solid rgba(199, 155, 255, 0.32);
   }
 
+  .scope-banner {
+    border: 1px solid rgba(255, 179, 71, 0.45);
+    background: rgba(255, 179, 71, 0.07);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+    color: var(--warning);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .scope-banner strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  .prob-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: rgba(112, 225, 255, 0.10);
+    color: var(--accent);
+    border: 1px solid rgba(112, 225, 255, 0.28);
+  }
+
+  .trend-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .trend-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+  }
+
+  .trend-label {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .trend-value {
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 0.2rem;
+  }
+
   .empty-state,
   .error-state {
     display: none;
@@ -232,6 +290,12 @@
 
 {% block body %}
 <section class="analytics-shell">
+  <div class="scope-banner">
+    <strong>Scope: Thai web &amp; social media engagement only.</strong>
+    Academic publications in English journals and institutional reports (NSTDA, NXPO, universities) are not in scope of this analysis.
+    Coverage: 0.4% academic/gov sources (3 of 768). Method: bootstrap geometric mean on log&#8321;&#8346;(view_count), 10,000 resamples, 90% CI.
+  </div>
+
   <div class="hero-card">
     <div class="eyebrow">Yearly Statistical View</div>
     <h1>สถิติรายปีของข้อมูลควอนตัมไทย<br>Thai Quantum Yearly Analytics</h1>
@@ -288,9 +352,33 @@
     </div>
 
     <div class="card">
-      <h3>นัยสำคัญทางสถิติ / Significance</h3>
-      <p>รายการคู่ปีที่มีผล t-test พร้อมป้ายกำกับ p-value significance</p>
+      <h3>Bootstrap Pairwise Ratios</h3>
+      <p>Ratio of geometric means (year B / year A) with 90% bootstrap CI and P(B &gt; A). No p-values — probabilities only.</p>
       <div class="significance-list" id="significance-list"></div>
+    </div>
+
+    <div class="card wide-card">
+      <h3>Trend Analysis</h3>
+      <p>Mann-Kendall tests for monotonic trend in yearly geometric means. Spearman tests correlation of all log(view_count) data points with year.</p>
+      <div class="trend-panel" id="trend-panel">
+        <div class="trend-stat">
+          <div class="trend-label">Mann-Kendall &#964;</div>
+          <div class="trend-value" id="mk-tau">—</div>
+        </div>
+        <div class="trend-stat">
+          <div class="trend-label">Mann-Kendall p</div>
+          <div class="trend-value" id="mk-p">—</div>
+        </div>
+        <div class="trend-stat">
+          <div class="trend-label">Spearman &#961;</div>
+          <div class="trend-value" id="sp-rho">—</div>
+        </div>
+        <div class="trend-stat">
+          <div class="trend-label">Spearman p</div>
+          <div class="trend-value" id="sp-p">—</div>
+        </div>
+      </div>
+      <p style="margin-top:0.85rem;font-size:0.87rem;color:var(--muted)" id="trend-interp"></p>
     </div>
   </div>
 </section>
@@ -365,32 +453,44 @@
     };
   }
 
-  function renderSignificance(items) {
+  function renderPairwise(items) {
     if (!items.length) {
       elements.significanceList.innerHTML = `
         <div class="sig-item">
-          <div class="sig-copy">ยังไม่มีผล t-test ใน cache สำหรับเปรียบเทียบรายปี / No cached significance results yet.</div>
-          <span class="sig-badge sig-no">No tests</span>
+          <div class="sig-copy">Bootstrap pairwise ratios not yet computed. Run <code>analyze stats</code> first.</div>
+          <span class="sig-badge sig-no">No data</span>
         </div>
       `;
       return;
     }
-
     elements.significanceList.innerHTML = items.map((item) => {
-      const significant = Boolean(item.significant);
-      const badgeClass = significant ? "sig-yes" : "sig-no";
-      const badgeText = significant ? "p < 0.05" : "n.s.";
-      const pValue = typeof item.p_value === "number" ? item.p_value.toFixed(4) : "n/a";
+      const ratio = typeof item.ratio === "number" ? item.ratio.toFixed(2) : "n/a";
+      const ciLow = typeof item.ratio_ci_low === "number" ? item.ratio_ci_low.toFixed(2) : "n/a";
+      const ciHigh = typeof item.ratio_ci_high === "number" ? item.ratio_ci_high.toFixed(2) : "n/a";
+      const prob = typeof item.p_b_greater === "number" ? Math.round(item.p_b_greater * 100) : "n/a";
       return `
         <div class="sig-item">
           <div class="sig-copy">
             <strong>${item.year_a} vs ${item.year_b}</strong><br>
-            p-value = ${pValue}
+            Geo-mean ratio: ${ratio}x &nbsp;(90% CI ${ciLow}–${ciHigh}x)
           </div>
-          <span class="sig-badge ${badgeClass}">${badgeText}</span>
+          <span class="prob-badge">${prob}% P(${item.year_b} &gt; ${item.year_a})</span>
         </div>
       `;
     }).join("");
+  }
+
+  function renderTrend(trend) {
+    if (!trend || !Object.keys(trend).length) {
+      document.getElementById("trend-interp").textContent = "Trend data not yet computed. Run analyze stats first.";
+      return;
+    }
+    const fmt = (v) => typeof v === "number" ? v.toFixed(3) : "—";
+    document.getElementById("mk-tau").textContent = fmt(trend.mannkendall_tau);
+    document.getElementById("mk-p").textContent = fmt(trend.mannkendall_p);
+    document.getElementById("sp-rho").textContent = fmt(trend.spearman_rho);
+    document.getElementById("sp-p").textContent = fmt(trend.spearman_p);
+    document.getElementById("trend-interp").textContent = trend.interpretation || "";
   }
 
   async function loadAnalytics() {
@@ -407,10 +507,11 @@
       const years = Array.isArray(data.years) ? data.years : [];
       const counts = data.counts || {};
       const trendlines = data.trendlines || { total_sources: [], high_engagement: [] };
-      const significance = Array.isArray(data.significance) ? data.significance : [];
+      const pairwise = Array.isArray(data.pairwise) ? data.pairwise : [];
+      const trend = data.trend || {};
 
       if (!years.length) {
-        showEmpty("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล significance.");
+        showEmpty("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล.");
         return;
       }
 
@@ -423,7 +524,7 @@
 
       elements.years.textContent = String(years.length);
       elements.sources.textContent = String(totalSources.reduce((sum, value) => sum + Number(value || 0), 0));
-      elements.significance.textContent = String(significance.filter((item) => item.significant).length);
+      elements.significance.textContent = pairwise.length ? String(pairwise.length) + " pairs" : "0";
 
       new Chart(document.getElementById("trend-chart"), {
         data: {
@@ -476,8 +577,9 @@
         options: chartOptions()
       });
 
-      renderSignificance(significance);
-      setStatus(`โหลดแล้ว ${years.length} ปี / ${significance.length} significance rows`);
+      renderPairwise(pairwise);
+      renderTrend(trend);
+      setStatus(`โหลดแล้ว ${years.length} ปี / ${pairwise.length} bootstrap pairs`);
     } catch (error) {
       showError(`ไม่สามารถโหลดข้อมูลสถิติรายปีได้: ${error.message}`);
     }

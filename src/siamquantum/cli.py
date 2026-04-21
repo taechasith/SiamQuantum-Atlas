@@ -297,8 +297,15 @@ def analyze_stats() -> None:
         f"  macro_clusters={result['macro_clusters']}"
     )
     typer.echo(
-        f"  ttest_pairs_computed={result['ttest_pairs_computed']}"
-        f"  ttest_pairs_skipped={result['ttest_pairs_skipped']}"
+        f"  bootstrap_yearly={result.get('bootstrap_yearly_computed', '?')}"
+        f"  bootstrap_pairwise={result.get('bootstrap_pairwise_computed', '?')}"
+    )
+    trend = result.get("bootstrap_trend") or {}
+    typer.echo(
+        f"  trend: MK_tau={trend.get('mannkendall_tau', '?')}"
+        f"  MK_p={trend.get('mannkendall_p', '?')}"
+        f"  Spearman_rho={trend.get('spearman_rho', '?')}"
+        f"  Spearman_p={trend.get('spearman_p', '?')}"
     )
 
 
