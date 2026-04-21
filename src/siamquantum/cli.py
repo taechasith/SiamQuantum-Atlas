@@ -254,30 +254,66 @@ def ingest_channel_backfill() -> None:
 # ---------------------------------------------------------------------------
 
 @analyze_app.command("nlp")
-def analyze_nlp(year: int = typer.Option(..., "--year")) -> None:
-    """Run NLP pipeline (triplet extraction + entity classification) for a year."""
+def analyze_nlp(
+    year: int = typer.Option(0, "--year", help="4-digit year (or use --all)"),
+    all_years: bool = typer.Option(False, "--all", help="Process all years present in DB"),
+) -> None:
+    """Run NLP pipeline (triplet extraction + entity classification) for a year or all years."""
     from siamquantum.pipeline.nlp import analyze_year
 
     db_path = db_path_from_url(settings.database_url)
-    typer.echo(f"Running NLP pipeline for year={year}…")
-    counts = analyze_year(year, db_path)
-    tok_in = counts.get("token_input", 0)
-    tok_out = counts.get("token_output", 0)
+
+    if all_years:
+        from siamquantum.db.session import get_connection
+        with get_connection(db_path) as conn:
+            years = [
+                int(row[0])
+                for row in conn.execute(
+                    "SELECT DISTINCT published_year FROM sources ORDER BY published_year"
+                ).fetchall()
+                if row[0] is not None
+            ]
+    elif year:
+        years = [year]
+    else:
+        typer.echo("Pass --year YYYY or --all", err=True)
+        raise typer.Exit(1)
+
+    total: dict[str, int] = {
+        "processed": 0, "skipped_already_done": 0, "skipped_no_text": 0,
+        "discarded_duplicate": 0, "failed": 0,
+        "triplets_written": 0, "entities_written": 0,
+        "token_input": 0, "token_output": 0,
+    }
+    for yr in years:
+        typer.echo(f"NLP year={yr}…")
+        counts = analyze_year(yr, db_path)
+        for k in total:
+            total[k] += counts.get(k, 0)
+        typer.echo(
+            f"  processed={counts['processed']}"
+            f"  skip={counts['skipped_already_done']}"
+            f"  no_text={counts['skipped_no_text']}"
+            f"  failed={counts.get('failed', 0)}"
+            f"  triplets={counts.get('triplets_written', 0)}"
+        )
+
+    tok_in = total["token_input"]
+    tok_out = total["token_output"]
     cost = tok_in * 3.0 / 1_000_000 + tok_out * 15.0 / 1_000_000
+    typer.echo("=== TOTAL ===")
     typer.echo(
-        f"  processed={counts['processed']}"
-        f"  skipped_already_done={counts['skipped_already_done']}"
-        f"  skipped_no_text={counts['skipped_no_text']}"
-        f"  discarded_duplicate={counts['discarded_duplicate']}"
+        f"  processed={total['processed']}"
+        f"  skipped_already_done={total['skipped_already_done']}"
+        f"  skipped_no_text={total['skipped_no_text']}"
+        f"  discarded_duplicate={total['discarded_duplicate']}"
+        f"  failed={total['failed']}"
     )
     typer.echo(
-        f"  triplets_written={counts.get('triplets_written', '?')}"
-        f"  entities_written={counts.get('entities_written', '?')}"
+        f"  triplets_written={total['triplets_written']}"
+        f"  entities_written={total['entities_written']}"
     )
-    typer.echo(
-        f"  tokens: input={tok_in} output={tok_out}"
-        f"  cost_usd=${cost:.4f}"
-    )
+    typer.echo(f"  tokens: input={tok_in} output={tok_out}  cost_usd=${cost:.4f}")
 
 
 @analyze_app.command("stats")
