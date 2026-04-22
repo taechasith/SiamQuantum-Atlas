@@ -199,28 +199,23 @@ def api_geo_list(
 
 @app.get("/api/graph")
 def api_graph(
-    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+    include_filtered: bool = Query(True, description="Include all sources (relevance flags not populated)"),
 ) -> JSONResponse:
     """
-    Returns nodes (entities joined with sources) and edges (triplets).
-    Default: only quantum+thai relevant sources.
+    Returns concept-level nodes and edges built from triplets.
+    Nodes = unique subject/object concept texts. Edges = subject→object per triplet.
     """
+    import re as _re
+
+    def _norm(text: str) -> str:
+        return _re.sub(r"\s+", " ", text.strip().lower())
+
     db = _db()
     relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
-            node_rows = conn.execute(f"""
-                SELECT e.source_id,
-                       e.content_type, e.production_type, e.area, e.engagement_level,
-                       s.url, s.title, s.published_year AS year, s.platform
-                FROM entities e
-                JOIN sources s ON e.source_id = s.id
-                WHERE 1=1 {relevance_clause}
-                ORDER BY e.source_id
-            """).fetchall()
-
             edge_rows = conn.execute(f"""
-                SELECT t.id, t.source_id, t.subject, t.relation, t.object, t.confidence
+                SELECT t.subject, t.relation, t.object, t.confidence
                 FROM triplets t
                 JOIN sources s ON t.source_id = s.id
                 WHERE 1=1 {relevance_clause}
@@ -231,61 +226,70 @@ def api_graph(
             {
                 "ok": False,
                 "data": {"nodes": [], "links": []},
-                "error": {
-                    "code": "graph_load_failed",
-                    "message": str(exc),
-                },
+                "error": {"code": "graph_load_failed", "message": str(exc)},
             },
             status_code=500,
         )
 
-    nodes = []
-    for row in node_rows:
-        item = dict(row)
-        source_id = item["source_id"]
-        nodes.append(
-            {
-                "id": f"source:{source_id}",
-                "source_id": source_id,
-                "label": item.get("title") or item.get("url") or f"Source {source_id}",
-                "title": item.get("title"),
-                "url": item.get("url"),
-                "year": item.get("year"),
-                "platform": item.get("platform"),
-                "content_type": item.get("content_type"),
-                "production_type": item.get("production_type"),
-                "area": item.get("area"),
-                "engagement_level": item.get("engagement_level"),
-            }
-        )
+    # concept registry: norm_key → display label (first seen)
+    concept_label: dict[str, str] = {}
+    # degree counter: norm_key → int
+    degree: dict[str, int] = {}
+    # edge aggregation: (src_key, tgt_key) → {relation, count, confidence_sum}
+    EdgeVal = dict[str, Any]
+    edge_agg: dict[tuple[str, str], EdgeVal] = {}
 
-    links = []
     for row in edge_rows:
-        item = dict(row)
-        source_id = item["source_id"]
-        links.append(
-            {
-                "id": f"triplet:{item['id']}",
-                "source": f"source:{source_id}",
-                "target": f"source:{source_id}",
-                "source_id": source_id,
-                "subject": item.get("subject"),
-                "relation": item.get("relation"),
-                "object": item.get("object"),
-                "confidence": item.get("confidence"),
-                "label": " ".join(
-                    str(part) for part in [item.get("subject"), item.get("relation"), item.get("object")] if part
-                ),
-            }
-        )
+        subj_raw = (row[0] or "").strip()
+        rel_raw = (row[1] or "").strip()
+        obj_raw = (row[2] or "").strip()
+        conf = float(row[3] or 0.5)
+
+        subj_key = _norm(subj_raw)
+        obj_key = _norm(obj_raw)
+
+        if len(subj_key) < 2 or len(obj_key) < 2:
+            continue
+        if subj_key == obj_key:
+            continue
+
+        if subj_key not in concept_label:
+            concept_label[subj_key] = subj_raw
+        if obj_key not in concept_label:
+            concept_label[obj_key] = obj_raw
+
+        degree[subj_key] = degree.get(subj_key, 0) + 1
+        degree[obj_key] = degree.get(obj_key, 0) + 1
+
+        edge_key = (subj_key, obj_key)
+        if edge_key not in edge_agg:
+            edge_agg[edge_key] = {"relation": rel_raw, "count": 0, "conf_sum": 0.0}
+        edge_agg[edge_key]["count"] += 1
+        edge_agg[edge_key]["conf_sum"] += conf
+
+    nodes = [
+        {
+            "id": key,
+            "label": concept_label[key],
+            "val": max(1, degree.get(key, 1)),
+        }
+        for key in concept_label
+    ]
+
+    links = [
+        {
+            "source": src,
+            "target": tgt,
+            "label": agg["relation"],
+            "value": agg["count"],
+        }
+        for (src, tgt), agg in edge_agg.items()
+    ]
 
     return JSONResponse(
         {
             "ok": True,
-            "data": {
-                "nodes": nodes,
-                "links": links,
-            },
+            "data": {"nodes": nodes, "links": links},
             "error": None,
         }
     )

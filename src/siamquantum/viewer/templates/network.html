@@ -273,7 +273,10 @@
         <div class="graph-title">3D Force Graph / กราฟความสัมพันธ์สามมิติ</div>
         <div class="graph-subtitle">Rendered from `/api/graph` using `3d-force-graph` from CDN</div>
       </div>
-      <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading graph</div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <button id="leaf-toggle" style="background:#1a2040;color:#99a7d3;border:1px solid #2d3a5e;border-radius:4px;padding:0.25rem 0.6rem;cursor:pointer;font-size:0.75rem;">Show leaf nodes</button>
+        <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading graph</div>
+      </div>
     </div>
     <div class="graph-stack">
       <div id="network-graph" aria-label="Thai quantum network graph"></div>
@@ -329,38 +332,45 @@
 <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
 <script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
 <script>
-  const colors = {
-    state_research: "#70e1ff",
-    university: "#56f39a",
-    corporate_media: "#ffb347",
-    independent: "#c79bff",
-    unknown: "#8b95b5"
-  };
-
   const elements = {
-    status: document.getElementById("status-pill"),
-    nodes: document.getElementById("stat-nodes"),
-    links: document.getElementById("stat-links"),
-    empty: document.getElementById("empty-state"),
-    error: document.getElementById("error-state"),
+    status:       document.getElementById("status-pill"),
+    nodes:        document.getElementById("stat-nodes"),
+    links:        document.getElementById("stat-links"),
+    empty:        document.getElementById("empty-state"),
+    error:        document.getElementById("error-state"),
     errorMessage: document.getElementById("error-message"),
-    info: document.getElementById("info-panel"),
-    graph: document.getElementById("network-graph")
+    info:         document.getElementById("info-panel"),
+    graph:        document.getElementById("network-graph"),
+    leafToggle:   document.getElementById("leaf-toggle"),
   };
 
-  function setStatus(text) {
-    elements.status.textContent = text;
+  // Script-bucket color: Thai unicode block vs ASCII/Latin vs other
+  function nodeColor(node) {
+    const label = node.label || "";
+    if (/[฀-๿]/.test(label)) return "#70e1ff";   // Thai
+    if (/[A-Za-z]/.test(label))         return "#56f39a";   // Latin
+    return "#c79bff";                                        // other
   }
 
-  function showEmpty(message) {
-    elements.empty.querySelector(".overlay-copy").textContent = message;
+  function nodeLabel(node) {
+    const deg = node.val || 1;
+    return `<div style="color:#f3f7ff;padding:0.2rem 0.4rem;line-height:1.5;">
+      <strong>${node.label || node.id}</strong><br>
+      <span style="color:#99a7d3;">degree: ${deg}</span>
+    </div>`;
+  }
+
+  function setStatus(text) { elements.status.textContent = text; }
+
+  function showEmpty(msg) {
+    elements.empty.querySelector(".overlay-copy").textContent = msg;
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
     setStatus("ไม่มีข้อมูล / No graph data");
   }
 
-  function showError(message) {
-    elements.errorMessage.textContent = message;
+  function showError(msg) {
+    elements.errorMessage.textContent = msg;
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
     setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
@@ -371,82 +381,86 @@
     elements.error.classList.remove("is-visible");
   }
 
-  function nodeColor(node) {
-    return colors[node.production_type] || colors.unknown;
-  }
-
-  function nodeLabel(node) {
-    const label = node.label || "Untitled source";
-    const production = node.production_type || "unknown";
-    const contentType = node.content_type || "unknown";
-    const year = node.year ?? "unknown";
-    return `
-      <div style="color:#f3f7ff; padding:0.25rem 0.4rem; line-height:1.5;">
-        <strong>${label}</strong><br>
-        <span style="color:#99a7d3;">${production} | ${contentType} | ${year}</span>
-      </div>
-    `;
-  }
-
   async function loadGraph() {
     try {
       const response = await fetch("/api/graph");
-      const payload = await response.json();
+      const payload  = await response.json();
 
       if (!response.ok || !payload.ok) {
-        const message = payload && payload.error ? payload.error.message : "Unknown graph API error";
-        throw new Error(message);
+        throw new Error(payload?.error?.message || "Unknown graph API error");
       }
 
-      const nodes = payload.data && Array.isArray(payload.data.nodes) ? payload.data.nodes : [];
-      const links = payload.data && Array.isArray(payload.data.links) ? payload.data.links : [];
+      const allNodes = Array.isArray(payload.data?.nodes) ? payload.data.nodes : [];
+      const allLinks = Array.isArray(payload.data?.links) ? payload.data.links : [];
 
-      elements.nodes.textContent = String(nodes.length);
-      elements.links.textContent = String(links.length);
-
-      if (!nodes.length || !links.length) {
-        showEmpty("ยังไม่มีโหนดหรือความสัมพันธ์จากฐานข้อมูลเพียงพอสำหรับการเรนเดอร์กราฟในตอนนี้.");
+      if (!allNodes.length) {
+        showEmpty("ยังไม่มีโหนดหรือความสัมพันธ์จากฐานข้อมูล");
         return;
+      }
+
+      // Build degree map from full link set for filtering
+      const degreeMap = {};
+      allNodes.forEach(n => { degreeMap[n.id] = n.val || 1; });
+
+      let showLeaves = false;
+
+      function visibleData() {
+        if (showLeaves) return { nodes: allNodes, links: allLinks };
+        const coreIds = new Set(allNodes.filter(n => degreeMap[n.id] > 1).map(n => n.id));
+        const nodes   = allNodes.filter(n => coreIds.has(n.id));
+        const links   = allLinks.filter(l => coreIds.has(l.source?.id ?? l.source) && coreIds.has(l.target?.id ?? l.target));
+        return { nodes, links };
       }
 
       hideStates();
 
       const graph = ForceGraph3D()(elements.graph)
         .backgroundColor("#050816")
-        .graphData({ nodes, links })
         .nodeId("id")
         .nodeLabel(nodeLabel)
         .nodeColor(nodeColor)
-        .nodeVal((node) => {
-          if (node.engagement_level === "high") return 4;
-          if (node.engagement_level === "medium") return 2.8;
-          return 1.8;
-        })
-        .linkColor(() => "rgba(153, 167, 211, 0.35)")
-        .linkOpacity(0.38)
-        .linkWidth((link) => Math.max(0.5, Number(link.confidence || 0.3) * 2))
+        .nodeVal(node => Math.min(Math.sqrt(node.val || 1) * 1.5, 12))
+        .nodeRelSize(5)
+        .linkColor(() => "rgba(153, 167, 211, 0.75)")
+        .linkOpacity(0.75)
+        .linkWidth(link => Math.max(0.8, Math.min(Number(link.value || 1), 4)))
         .linkDirectionalParticles(1)
-        .linkDirectionalParticleWidth(1.2)
-        .onNodeClick((node) => {
+        .linkDirectionalParticleWidth(1.5)
+        .linkLabel(link => link.label || "")
+        .onNodeClick((node, event) => {
+          graph.cameraPosition(
+            { x: node.x * 1.5, y: node.y * 1.5, z: node.z * 1.5 },
+            node,
+            800
+          );
           elements.info.innerHTML = `
-            <h3>รายละเอียดโหนด / Node details</h3>
-            <strong>${node.label || "Untitled source"}</strong><br>
-            production_type: ${node.production_type || "unknown"}<br>
-            content_type: ${node.content_type || "unknown"}<br>
-            area: ${node.area || "unknown"}<br>
-            engagement: ${node.engagement_level || "unknown"}<br>
-            platform: ${node.platform || "unknown"}<br>
-            <a href="${node.url}" target="_blank" rel="noopener">เปิดต้นฉบับ / Open source</a>
+            <h3>Node</h3>
+            <strong>${node.label || node.id}</strong><br>
+            <span style="color:#99a7d3;">degree: ${node.val || 1}</span>
           `;
         });
 
-      setStatus(`โหลดแล้ว ${nodes.length} โหนด / ${links.length} ลิงก์`);
+      function render() {
+        const { nodes, links } = visibleData();
+        graph.graphData({ nodes, links });
+        elements.nodes.textContent = String(nodes.length);
+        elements.links.textContent = String(links.length);
+        setStatus(`${nodes.length} nodes / ${links.length} links`);
+      }
 
-      setTimeout(() => {
-        graph.zoomToFit(600, 60);
-      }, 350);
-    } catch (error) {
-      showError(`ไม่สามารถโหลดข้อมูลกราฟได้: ${error.message}`);
+      render();
+
+      setTimeout(() => graph.zoomToFit(800, 80), 500);
+
+      elements.leafToggle.addEventListener("click", () => {
+        showLeaves = !showLeaves;
+        elements.leafToggle.textContent = showLeaves ? "Hide leaf nodes" : "Show leaf nodes";
+        render();
+        setTimeout(() => graph.zoomToFit(600, 60), 300);
+      });
+
+    } catch (err) {
+      showError(`ไม่สามารถโหลดข้อมูลกราฟได้: ${err.message}`);
     }
   }
 
