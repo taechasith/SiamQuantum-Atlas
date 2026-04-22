@@ -45,11 +45,24 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
         }
 
     pending = [s for s in sources if s.id not in already_done]
+    recovery_mode = bool(pending) and len(pending) < len(sources)
     counts["skipped_already_done"] = len(sources) - len(pending)
 
-    text_sources = [(s, (s.raw_text or s.title or "").strip()) for s in pending]
-    with_text = [(s, t) for s, t in text_sources if len(t) >= 20]
-    without_text = [s for s, t in text_sources if len(t) < 20]
+    text_sources: list[tuple[object, str]] = []
+    for source in pending:
+        raw_text = (source.raw_text or "").strip()
+        if len(raw_text) >= 20:
+            text_sources.append((source, raw_text))
+            continue
+        if recovery_mode:
+            recovery_text = (source.title or raw_text).strip()
+            text_sources.append((source, recovery_text))
+            continue
+        text_sources.append((source, raw_text))
+
+    min_text_len = 1 if recovery_mode else 20
+    with_text = [(s, t) for s, t in text_sources if len(t) >= min_text_len]
+    without_text = [s for s, t in text_sources if len(t) < min_text_len]
     counts["skipped_no_text"] = len(without_text)
 
     discard_ids: set[int] = set()
@@ -60,7 +73,16 @@ def analyze_year(year: int, db_path: Path) -> dict[str, int]:
             discard_ids = find_duplicates(texts, ids, dedupe_check_fn=claude.dedupe_check)
         except Exception as exc:
             logger.warning("dedup failed - skipping dedup pass: %s", exc)
-        counts["discarded_duplicate"] = len(discard_ids)
+        if recovery_mode:
+            logger.info(
+                "Recovery mode for year=%d: forcing one NLP pass for %d dedupe-excluded incomplete sources",
+                year,
+                len(discard_ids),
+            )
+            counts["discarded_duplicate"] = 0
+            discard_ids = set()
+        else:
+            counts["discarded_duplicate"] = len(discard_ids)
 
     for source, text in with_text:
         if source.id in discard_ids:
