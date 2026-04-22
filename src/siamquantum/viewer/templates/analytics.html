@@ -596,16 +596,62 @@
   async function loadTaxonomy() {
     const el = document.getElementById("taxonomy-summary");
     try {
-      const r = await fetch("/api/taxonomy/summary");
-      const p = await r.json();
-      if (!p.ok) throw new Error(p?.error?.message || "taxonomy error");
-      const d = p.data;
-      const mfList = d.media_format.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
-      const uiList = d.user_intent.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
+      const [sumR, statsR] = await Promise.all([
+        fetch("/api/taxonomy/summary"),
+        fetch("/api/taxonomy/stats"),
+      ]);
+      const sum = await sumR.json();
+      const stats = await statsR.json();
+      if (!sum.ok) throw new Error(sum?.error?.message || "taxonomy summary error");
+
+      const sd = sum.data;
+      const mfList = sd.media_format.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
+      const uiList = sd.user_intent.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
+
+      let engBlock = "";
+      let chi2Block = "";
+      if (stats.ok && stats.data) {
+        const td = stats.data;
+        if (td["media_format"] && td["media_format"].summary) {
+          const mfEng = td["media_format"].summary.slice(0, 5)
+            .map(g => `<tr><td style="padding:0.2rem 0.6rem 0.2rem 0;">${g.label}</td><td style="padding:0.2rem 0.6rem;">${Math.round(g.geo_mean).toLocaleString()}</td><td style="padding:0.2rem 0.6rem;">${g.n}</td></tr>`)
+            .join("");
+          const uiEng = td["user_intent"] && td["user_intent"].summary
+            ? td["user_intent"].summary.slice(0, 5)
+              .map(g => `<tr><td style="padding:0.2rem 0.6rem 0.2rem 0;">${g.label}</td><td style="padding:0.2rem 0.6rem;">${Math.round(g.geo_mean).toLocaleString()}</td><td style="padding:0.2rem 0.6rem;">${g.n}</td></tr>`)
+              .join("")
+            : "";
+          const mfKW = td["media_format"].kruskal_wallis;
+          const uiKW = td["user_intent"] && td["user_intent"].kruskal_wallis ? td["user_intent"].kruskal_wallis : null;
+          engBlock = `
+            <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-top:1rem;">
+              <div>
+                <b>Engagement by media format</b>
+                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Kruskal-Wallis H=${mfKW ? mfKW.h : "?"}, p=${mfKW ? mfKW.p : "?"}, sig=${mfKW ? mfKW.significant : "?"}</div>
+                <table style="font-size:0.82rem;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:0.2rem 0.6rem 0.2rem 0;">Format</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${mfEng}</tbody></table>
+              </div>
+              <div>
+                <b>Engagement by user intent</b>
+                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Kruskal-Wallis H=${uiKW ? uiKW.h : "?"}, p=${uiKW ? uiKW.p : "?"}, sig=${uiKW ? uiKW.significant : "?"}</div>
+                <table style="font-size:0.82rem;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:0.2rem 0.6rem 0.2rem 0;">Intent</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${uiEng}</tbody></table>
+              </div>
+            </div>`;
+        }
+        if (td["media_x_intent:chi2"]) {
+          const c = td["media_x_intent:chi2"];
+          chi2Block = `<div style="margin-top:0.75rem;font-size:0.85rem;">
+            <b>Media format × User intent (Chi-square):</b>
+            χ²=${c.chi2}, p=${c.p}, dof=${c.dof}, Cramér's V=${c.cramers_v}, significant=${c.significant}
+          </div>`;
+        }
+      }
+
       el.innerHTML = `
-        <div style="margin-bottom:0.75rem;"><span style="color:var(--accent);">Media Format:</span> ${mfList}</div>
-        <div style="margin-bottom:0.75rem;"><span style="color:var(--accent);">User Intent:</span> ${uiList}</div>
-        <div><span style="color:var(--accent);">Thai cultural angle:</span> ${d.thai_cultural_angle_count} sources</div>
+        <div style="margin-bottom:0.5rem;"><span style="color:var(--accent);">Media Format counts:</span> ${mfList}</div>
+        <div style="margin-bottom:0.5rem;"><span style="color:var(--accent);">User Intent counts:</span> ${uiList}</div>
+        <div><span style="color:var(--accent);">Thai cultural angle:</span> ${sd.thai_cultural_angle_count} sources</div>
+        ${engBlock}
+        ${chi2Block}
       `;
     } catch (e) {
       el.textContent = "Taxonomy unavailable: " + e.message;
