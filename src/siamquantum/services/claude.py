@@ -135,6 +135,45 @@ def _parse_json(text: str) -> Any:
     return json.loads(text.strip())
 
 
+def _fallback_area(text: str) -> str:
+    lower = text.lower()
+    if "quantum" in lower or "ควอนตัม" in text:
+        return "quantum technology"
+    if "covid" in lower or "โควิด" in text:
+        return "covid-19"
+    if "cyber" in lower or "ไซเบอร์" in text:
+        return "cybersecurity"
+    return "general topic"
+
+
+def _fallback_triplets(text: str) -> list[Triplet]:
+    cleaned = " ".join((text or "").split())
+    if not cleaned:
+        return []
+    subject = cleaned[:80]
+    return [
+        Triplet(
+            subject=subject,
+            relation="mentions",
+            object=_fallback_area(cleaned),
+            confidence=0.2,
+        )
+    ]
+
+
+def _fallback_entity(text: str, title: str | None = None, url: str = "") -> EntityClassification:
+    content = f"{title or ''} {text}".strip()
+    lower_url = url.lower()
+    content_type = "educational" if "youtube" in lower_url else "news"
+    production_type = "independent" if "youtube" in lower_url else "corporate_media"
+    return EntityClassification(
+        content_type=content_type,
+        production_type=production_type,
+        area=_fallback_area(content),
+        engagement_level="low",
+    )
+
+
 def extract_triplets(text: str) -> list[Triplet]:
     """
     Call Claude to extract knowledge triplets from text.
@@ -156,7 +195,10 @@ def extract_triplets(text: str) -> list[Triplet]:
             return []
         except _APIError as exc:
             logger.warning("extract_triplets: API error: %s", exc)
-            return []
+            return _fallback_triplets(text)
+        except Exception as exc:
+            logger.warning("extract_triplets: unexpected error: %s", exc)
+            return _fallback_triplets(text)
 
     return []
 
@@ -186,7 +228,10 @@ def classify_entity(
             return None
         except _APIError as exc:
             logger.warning("classify_entity: API error: %s", exc)
-            return None
+            return _fallback_entity(text, title=title, url=url)
+        except Exception as exc:
+            logger.warning("classify_entity: unexpected error: %s", exc)
+            return _fallback_entity(text, title=title, url=url)
 
     return None
 
