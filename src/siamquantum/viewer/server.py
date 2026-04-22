@@ -296,6 +296,25 @@ def api_graph(
 
 
 # ---------------------------------------------------------------------------
+# API — graph metrics
+# ---------------------------------------------------------------------------
+
+@app.get("/api/graph/metrics")
+def api_graph_metrics() -> JSONResponse:
+    """Degree centrality, betweenness centrality, connected components."""
+    from siamquantum.pipeline.graph_metrics import compute_metrics
+    db = _db()
+    try:
+        metrics = compute_metrics(db)
+    except Exception as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "metrics_failed", "message": str(exc)}},
+            status_code=500,
+        )
+    return JSONResponse({"ok": True, "data": metrics, "error": None})
+
+
+# ---------------------------------------------------------------------------
 # API — stats
 # ---------------------------------------------------------------------------
 

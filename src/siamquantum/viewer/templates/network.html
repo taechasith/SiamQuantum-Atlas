@@ -325,6 +325,10 @@
         <h3>รายละเอียดโหนด / Node details</h3>
         เลือกโหนดเพื่อดูชื่อแหล่งข้อมูล ประเภทการผลิต เนื้อหา และลิงก์ต้นฉบับ.
       </div>
+      <div class="info-panel" id="metrics-panel" style="margin-top:0.75rem;">
+        <h3>Graph Metrics</h3>
+        <div id="metrics-body" style="color:#99a7d3;font-size:0.8rem;">Loading…</div>
+      </div>
     </div>
   </div>
 </section>
@@ -464,6 +468,26 @@
     }
   }
 
+  async function loadMetrics() {
+    const mb = document.getElementById("metrics-body");
+    try {
+      const r = await fetch("/api/graph/metrics");
+      const p = await r.json();
+      if (!p.ok) throw new Error(p?.error?.message || "metrics error");
+      const d = p.data;
+      const topDeg = d.top_degree.slice(0, 5).map(x => `<li>${x.label} <span style="color:#56f39a">(${x.score.toFixed(4)})</span></li>`).join("");
+      const topBet = d.top_betweenness.slice(0, 5).map(x => `<li>${x.label} <span style="color:#ffb347">(${x.score.toFixed(4)})</span></li>`).join("");
+      mb.innerHTML = `
+        <div><b>Components:</b> ${d.components} &nbsp; <b>Largest:</b> ${d.largest_component_size} nodes</div>
+        <div style="margin-top:0.5rem;"><b>Top degree hubs:</b><ol style="margin:0.25rem 0 0 1rem;padding:0;">${topDeg}</ol></div>
+        <div style="margin-top:0.5rem;"><b>Top betweenness hubs:</b><ol style="margin:0.25rem 0 0 1rem;padding:0;">${topBet}</ol></div>
+      `;
+    } catch (e) {
+      mb.textContent = "Metrics unavailable: " + e.message;
+    }
+  }
+
   loadGraph();
+  loadMetrics();
 </script>
 {% endblock %}
