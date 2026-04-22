@@ -422,6 +422,8 @@
       item.area || "unknown area",
       item.engagement_level || "unknown engagement"
     ];
+    if (item.media_format) chips.push(item.media_format);
+    if (item.user_intent) chips.push(item.user_intent);
     const counts = [];
     if (item.view_count !== null && item.view_count !== undefined) counts.push(`views ${Number(item.view_count).toLocaleString()}`);
     if (item.like_count !== null && item.like_count !== undefined) counts.push(`likes ${Number(item.like_count).toLocaleString()}`);

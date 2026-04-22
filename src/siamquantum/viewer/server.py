@@ -315,6 +315,41 @@ def api_graph_metrics() -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# API — taxonomy summary
+# ---------------------------------------------------------------------------
+
+@app.get("/api/taxonomy/summary")
+def api_taxonomy_summary() -> JSONResponse:
+    """media_format and user_intent distributions from entities."""
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            mf_rows = conn.execute(
+                "SELECT media_format, COUNT(*) AS n FROM entities WHERE media_format IS NOT NULL GROUP BY media_format ORDER BY n DESC"
+            ).fetchall()
+            ui_rows = conn.execute(
+                "SELECT user_intent, COUNT(*) AS n FROM entities WHERE user_intent IS NOT NULL GROUP BY user_intent ORDER BY n DESC"
+            ).fetchall()
+            thai_count = conn.execute(
+                "SELECT COUNT(*) FROM entities WHERE thai_cultural_angle IS NOT NULL AND thai_cultural_angle != ''"
+            ).fetchone()[0]
+    except Exception as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "taxonomy_failed", "message": str(exc)}},
+            status_code=500,
+        )
+    return JSONResponse({
+        "ok": True,
+        "data": {
+            "media_format": [{"label": r[0], "count": r[1]} for r in mf_rows],
+            "user_intent": [{"label": r[0], "count": r[1]} for r in ui_rows],
+            "thai_cultural_angle_count": thai_count,
+        },
+        "error": None,
+    })
+
+
+# ---------------------------------------------------------------------------
 # API — stats
 # ---------------------------------------------------------------------------
 
@@ -494,7 +529,8 @@ def api_sources(
             rows = conn.execute(f"""
                 SELECT s.id, s.platform, s.url, s.title, s.published_year,
                        s.view_count, s.like_count, s.comment_count,
-                       e.content_type, e.production_type, e.area, e.engagement_level
+                       e.content_type, e.production_type, e.area, e.engagement_level,
+                       e.media_format, e.user_intent
                 FROM sources s
                 LEFT JOIN entities e ON s.id = e.source_id
                 {where}

@@ -181,6 +181,17 @@ class EntityClassification(BaseModel):
     production_type: str
     area: str
     engagement_level: str
+    media_format: str | None = None
+    media_format_detail: str | None = None
+    user_intent: str | None = None
+    thai_cultural_angle: str | None = None
+
+
+class TaxonomyClassification(BaseModel):
+    media_format: str
+    media_format_detail: str | None = None
+    user_intent: str
+    thai_cultural_angle: str | None = None
 
 
 class TTestResult(BaseModel):

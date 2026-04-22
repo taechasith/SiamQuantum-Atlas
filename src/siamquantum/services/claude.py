@@ -8,7 +8,7 @@ import anthropic
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from siamquantum.config import settings
-from siamquantum.models import EntityClassification, RelevanceVerdict, Triplet
+from siamquantum.models import EntityClassification, RelevanceVerdict, TaxonomyClassification, Triplet
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,20 @@ Return ONLY valid JSON with no explanation or markdown:
 {"content_type": "academic|news|educational|entertainment",
  "production_type": "state_research|university|corporate_media|independent",
  "area": "brief topic area string (e.g. quantum computing, quantum communication)",
- "engagement_level": "low|medium|high"}"""
+ "engagement_level": "low|medium|high",
+ "media_format": "text_static|audio|video_short|video_long|broadcast_ott|movie|animation",
+ "media_format_detail": "short free text description or null",
+ "user_intent": "entertainment|information_news|education_self_improvement|lifestyle_inspiration|social_relational",
+ "thai_cultural_angle": "short free text if Thai cultural framing present, else null"}"""
+
+_TAXONOMY_SYSTEM = """\
+Classify this content along two dimensions.
+Return ONLY valid JSON with no explanation or markdown:
+{"media_format": "text_static|audio|video_short|video_long|broadcast_ott|movie|animation",
+ "media_format_detail": "short free text description or null",
+ "user_intent": "entertainment|information_news|education_self_improvement|lifestyle_inspiration|social_relational",
+ "thai_cultural_angle": "short free text if Thai cultural framing is present, else null"}
+Choose best-fit category. Do not return null for media_format or user_intent."""
 
 _DEDUPE_SYSTEM = """\
 Determine if these two texts describe the same piece of content (same article or video, possibly republished).
@@ -233,6 +246,32 @@ def classify_entity(
             logger.warning("classify_entity: unexpected error: %s", exc)
             return _fallback_entity(text, title=title, url=url)
 
+    return None
+
+
+def classify_taxonomy(
+    text: str,
+    title: str | None = None,
+    url: str = "",
+) -> TaxonomyClassification | None:
+    """Classify media_format and user_intent for taxonomy backfill. Returns None on failure."""
+    snippet = f"Title: {title or ''}\nURL: {url}\n\nText:\n{text[:2000]}"
+    for attempt in range(2):
+        try:
+            raw = _call(_TAXONOMY_SYSTEM, snippet)
+            data = _parse_json(raw)
+            return TaxonomyClassification(**data)
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            if attempt == 0:
+                continue
+            logger.warning("classify_taxonomy: parse failed: %s", exc)
+            return None
+        except _APIError as exc:
+            logger.warning("classify_taxonomy: API error: %s", exc)
+            return None
+        except Exception as exc:
+            logger.warning("classify_taxonomy: unexpected error: %s", exc)
+            return None
     return None
 
 
