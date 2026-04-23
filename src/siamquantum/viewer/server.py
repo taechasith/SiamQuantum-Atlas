@@ -333,6 +333,9 @@ def api_taxonomy_summary() -> JSONResponse:
             thai_count = conn.execute(
                 "SELECT COUNT(*) FROM entities WHERE thai_cultural_angle IS NOT NULL AND thai_cultural_angle != ''"
             ).fetchone()[0]
+            qd_rows = conn.execute(
+                "SELECT quantum_domain, COUNT(*) AS n FROM sources WHERE quantum_domain IS NOT NULL GROUP BY quantum_domain ORDER BY n DESC"
+            ).fetchall()
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "taxonomy_failed", "message": str(exc)}},
@@ -344,6 +347,7 @@ def api_taxonomy_summary() -> JSONResponse:
             "media_format": [{"label": r[0], "count": r[1]} for r in mf_rows],
             "user_intent": [{"label": r[0], "count": r[1]} for r in ui_rows],
             "thai_cultural_angle_count": thai_count,
+            "quantum_domain": [{"label": r[0], "count": r[1]} for r in qd_rows],
         },
         "error": None,
     })
@@ -534,6 +538,7 @@ def api_sources(
     content_type: str | None = Query(None),
     media_format: str | None = Query(None),
     user_intent: str | None = Query(None),
+    quantum_domain: str | None = Query(None),
     include_filtered: bool = Query(False, description="Include non-relevant sources"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -561,6 +566,9 @@ def api_sources(
     if user_intent is not None:
         conditions.append("e.user_intent = ?")
         params.append(user_intent)
+    if quantum_domain is not None:
+        conditions.append("s.quantum_domain = ?")
+        params.append(quantum_domain)
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
     offset = (page - 1) * page_size
@@ -576,6 +584,7 @@ def api_sources(
             rows = conn.execute(f"""
                 SELECT s.id, s.platform, s.url, s.title, s.published_year,
                        s.view_count, s.like_count, s.comment_count,
+                       s.quantum_domain,
                        e.content_type, e.production_type, e.area, e.engagement_level,
                        e.media_format, e.user_intent
                 FROM sources s

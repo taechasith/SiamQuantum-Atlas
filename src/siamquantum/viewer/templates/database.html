@@ -203,6 +203,12 @@
     border-color: rgba(86, 243, 154, 0.22);
   }
 
+  .chip-domain {
+    background: rgba(199, 155, 255, 0.08);
+    color: #c79bff;
+    border-color: rgba(199, 155, 255, 0.22);
+  }
+
   .source-url {
     color: var(--muted);
     font-size: 0.84rem;
@@ -339,6 +345,12 @@
           <option value="">All intents</option>
         </select>
       </div>
+      <div class="field">
+        <label for="filter-quantum-domain">Quantum Domain</label>
+        <select id="filter-quantum-domain">
+          <option value="">All domains</option>
+        </select>
+      </div>
     </div>
     <div class="filter-actions">
       <button class="btn btn-primary" id="apply-filters" type="button">ค้นหา / Apply</button>
@@ -393,6 +405,7 @@
     filterContentType: document.getElementById("filter-content-type"),
     filterMediaFormat: document.getElementById("filter-media-format"),
     filterUserIntent: document.getElementById("filter-user-intent"),
+    filterQuantumDomain: document.getElementById("filter-quantum-domain"),
     apply: document.getElementById("apply-filters"),
     exportBtn: document.getElementById("export-xlsx"),
     status: document.getElementById("status-copy"),
@@ -421,6 +434,7 @@
     if (elements.filterContentType.value) params.set("content_type", elements.filterContentType.value);
     if (elements.filterMediaFormat.value) params.set("media_format", elements.filterMediaFormat.value);
     if (elements.filterUserIntent.value) params.set("user_intent", elements.filterUserIntent.value);
+    if (elements.filterQuantumDomain.value) params.set("quantum_domain", elements.filterQuantumDomain.value);
     return params.toString();
   }
 
@@ -456,6 +470,7 @@
     const taxChips = [];
     if (item.media_format) taxChips.push(`<span class="chip chip-format">${item.media_format}</span>`);
     if (item.user_intent) taxChips.push(`<span class="chip chip-intent">${item.user_intent.replace(/_/g," ")}</span>`);
+    if (item.quantum_domain) taxChips.push(`<span class="chip chip-domain">${item.quantum_domain.replace(/_/g," ")}</span>`);
     const counts = [];
     if (item.view_count !== null && item.view_count !== undefined) counts.push(`views ${Number(item.view_count).toLocaleString()}`);
     if (item.like_count !== null && item.like_count !== undefined) counts.push(`likes ${Number(item.like_count).toLocaleString()}`);
@@ -566,6 +581,12 @@
         opt.value = label;
         opt.textContent = label.replace(/_/g, " ");
         elements.filterUserIntent.appendChild(opt);
+      });
+      (p.data.quantum_domain || []).forEach(({ label, count }) => {
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = `${label.replace(/_/g, " ")} (${count})`;
+        elements.filterQuantumDomain.appendChild(opt);
       });
     } catch { /* fallback: filters stay at "all" */ }
   }

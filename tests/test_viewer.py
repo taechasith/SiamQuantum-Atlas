@@ -25,17 +25,17 @@ def seeded_db(tmp_path: Path) -> Path:
     with get_connection(db_path) as conn:
         conn.execute(
             "INSERT INTO sources (platform,url,title,published_year,fetched_at,"
-            "view_count,like_count,comment_count,is_quantum_tech,is_thailand_related)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "view_count,like_count,comment_count,is_quantum_tech,is_thailand_related,quantum_domain)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             ("gdelt", "https://bangkokpost.com/quantum", "Quantum in Thailand", 2024,
-             now, None, None, None, 1, 1),
+             now, None, None, None, 1, 1, "quantum_computing"),
         )
         conn.execute(
             "INSERT INTO sources (platform,url,title,published_year,fetched_at,"
-            "view_count,like_count,comment_count,is_quantum_tech,is_thailand_related)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "view_count,like_count,comment_count,is_quantum_tech,is_thailand_related,quantum_domain)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             ("youtube", "https://youtube.com/watch?v=abc", "ควอนตัมคอมพิวเตอร์", 2024,
-             now, 5000, 200, 30, 1, 1),
+             now, 5000, 200, 30, 1, 1, "quantum_computing"),
         )
         conn.commit()
         # Geo for source 1
@@ -260,6 +260,11 @@ def test_sources_filter_by_user_intent(client: TestClient) -> None:
     assert resp.json()["data"]["total"] == 1
 
 
+def test_sources_filter_by_quantum_domain(client: TestClient) -> None:
+    resp = client.get("/api/sources?quantum_domain=quantum_computing")
+    assert resp.json()["data"]["total"] == 2
+
+
 def test_sources_items_have_taxonomy_fields(client: TestClient) -> None:
     resp = client.get("/api/sources")
     items = resp.json()["data"]["items"]
@@ -267,6 +272,7 @@ def test_sources_items_have_taxonomy_fields(client: TestClient) -> None:
     for item in items:
         assert "media_format" in item
         assert "user_intent" in item
+        assert "quantum_domain" in item
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +288,7 @@ def test_taxonomy_summary_schema(client: TestClient) -> None:
     assert "media_format" in data
     assert "user_intent" in data
     assert "thai_cultural_angle_count" in data
+    assert "quantum_domain" in data
     assert len(data["media_format"]) >= 1
 
 
