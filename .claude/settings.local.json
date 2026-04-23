@@ -44,7 +44,10 @@
       "Bash(sqlite3 data/processed/siamquantum_atlas.db ' *)",
       "Bash(.venv/Scripts/python -m mypy src/siamquantum/services/geoip.py --ignore-missing-imports)",
       "Bash(sqlite3 *)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(explorer *)",
+      "PowerShell(Start-Process explorer \"C:\\\\Users\\\\HP OMEN\\\\.claude\")",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }
