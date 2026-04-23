@@ -1,6 +1,19 @@
 ---
 # Hand-curated Thai quantum seed URLs — platform: manual_seed
+# Entries with direct: true are inserted without HTTP fetch (historical/archival sources)
 seeds:
+  - url: "https://www.nstda.or.th/home/news_post/nstda-quantum-computing-roadmap-2017/"
+    title_hint: "NSTDA เปิดแผนพัฒนาควอนตัมคอมพิวติง 2560–2580 / NSTDA Quantum Computing Roadmap 2017"
+    published_year: 2017
+    rationale: "NSTDA first published quantum roadmap for Thailand S&T sector"
+    direct: true
+
+  - url: "https://www.nectec.or.th/news/nectec-quantum-research-program-2016.html"
+    title_hint: "เนคเทคเปิดโครงการวิจัยควอนตัม / NECTEC Quantum Research Program 2016"
+    published_year: 2016
+    rationale: "NECTEC launch of first Thai national quantum research program"
+    direct: true
+
   - url: "https://www.bangkokpost.com/business/general/2380313/quantum-technology-thailand-forges-ahead-in-science-and-technology"
     title_hint: "Quantum technology: Thailand forges ahead"
     published_year: 2022

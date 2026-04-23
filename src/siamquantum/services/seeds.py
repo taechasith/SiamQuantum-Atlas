@@ -40,9 +40,25 @@ def fetch_seeds() -> ServiceResult:
         url: str = seed.get("url", "")
         title_hint: str | None = seed.get("title_hint")
         published_year: int = int(seed.get("published_year", 2020))
+        is_direct: bool = bool(seed.get("direct", False))
 
         if not url:
             continue
+
+        # Direct seeds: insert with known metadata, skip HTTP fetch
+        if is_direct:
+            records.append(
+                SourceRaw(
+                    platform="manual_seed",
+                    url=url,
+                    title=title_hint,
+                    raw_text=None,
+                    published_year=published_year,
+                )
+            )
+            logger.info("seed direct: %s", url)
+            continue
+
         try:
             r = httpx.get(url, headers=_HEADERS, timeout=10, follow_redirects=True)
             if r.status_code in (403, 404):

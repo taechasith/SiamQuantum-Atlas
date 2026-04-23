@@ -626,6 +626,60 @@ def api_sources(
 
 
 # ---------------------------------------------------------------------------
+# API — corpus coverage summary
+# ---------------------------------------------------------------------------
+
+@app.get("/api/corpus/coverage")
+def api_corpus_coverage() -> JSONResponse:
+    """Year-by-platform breakdown for corpus completeness overview."""
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            rows = conn.execute("""
+                SELECT published_year, platform, COUNT(*) AS n
+                FROM sources
+                WHERE is_quantum_tech = 1 AND is_thailand_related = 1
+                GROUP BY published_year, platform
+                ORDER BY published_year, platform
+            """).fetchall()
+            domain_rows = conn.execute("""
+                SELECT quantum_domain, COUNT(*) AS n
+                FROM sources
+                WHERE quantum_domain IS NOT NULL
+                  AND is_quantum_tech = 1 AND is_thailand_related = 1
+                GROUP BY quantum_domain
+                ORDER BY n DESC
+            """).fetchall()
+            total = conn.execute(
+                "SELECT COUNT(*) FROM sources WHERE is_quantum_tech = 1 AND is_thailand_related = 1"
+            ).fetchone()[0]
+    except Exception as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "coverage_failed", "message": str(exc)}},
+            status_code=500,
+        )
+
+    # Build year → {platform: count} map
+    by_year: dict[str, dict[str, int]] = {}
+    for r in rows:
+        yr = str(r["published_year"])
+        if yr not in by_year:
+            by_year[yr] = {}
+        by_year[yr][r["platform"]] = r["n"]
+
+    return JSONResponse({
+        "ok": True,
+        "data": {
+            "total": int(total),
+            "by_year": by_year,
+            "by_domain": [{"domain": r["quantum_domain"], "count": r["n"]} for r in domain_rows],
+            "years": sorted(by_year.keys()),
+        },
+        "error": None,
+    })
+
+
+# ---------------------------------------------------------------------------
 # API — XLSX export
 # ---------------------------------------------------------------------------
 
