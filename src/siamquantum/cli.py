@@ -231,14 +231,16 @@ def ingest_cse(
 
 
 @ingest_app.command("seeds")
-def ingest_seeds() -> None:
+def ingest_seeds(
+    direct_only: bool = typer.Option(False, "--direct-only", help="Insert only curated direct seeds; skip HTTP fetches"),
+) -> None:
     """Fetch hand-curated seed URLs and write to DB."""
     from siamquantum.services.seeds import fetch_seeds
     from siamquantum.pipeline.ingest import _insert_sources  # type: ignore[attr-defined]
 
     db_path = db_path_from_url(settings.database_url)
     typer.echo("Fetching seed URLs...")
-    result = fetch_seeds()
+    result = fetch_seeds(direct_only=direct_only)
     if not result.ok:
         typer.echo(f"  ERROR: {result.error}", err=True)
         raise typer.Exit(1)

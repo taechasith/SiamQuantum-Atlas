@@ -48,3 +48,38 @@ seeds:
     title_hint: "รู้จัก Quantum Computer เทคโนโลยีที่จะ Disrupt โลกทั้งใบ"
     published_year: 2018
     rationale: "The Standard's first deep quantum explainer for Thai mainstream audience"
+
+  - url: "https://www.chula.ac.th/en/news/288469/"
+    title_hint: "Chula Launches Siam Quantum Square to Drive Business Sector"
+    published_year: 2026
+    rationale: "Official Chulalongkorn University launch story for Siam Quantum Square"
+    raw_text: "Chulalongkorn University launched Siam Quantum Square as a Thai quantum technology hub spanning quantum computing, quantum sensing, executive programs, and national innovation partnerships."
+    direct: true
+
+  - url: "https://www.sq2.chula.ac.th/about"
+    title_hint: "Siam Quantum Square — About"
+    published_year: 2026
+    rationale: "Official Chula quantum center profile covering mission, research focus, and collaborators"
+    raw_text: "Siam Quantum Square is Chulalongkorn University's flagship quantum technology center focused on quantum computing, applications, materials, devices, and interdisciplinary talent development in Thailand."
+    direct: true
+
+  - url: "https://physics.sc.mahidol.ac.th/quantum/"
+    title_hint: "Home - Quantum Lab @ Mahidol"
+    published_year: 2024
+    rationale: "Official Mahidol Quantum Lab overview page"
+    raw_text: "Mahidol Quantum Lab describes Thai research on open quantum systems, quantum measurement, quantum network coding, quantum computing, and quantum experiments."
+    direct: true
+
+  - url: "https://physics.sc.mahidol.ac.th/quantum/EducationOutreach.html"
+    title_hint: "Education & Outreach - Quantum Lab @ Mahidol"
+    published_year: 2024
+    rationale: "Official Mahidol outreach page covering quantum cryptography, entanglement, sensors, and information processing"
+    raw_text: "Mahidol Quantum Lab outreach materials cover quantum sensors, quantum cryptography, entanglement, quantum information processing, and quantum computation for Thai learners and teachers."
+    direct: true
+
+  - url: "https://physics.sc.mahidol.ac.th/quantum/Collaboration.html"
+    title_hint: "Collaboration - Quantum Lab @ Mahidol"
+    published_year: 2024
+    rationale: "Official Mahidol collaboration page listing quantum optics, quantum protocols, and quantum information work"
+    raw_text: "Mahidol Quantum Lab collaboration page highlights quantum optics, quantum protocols, entanglement, quantum teleportation, and quantum computation research partnerships."
+    direct: true

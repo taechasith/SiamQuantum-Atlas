@@ -24,7 +24,7 @@ def _extract_text(html: str) -> str:
     return " ".join(soup.get_text(" ", strip=True).split())[:8000]
 
 
-def fetch_seeds() -> ServiceResult:
+def fetch_seeds(*, direct_only: bool = False) -> ServiceResult:
     """
     Fetch all URLs from seed_urls.yaml, extract title + text via httpx + BS4.
     Skips 404/403/timeout with warning. Platform tag: 'manual_seed'.
@@ -41,22 +41,29 @@ def fetch_seeds() -> ServiceResult:
         title_hint: str | None = seed.get("title_hint")
         published_year: int = int(seed.get("published_year", 2020))
         is_direct: bool = bool(seed.get("direct", False))
+        rationale: str | None = seed.get("rationale")
+        direct_text: str | None = seed.get("raw_text")
 
         if not url:
             continue
 
         # Direct seeds: insert with known metadata, skip HTTP fetch
         if is_direct:
+            raw_text = direct_text or "\n".join(part for part in (title_hint, rationale) if part).strip() or None
             records.append(
                 SourceRaw(
                     platform="manual_seed",
                     url=url,
                     title=title_hint,
-                    raw_text=None,
+                    raw_text=raw_text,
                     published_year=published_year,
                 )
             )
             logger.info("seed direct: %s", url)
+            continue
+
+        if direct_only:
+            logger.info("seed skip non-direct in direct_only mode: %s", url)
             continue
 
         try:

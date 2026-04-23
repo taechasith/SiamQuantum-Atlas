@@ -44,8 +44,9 @@ class SourceRepo:
             INSERT OR IGNORE INTO sources
               (platform, url, title, raw_text, published_year, fetched_at,
                view_count, like_count, comment_count,
+               is_quantum_tech, is_thailand_related,
                channel_id, channel_title, channel_country, channel_default_language)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 source.platform,
@@ -57,6 +58,8 @@ class SourceRepo:
                 source.view_count,
                 source.like_count,
                 source.comment_count,
+                1,
+                1,
                 source.channel_id,
                 source.channel_title,
                 source.channel_country,
