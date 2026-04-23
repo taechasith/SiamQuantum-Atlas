@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
 
 from siamquantum.db.repos import SourceRepo
 from siamquantum.db.session import get_connection
+from siamquantum.models import SourceRow
 from siamquantum.services import claude
 from siamquantum.services.claude import get_usage, reset_usage
 from siamquantum.services.dedup import find_duplicates
@@ -14,7 +16,7 @@ from siamquantum.services.dedup import find_duplicates
 logger = logging.getLogger(__name__)
 
 
-def _ensure_nlp_abstentions_table(conn) -> None:
+def _ensure_nlp_abstentions_table(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS nlp_abstentions (
@@ -27,7 +29,7 @@ def _ensure_nlp_abstentions_table(conn) -> None:
     )
 
 
-def _completed_source_ids(conn) -> set[int]:
+def _completed_source_ids(conn: sqlite3.Connection) -> set[int]:
     _ensure_nlp_abstentions_table(conn)
     rows = conn.execute(
         """
@@ -44,7 +46,7 @@ def _completed_source_ids(conn) -> set[int]:
     return {int(row[0]) for row in rows}
 
 
-def _mark_abstained(conn, source_id: int, reason: str) -> None:
+def _mark_abstained(conn: sqlite3.Connection, source_id: int, reason: str) -> None:
     _ensure_nlp_abstentions_table(conn)
     conn.execute(
         """
@@ -59,12 +61,12 @@ def _mark_abstained(conn, source_id: int, reason: str) -> None:
     )
 
 
-def _clear_abstention(conn, source_id: int) -> None:
+def _clear_abstention(conn: sqlite3.Connection, source_id: int) -> None:
     _ensure_nlp_abstentions_table(conn)
     conn.execute("DELETE FROM nlp_abstentions WHERE source_id = ?", (source_id,))
 
 
-def _reset_source_nlp_state(conn, source_id: int) -> None:
+def _reset_source_nlp_state(conn: sqlite3.Connection, source_id: int) -> None:
     _ensure_nlp_abstentions_table(conn)
     conn.execute("DELETE FROM entities WHERE source_id = ?", (source_id,))
     conn.execute("DELETE FROM triplets WHERE source_id = ?", (source_id,))
@@ -108,7 +110,7 @@ def analyze_year(
     pending = [s for s in sources if s.id in forced_ids or s.id not in already_done]
     counts["skipped_already_done"] = len([s for s in sources if s.id not in forced_ids and s.id in already_done])
 
-    text_sources: list[tuple[object, str]] = []
+    text_sources: list[tuple[SourceRow, str]] = []
     for source in pending:
         raw_text = (source.raw_text or "").strip()
         if len(raw_text) >= 20:

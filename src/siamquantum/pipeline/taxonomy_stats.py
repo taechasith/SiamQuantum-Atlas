@@ -6,10 +6,15 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 from siamquantum.db.repos import StatsCacheRepo
 from siamquantum.db.session import get_connection
-from siamquantum.stats.engagement_bootstrap import bootstrap_geometric_mean, log_transform_engagement, trend_test
+from siamquantum.stats.engagement_bootstrap import (
+    bootstrap_geometric_mean,
+    log_transform_engagement,
+    trend_test,
+)
 from siamquantum.stats.nonparametric import chi2_independence, kruskal_wallis, mann_whitney
 
 
@@ -27,7 +32,7 @@ def _fetch_rows(db_path: Path) -> list[dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
-def _group_log_views(rows: list[dict[str, Any]], key: str) -> dict[str, np.ndarray]:
+def _group_log_views(rows: list[dict[str, Any]], key: str) -> dict[str, NDArray[np.float64]]:
     groups: dict[str, list[float]] = defaultdict(list)
     for r in rows:
         val = r.get(key) or "unknown"
@@ -35,7 +40,7 @@ def _group_log_views(rows: list[dict[str, Any]], key: str) -> dict[str, np.ndarr
     return {k: log_transform_engagement(np.array(v, dtype=float)) for k, v in groups.items()}
 
 
-def _summarise_groups(groups: dict[str, np.ndarray]) -> list[dict[str, Any]]:
+def _summarise_groups(groups: dict[str, NDArray[np.float64]]) -> list[dict[str, Any]]:
     out = []
     for label, log_views in groups.items():
         bs = bootstrap_geometric_mean(log_views, n_resamples=5_000)

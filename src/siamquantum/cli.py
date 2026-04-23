@@ -366,12 +366,13 @@ def analyze_stats() -> None:
         f"  bootstrap_yearly={result.get('bootstrap_yearly_computed', '?')}"
         f"  bootstrap_pairwise={result.get('bootstrap_pairwise_computed', '?')}"
     )
-    trend = result.get("bootstrap_trend") or {}
+    trend = result.get("bootstrap_trend")
+    trend_map = trend if isinstance(trend, dict) else {}
     typer.echo(
-        f"  trend: MK_tau={trend.get('mannkendall_tau', '?')}"
-        f"  MK_p={trend.get('mannkendall_p', '?')}"
-        f"  Spearman_rho={trend.get('spearman_rho', '?')}"
-        f"  Spearman_p={trend.get('spearman_p', '?')}"
+        f"  trend: MK_tau={trend_map.get('mannkendall_tau', '?')}"
+        f"  MK_p={trend_map.get('mannkendall_p', '?')}"
+        f"  Spearman_rho={trend_map.get('spearman_rho', '?')}"
+        f"  Spearman_p={trend_map.get('spearman_p', '?')}"
     )
 
 
