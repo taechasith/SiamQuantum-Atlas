@@ -330,3 +330,16 @@ def test_community_submit_ok(client: TestClient) -> None:
 def test_community_submit_missing_url(client: TestClient) -> None:
     resp = client.post("/api/community/submit", json={"handle": "user"})
     assert resp.status_code == 422
+
+
+def test_community_submission_queue_lists_recent_rows(client: TestClient) -> None:
+    client.post("/api/community/submit", json={"url": "https://example.com/queue-a", "handle": "user-a"})
+    client.post("/api/community/submit", json={"url": "https://example.com/queue-b", "handle": "user-b"})
+
+    resp = client.get("/api/community/submissions")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    items = payload["data"]["items"]
+    assert len(items) >= 2
+    assert items[0]["url"] == "https://example.com/queue-b"

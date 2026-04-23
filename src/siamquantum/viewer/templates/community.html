@@ -29,7 +29,8 @@
 
   .hero-card,
   .form-card,
-  .note-card {
+  .note-card,
+  .queue-card {
     background: var(--panel);
     border: 1px solid var(--panel-border);
     border-radius: 22px;
@@ -70,12 +71,14 @@
   }
 
   .form-card,
-  .note-card {
+  .note-card,
+  .queue-card {
     padding: 1.25rem;
   }
 
   .form-card h2,
-  .note-card h2 {
+  .note-card h2,
+  .queue-card h2 {
     color: var(--text);
     font-size: 1rem;
     margin-bottom: 0.45rem;
@@ -83,7 +86,8 @@
 
   .form-card p,
   .note-card p,
-  .note-card li {
+  .note-card li,
+  .queue-card p {
     color: var(--muted);
     line-height: 1.6;
   }
@@ -107,6 +111,7 @@
     border-radius: 12px;
     padding: 0.8rem 0.9rem;
     font-size: 0.94rem;
+    min-height: 44px;
   }
 
   .field input:focus {
@@ -165,15 +170,47 @@
     border-color: rgba(255, 122, 144, 0.28);
   }
 
-  .status-warning {
-    background: rgba(255, 179, 71, 0.08);
-    color: var(--warning);
-    border-color: rgba(255, 179, 71, 0.28);
-  }
-
   .note-list {
     margin: 0.75rem 0 0;
     padding-left: 1.1rem;
+  }
+
+  .queue-list {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+  }
+
+  .queue-item {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    border-radius: 14px;
+    padding: 0.85rem 0.95rem;
+  }
+
+  .queue-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.35rem;
+  }
+
+  .queue-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+  }
+
+  .queue-url {
+    color: var(--muted);
+    font-size: 0.84rem;
+    word-break: break-all;
   }
 
   @media (max-width: 920px) {
@@ -194,19 +231,18 @@
     <div class="eyebrow">Community Submission</div>
     <h1>ส่งลิงก์จากชุมชนเข้าสู่ระบบ<br>Thai Quantum Community Submission</h1>
     <p>
-      หากคุณพบข่าว บทความ หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เกี่ยวข้องกับประเทศไทย
-      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกและจัดคิวประมวลผลได้จากหน้านี้.
+      หากคุณพบบทความ ข่าว หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เชื่อมกับประเทศไทย
+      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกลงฐานข้อมูลท้องถิ่นและจัดคิว best-effort processing ได้จากหน้านี้.
     </p>
     <div style="margin-top:1rem;padding:0.75rem 1rem;border-radius:12px;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.28);color:#ffb347;font-size:0.85rem;display:flex;gap:0.6rem;align-items:flex-start;">
-      <span style="font-size:1rem;">⚠</span>
-      <span><b>Local research tool:</b> Submissions are stored in the local SQLite database. NLP processing requires manual trigger. No live pipeline runs automatically in this environment.</span>
+      <span><b>Local workflow:</b> submissions persist immediately in SQLite, then move through a local queue. Automation is best-effort only and does not pretend to be fully hands-free.</span>
     </div>
   </div>
 
   <div class="community-grid">
     <div class="form-card">
       <h2>ฟอร์มส่งลิงก์ / Submission form</h2>
-      <p>กรอก `url` และ `handle` ตามต้องการ ระบบจะรับรายการก่อน แล้วค่อยทำงานเบื้องหลังแบบ best-effort.</p>
+      <p>กรอก `url` และ `handle` ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
 
       <form id="community-form">
         <div class="field">
@@ -231,11 +267,19 @@
       <h2>สถานะหลังส่ง / What happens next</h2>
       <p>เมื่อรับ submission แล้ว ระบบจะบันทึกแถวใน `community_submissions` และจัดคิวทำงานเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
       <ul class="note-list">
-        <li>รับค่า `handle` และ `url` แล้วตั้งสถานะเริ่มต้นเป็น accepted/queued</li>
+        <li>รับค่า `handle` และ `url` แล้วตั้งสถานะเริ่มต้นเป็น queued</li>
         <li>พยายามเรียก `claude.extract_triplets` หากมี source text พร้อมใช้งาน</li>
-        <li>รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต DenStream/stat state เท่าที่ทำได้</li>
-        <li>ล้าง cache เฉพาะ `ttest:` entries โดยไม่กระทบ cache อื่น</li>
+        <li>รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต stat state เท่าที่ทำได้</li>
+        <li>ล้างเฉพาะ cache กลุ่ม `ttest:` โดยไม่กระทบ cache อื่น</li>
       </ul>
+    </div>
+  </div>
+
+  <div class="queue-card" style="margin-top:1.25rem;">
+    <h2>Local Review Queue</h2>
+    <p>Recent submissions stored in SQLite. This turns the page into a real local review queue instead of a dead-end form.</p>
+    <div class="queue-list" id="queue-list">
+      <div class="queue-item"><div class="queue-url">Loading recent submissions…</div></div>
     </div>
   </div>
 </section>
@@ -244,10 +288,38 @@
   const form = document.getElementById("community-form");
   const statusBox = document.getElementById("status-box");
   const submitButton = form.querySelector("button[type='submit']");
+  const queueList = document.getElementById("queue-list");
 
   function showStatus(text, kind) {
     statusBox.textContent = text;
     statusBox.className = `status-box is-visible ${kind}`;
+  }
+
+  function renderQueue(items) {
+    if (!items.length) {
+      queueList.innerHTML = `<div class="queue-item"><div class="queue-url">No submissions stored yet.</div></div>`;
+      return;
+    }
+    queueList.innerHTML = items.map((item) => `
+      <article class="queue-item">
+        <div class="queue-top">
+          <strong>#${item.id}</strong>
+          <span class="queue-status">${item.status}</span>
+        </div>
+        <div class="queue-url">${item.url}</div>
+      </article>
+    `).join("");
+  }
+
+  async function loadQueue() {
+    try {
+      const response = await fetch("/api/community/submissions");
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload?.error?.message || "Queue load failed");
+      renderQueue(payload.data?.items || []);
+    } catch (error) {
+      queueList.innerHTML = `<div class="queue-item"><div class="queue-url">Queue unavailable: ${error.message}</div></div>`;
+    }
   }
 
   form.addEventListener("submit", async (event) => {
@@ -266,10 +338,7 @@
       const response = await fetch("/api/community/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url,
-          handle: handle || null
-        })
+        body: JSON.stringify({ url, handle: handle || null })
       });
 
       const payload = await response.json();
@@ -285,6 +354,7 @@
         "status-success"
       );
       form.reset();
+      await loadQueue();
     } catch (error) {
       showStatus(`ระบบส่งข้อมูลล้มเหลว / ${error.message}`, "status-error");
     } finally {
@@ -292,5 +362,7 @@
       submitButton.textContent = "ส่งข้อมูล / Submit";
     }
   });
+
+  loadQueue();
 </script>
 {% endblock %}

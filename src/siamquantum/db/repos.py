@@ -272,6 +272,13 @@ class CommunitySubmissionRepo:
         ).fetchall()
         return [CommunitySubmissionRow.model_validate(dict(r)) for r in rows]
 
+    def list_recent(self, limit: int = 10) -> list[CommunitySubmissionRow]:
+        rows = self._c.execute(
+            "SELECT * FROM community_submissions ORDER BY submitted_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [CommunitySubmissionRow.model_validate(dict(r)) for r in rows]
+
     def update_status(self, sub_id: int, status: str) -> None:
         self._c.execute(
             "UPDATE community_submissions SET status = ? WHERE id = ?", (status, sub_id)

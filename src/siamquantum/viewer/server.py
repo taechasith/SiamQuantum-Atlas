@@ -867,6 +867,35 @@ def api_export_xlsx(
 
 
 # ---------------------------------------------------------------------------
+# API — community submissions queue
+# ---------------------------------------------------------------------------
+
+@app.get("/api/community/submissions")
+def api_community_submissions(limit: int = Query(8, ge=1, le=25)) -> JSONResponse:
+    """Return recent community submissions for the local review queue."""
+    try:
+        with get_connection(_db()) as conn:
+            rows = CommunitySubmissionRepo(conn).list_recent(limit=limit)
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": {"items": []},
+                "error": {"code": "community_list_failed", "message": str(exc)},
+            },
+            status_code=500,
+        )
+
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {"items": [row.model_dump() for row in rows]},
+            "error": None,
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
 # API — community submission
 # ---------------------------------------------------------------------------
 
