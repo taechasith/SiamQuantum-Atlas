@@ -328,7 +328,11 @@ def api_graph_metrics() -> JSONResponse:
     from siamquantum.pipeline.graph_metrics import compute_metrics
     db = _db()
     try:
-        metrics = compute_metrics(db)
+        with get_connection(db) as conn:
+            cache = StatsCacheRepo(conn)
+            metrics = cache.get("graph:metrics")
+        if not metrics:
+            metrics = compute_metrics(db)
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "metrics_failed", "message": str(exc)}},
@@ -389,6 +393,8 @@ def api_taxonomy_stats() -> JSONResponse:
         "taxonomy:user_intent",
         "taxonomy:thai_cultural_angle",
         "taxonomy:media_x_intent:chi2",
+        "taxonomy:media_x_intent:engagement",
+        "taxonomy:insight:strongest_trend",
     ]
     try:
         with get_connection(db) as conn:
@@ -731,24 +737,12 @@ def api_corpus_coverage() -> JSONResponse:
 
 @app.get("/api/analytics/engagement_matrix")
 def api_engagement_matrix() -> JSONResponse:
-    """Cross-tabulation of media_format × user_intent with mean/median view_count."""
+    """Cross-tabulation of media_format × user_intent using bootstrap geometric means on log1p(view_count)."""
     db = _db()
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
-            rows = conn.execute("""
-                SELECT e.media_format, e.user_intent,
-                       COUNT(*) AS n,
-                       AVG(s.view_count) AS mean_views,
-                       COUNT(s.view_count) AS views_available
-                FROM entities e
-                JOIN sources s ON e.source_id = s.id
-                WHERE e.media_format IS NOT NULL
-                  AND e.user_intent IS NOT NULL
-                  AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1
-                GROUP BY e.media_format, e.user_intent
-                ORDER BY mean_views DESC NULLS LAST
-            """).fetchall()
+            cached = StatsCacheRepo(conn).get("taxonomy:media_x_intent:engagement") or {}
             formats = conn.execute(
                 "SELECT DISTINCT media_format FROM entities WHERE media_format IS NOT NULL ORDER BY media_format"
             ).fetchall()
@@ -766,20 +760,13 @@ def api_engagement_matrix() -> JSONResponse:
             status_code=500,
         )
 
-    cells = [
-        {
-            "media_format": r["media_format"],
-            "user_intent": r["user_intent"],
-            "count": r["n"],
-            "mean_views": round(r["mean_views"], 1) if r["mean_views"] is not None else None,
-            "views_available": r["views_available"],
-        }
-        for r in rows
-    ]
+    cells = cached.get("cells") if isinstance(cached, dict) else None
+    cells = cells if isinstance(cells, list) else []
     return JSONResponse({
         "ok": True,
         "data": {
             "cells": cells,
+            "strongest_cell": cached.get("strongest_cell") if isinstance(cached, dict) else None,
             "formats": [r[0] for r in formats],
             "intents": [r[0] for r in intents],
         },

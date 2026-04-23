@@ -700,6 +700,7 @@
 
       let tablesBlock = "";
       let chi2Block = "";
+      let insightBlock = "";
       if (stats.ok && stats.data) {
         const td = stats.data;
         if (td["media_format"] && td["media_format"].summary) {
@@ -733,6 +734,19 @@
           const c = td["media_x_intent:chi2"];
           chi2Block = `<div class="tax-chi2-block"><strong>Media format × User intent (Chi-square):</strong> χ²=${c.chi2}, p=${c.p}, dof=${c.dof}, Cramér's V=${c.cramers_v}, significant=${c.significant}</div>`;
         }
+        const strongestCell = td["media_x_intent:engagement"] && td["media_x_intent:engagement"].strongest_cell
+          ? td["media_x_intent:engagement"].strongest_cell
+          : null;
+        const strongestTrend = td["insight:strongest_trend"] || null;
+        if (strongestCell || strongestTrend) {
+          const cellLine = strongestCell
+            ? `<div><strong>Strongest format × intent cell:</strong> ${strongestCell.media_format} × ${strongestCell.user_intent.replace(/_/g," ")} · geo mean ${Math.round(strongestCell.geo_mean_views).toLocaleString()} · n=${strongestCell.count}</div>`
+            : "";
+          const trendLine = strongestTrend
+            ? `<div style="margin-top:0.45rem;"><strong>Strongest subgroup trend:</strong> ${strongestTrend.group_type.replace("_"," ")}=${strongestTrend.label.replace(/_/g," ")} · τ=${Number(strongestTrend.mannkendall_tau).toFixed(3)} · p=${Number(strongestTrend.mannkendall_p).toFixed(4)}</div>`
+            : "";
+          insightBlock = `<div class="tax-chi2-block" style="margin-top:0.75rem;"><strong>Compact insights:</strong>${cellLine}${trendLine}</div>`;
+        }
       }
 
       el.innerHTML = `
@@ -743,6 +757,7 @@
         </div>
         ${tablesBlock}
         ${chi2Block}
+        ${insightBlock}
       `;
     } catch (e) {
       el.textContent = "Taxonomy unavailable: " + e.message;

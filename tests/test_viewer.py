@@ -197,6 +197,8 @@ def test_graph_metrics_schema(client: TestClient) -> None:
     data = payload["data"]
     assert "components" in data
     assert "largest_component_size" in data
+    assert "community_summaries" in data
+    assert "hub_interpretation" in data
     assert "top_degree" in data
     assert "top_betweenness" in data
 

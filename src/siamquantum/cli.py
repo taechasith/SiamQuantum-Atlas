@@ -11,7 +11,7 @@ if sys.platform == "win32":
 import typer
 
 from siamquantum.config import settings
-from siamquantum.db.session import db_path_from_url, init_db
+from siamquantum.db.session import db_path_from_url, get_connection, init_db
 
 app = typer.Typer(help="SiamQuantum Atlas CLI")
 db_app = typer.Typer(help="Database commands")
@@ -372,6 +372,42 @@ def analyze_stats() -> None:
         f"  MK_p={trend.get('mannkendall_p', '?')}"
         f"  Spearman_rho={trend.get('spearman_rho', '?')}"
         f"  Spearman_p={trend.get('spearman_p', '?')}"
+    )
+
+
+@analyze_app.command("taxonomy-stats")
+def analyze_taxonomy_stats() -> None:
+    """Run taxonomy engagement analysis and cache subgroup insights."""
+    from siamquantum.pipeline.taxonomy_stats import run_taxonomy_stats
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Running taxonomy stats pipeline...")
+    result = run_taxonomy_stats(db_path)
+    typer.echo(
+        f"  rows_analysed={result.get('rows_analysed', 0)}"
+        f"  keys_written={result.get('keys_written', 0)}"
+    )
+
+
+@analyze_app.command("graph-metrics")
+def analyze_graph_metrics() -> None:
+    """Compute graph analytics and cache hub/community summaries."""
+    from siamquantum.db.repos import StatsCacheRepo
+    from siamquantum.pipeline.graph_metrics import compute_metrics
+
+    db_path = db_path_from_url(settings.database_url)
+    typer.echo("Running graph metrics...")
+    metrics = compute_metrics(db_path)
+    with get_connection(db_path) as conn:
+        cache = StatsCacheRepo(conn)
+        cache.set("graph:metrics", metrics)
+        cache.set("graph:hub_interpretation", metrics.get("hub_interpretation"))
+        cache.set("graph:communities", metrics.get("community_summaries"))
+    typer.echo(
+        f"  nodes={metrics.get('nodes', 0)}"
+        f"  links={metrics.get('links', 0)}"
+        f"  components={metrics.get('components', 0)}"
+        f"  communities={len(metrics.get('community_summaries', []))}"
     )
 
 

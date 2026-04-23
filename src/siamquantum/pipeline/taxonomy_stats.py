@@ -59,6 +59,35 @@ def _year_trend(rows: list[dict[str, Any]], key: str, value: str) -> dict[str, A
     return result
 
 
+def _engagement_matrix(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[tuple[str, str], list[float]] = defaultdict(list)
+    for row in rows:
+        media_format = row.get("media_format")
+        user_intent = row.get("user_intent")
+        if not media_format or not user_intent:
+            continue
+        grouped[(media_format, user_intent)].append(float(row["view_count"] or 0))
+
+    cells: list[dict[str, Any]] = []
+    for (media_format, user_intent), values in grouped.items():
+        log_views = log_transform_engagement(np.array(values, dtype=float))
+        stats = bootstrap_geometric_mean(log_views, n_resamples=2_000)
+        cells.append({
+            "media_format": media_format,
+            "user_intent": user_intent,
+            "count": len(values),
+            "geo_mean_views": stats["geo_mean"],
+            "ci_low": stats["ci_low"],
+            "ci_high": stats["ci_high"],
+        })
+    cells.sort(key=lambda item: (-item["geo_mean_views"], -item["count"]))
+    stable_cells = [cell for cell in cells if cell["count"] >= 3]
+    return {
+        "cells": cells,
+        "strongest_cell": stable_cells[0] if stable_cells else (cells[0] if cells else None),
+    }
+
+
 def run_taxonomy_stats(db_path: Path) -> dict[str, int]:
     rows = _fetch_rows(db_path)
     if not rows:
@@ -104,13 +133,18 @@ def run_taxonomy_stats(db_path: Path) -> dict[str, int]:
         chi2_result["row_cats"] = mf_cats
         chi2_result["col_cats"] = ui_cats
         cache.set("taxonomy:media_x_intent:chi2", chi2_result)
+        matrix_summary = _engagement_matrix(rows)
+        cache.set("taxonomy:media_x_intent:engagement", matrix_summary)
 
         # 5. year trend: top 3 media_formats
         top_mf = [s["label"] for s in mf_summary[:3]]
-        keys_written = 4
+        trend_candidates: list[dict[str, Any]] = []
+        keys_written = 5
         for mf in top_mf:
             trend = _year_trend(rows, "media_format", mf)
             cache.set(f"taxonomy:trend:media_format:{mf}", trend)
+            if "mannkendall_tau" in trend:
+                trend_candidates.append({"group_type": "media_format", **trend})
             keys_written += 1
 
         # 6. year trend: top 3 user_intents
@@ -118,6 +152,16 @@ def run_taxonomy_stats(db_path: Path) -> dict[str, int]:
         for ui in top_ui:
             trend = _year_trend(rows, "user_intent", ui)
             cache.set(f"taxonomy:trend:user_intent:{ui}", trend)
+            if "mannkendall_tau" in trend:
+                trend_candidates.append({"group_type": "user_intent", **trend})
             keys_written += 1
+
+        strongest_trend = max(
+            trend_candidates,
+            key=lambda item: (abs(float(item.get("mannkendall_tau", 0))), len(item.get("years", []))),
+            default=None,
+        )
+        cache.set("taxonomy:insight:strongest_trend", strongest_trend)
+        keys_written += 1
 
     return {"keys_written": keys_written, "rows_analysed": len(rows)}
