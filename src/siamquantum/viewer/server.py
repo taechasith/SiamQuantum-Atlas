@@ -365,9 +365,16 @@ def api_taxonomy_stats() -> JSONResponse:
     ]
     try:
         with get_connection(db) as conn:
-            from siamquantum.db.repos import StatsCacheRepo
-            cache = StatsCacheRepo(conn)
-            data = {k.replace("taxonomy:", ""): cache.get(k) for k in keys}
+            rows = conn.execute(
+                "SELECT key, value FROM stats_cache WHERE key IN ({})".format(
+                    ",".join("?" for _ in keys)
+                ),
+                keys,
+            ).fetchall()
+            data = {
+                r["key"].replace("taxonomy:", ""): json.loads(r["value"])
+                for r in rows
+            }
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "taxonomy_stats_failed", "message": str(exc)}},
@@ -428,8 +435,10 @@ def api_stats_yearly(
                 ORDER BY s.published_year, e.engagement_level
             """).fetchall()
 
-            cache = StatsCacheRepo(conn)
-            clusters_raw = cache.get("macro_clusters")
+            clusters_row = conn.execute(
+                "SELECT value FROM stats_cache WHERE key = 'macro_clusters'"
+            ).fetchone()
+            clusters_raw = json.loads(clusters_row["value"]) if clusters_row else None
             clusters = clusters_raw if isinstance(clusters_raw, list) else []
 
             bootstrap_yearly_rows = conn.execute(
@@ -438,7 +447,10 @@ def api_stats_yearly(
             bootstrap_pairwise_rows = conn.execute(
                 "SELECT key, value FROM stats_cache WHERE key LIKE 'bootstrap_pairwise:%'"
             ).fetchall()
-            trend_raw = cache.get("bootstrap_trend")
+            trend_row = conn.execute(
+                "SELECT value FROM stats_cache WHERE key = 'bootstrap_trend'"
+            ).fetchone()
+            trend_raw = json.loads(trend_row["value"]) if trend_row else None
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": _empty_payload, "error": {"code": "yearly_stats_failed", "message": str(exc)}},
