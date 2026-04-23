@@ -130,6 +130,7 @@ def test_geo_list_schema(client: TestClient) -> None:
     assert payload["ok"] is True
     assert isinstance(payload["data"], list)
     assert isinstance(payload["count"], int)
+    assert payload["relevance"]["mode"] == "operational_default"
 
 
 def test_geo_list_default_excludes_cdn(client: TestClient) -> None:
@@ -166,6 +167,7 @@ def test_graph_schema(client: TestClient) -> None:
     assert resp.status_code == 200
     payload = resp.json()
     assert payload["ok"] is True
+    assert payload["relevance"]["mode"] == "operational_default"
     data = payload["data"]
     assert "nodes" in data and "links" in data
     assert len(data["nodes"]) >= 2
@@ -220,8 +222,11 @@ def test_stats_yearly_schema(client: TestClient) -> None:
 
 def test_stats_yearly_method_field(client: TestClient) -> None:
     resp = client.get("/api/stats/yearly")
-    data = resp.json()["data"]
+    payload = resp.json()
+    data = payload["data"]
     assert data.get("method") == "bootstrap_geometric_mean"
+    assert "operational" in data.get("relevance_scope_note", "")
+    assert payload["relevance"]["mode"] == "operational_default"
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +238,7 @@ def test_sources_pagination_schema(client: TestClient) -> None:
     assert resp.status_code == 200
     payload = resp.json()
     assert payload["ok"] is True
+    assert payload["relevance"]["mode"] == "operational_default"
     data = payload["data"]
     assert "total" in data and "page" in data and "page_size" in data and "items" in data
     assert data["total"] == 2

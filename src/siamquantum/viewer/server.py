@@ -31,6 +31,23 @@ def _db() -> Path:
     return db_path_from_url(settings.database_url)
 
 
+def _relevance_metadata(conn) -> dict[str, Any]:
+    checked = int(conn.execute(
+        "SELECT COUNT(*) FROM sources WHERE relevance_checked_at IS NOT NULL"
+    ).fetchone()[0])
+    total = int(conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0])
+    return {
+        "mode": "operational_default" if checked == 0 else "classifier_backfill",
+        "checked_sources": checked,
+        "total_sources": total,
+        "note": (
+            "Current corpus filtering uses operational Thai-quantum defaults. "
+            "Rows with is_quantum_tech=1 and is_thailand_related=1 should be read as corpus-scope flags, "
+            "not as per-row classifier verification."
+        ),
+    }
+
+
 def _process_community_submission(submission_id: int, url: str) -> None:
     """
     Best-effort post-submit processing.
@@ -134,17 +151,18 @@ def page_community(request: Request) -> Any:
 @app.get("/api/geo/list")
 def api_geo_list(
     cdn: bool = Query(False, description="Include CDN-resolved rows"),
-    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
 ) -> JSONResponse:
     """
     Returns geo rows joined with source metadata.
     Default (cdn=false): only origin IPs (is_cdn_resolved=0 or NULL).
-    Default: only quantum+thai relevant sources (is_quantum_tech=1 AND is_thailand_related=1).
+    Default: only corpus-scope rows (is_quantum_tech=1 AND is_thailand_related=1).
     """
     db = _db()
     relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
             if cdn:
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
@@ -174,6 +192,7 @@ def api_geo_list(
                 "ok": False,
                 "data": [],
                 "count": 0,
+                "relevance": None,
                 "error": {
                     "code": "geo_list_failed",
                     "message": str(exc),
@@ -188,6 +207,7 @@ def api_geo_list(
             "ok": True,
             "data": items,
             "count": len(items),
+            "relevance": relevance,
             "error": None,
         }
     )
@@ -199,7 +219,7 @@ def api_geo_list(
 
 @app.get("/api/graph")
 def api_graph(
-    include_filtered: bool = Query(True, description="Include all sources (relevance flags not populated)"),
+    include_filtered: bool = Query(True, description="Include all rows, not just the operational corpus-scope filter"),
 ) -> JSONResponse:
     """
     Returns concept-level nodes and edges built from triplets.
@@ -214,6 +234,7 @@ def api_graph(
     relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
             edge_rows = conn.execute(f"""
                 SELECT t.subject, t.relation, t.object, t.confidence
                 FROM triplets t
@@ -226,6 +247,7 @@ def api_graph(
             {
                 "ok": False,
                 "data": {"nodes": [], "links": []},
+                "relevance": None,
                 "error": {"code": "graph_load_failed", "message": str(exc)},
             },
             status_code=500,
@@ -290,6 +312,7 @@ def api_graph(
         {
             "ok": True,
             "data": {"nodes": nodes, "links": links},
+            "relevance": relevance,
             "error": None,
         }
     )
@@ -393,7 +416,7 @@ def api_taxonomy_stats() -> JSONResponse:
 
 @app.get("/api/stats/yearly")
 def api_stats_yearly(
-    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
 ) -> JSONResponse:
     """
     Yearly source counts, bootstrap engagement inference, and trend tests.
@@ -457,7 +480,12 @@ def api_stats_yearly(
             trend_raw = json.loads(trend_row["value"]) if trend_row else None
     except Exception as exc:
         return JSONResponse(
-            {"ok": False, "data": _empty_payload, "error": {"code": "yearly_stats_failed", "message": str(exc)}},
+            {
+                "ok": False,
+                "data": _empty_payload,
+                "relevance": None,
+                "error": {"code": "yearly_stats_failed", "message": str(exc)},
+            },
             status_code=500,
         )
 
@@ -501,6 +529,9 @@ def api_stats_yearly(
     trend_total_sources = [int((counts.get(y) or {}).get("total", 0)) for y in years]
     trend_high_engagement = [int((eng_dist.get(y) or {}).get("high", 0)) for y in years]
 
+    with get_connection(db) as conn:
+        relevance = _relevance_metadata(conn)
+
     return JSONResponse({
         "ok": True,
         "data": {
@@ -508,6 +539,10 @@ def api_stats_yearly(
             "scope_caveat": (
                 "Excludes academic publications in English journals and institutional reports "
                 "not indexed by GDELT/YouTube. Coverage: 0.4% academic/gov sources (3 of 768)."
+            ),
+            "relevance_scope_note": (
+                "Corpus scope is currently operational: relevance flags represent the active Thai-quantum corpus boundary, "
+                "not per-row classifier verification."
             ),
             "method": "bootstrap_geometric_mean",
             "years": years,
@@ -523,6 +558,7 @@ def api_stats_yearly(
             "macro_clusters": clusters,
             "significance": [],
         },
+        "relevance": relevance,
         "error": None,
     })
 
@@ -539,11 +575,11 @@ def api_sources(
     media_format: str | None = Query(None),
     user_intent: str | None = Query(None),
     quantum_domain: str | None = Query(None),
-    include_filtered: bool = Query(False, description="Include non-relevant sources"),
+    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> JSONResponse:
-    """Paginated source list with optional filters. Default: quantum+thai relevant only."""
+    """Paginated source list with optional filters. Default: operational corpus-scope rows only."""
     db = _db()
     conditions = []
     params: list[Any] = []
@@ -575,6 +611,7 @@ def api_sources(
 
     try:
         with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
             total = conn.execute(f"""
                 SELECT COUNT(*) FROM sources s
                 LEFT JOIN entities e ON s.id = e.source_id
@@ -603,6 +640,7 @@ def api_sources(
                     "page_size": page_size,
                     "items": [],
                 },
+                "relevance": None,
                 "error": {
                     "code": "sources_query_failed",
                     "message": str(exc),
@@ -620,6 +658,7 @@ def api_sources(
                 "page_size": page_size,
                 "items": [dict(r) for r in rows],
             },
+            "relevance": relevance,
             "error": None,
         }
     )
@@ -631,10 +670,11 @@ def api_sources(
 
 @app.get("/api/corpus/coverage")
 def api_corpus_coverage() -> JSONResponse:
-    """Year-by-platform breakdown for corpus completeness overview."""
+    """Year-by-platform breakdown for the current operational corpus boundary."""
     db = _db()
     try:
         with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
             rows = conn.execute("""
                 SELECT published_year, platform, COUNT(*) AS n
                 FROM sources
@@ -655,7 +695,12 @@ def api_corpus_coverage() -> JSONResponse:
             ).fetchone()[0]
     except Exception as exc:
         return JSONResponse(
-            {"ok": False, "data": None, "error": {"code": "coverage_failed", "message": str(exc)}},
+            {
+                "ok": False,
+                "data": None,
+                "relevance": None,
+                "error": {"code": "coverage_failed", "message": str(exc)},
+            },
             status_code=500,
         )
 
@@ -675,6 +720,70 @@ def api_corpus_coverage() -> JSONResponse:
             "by_domain": [{"domain": r["quantum_domain"], "count": r["n"]} for r in domain_rows],
             "years": sorted(by_year.keys()),
         },
+        "relevance": relevance,
+        "error": None,
+    })
+
+
+# ---------------------------------------------------------------------------
+# API — format × intent engagement matrix
+# ---------------------------------------------------------------------------
+
+@app.get("/api/analytics/engagement_matrix")
+def api_engagement_matrix() -> JSONResponse:
+    """Cross-tabulation of media_format × user_intent with mean/median view_count."""
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
+            rows = conn.execute("""
+                SELECT e.media_format, e.user_intent,
+                       COUNT(*) AS n,
+                       AVG(s.view_count) AS mean_views,
+                       COUNT(s.view_count) AS views_available
+                FROM entities e
+                JOIN sources s ON e.source_id = s.id
+                WHERE e.media_format IS NOT NULL
+                  AND e.user_intent IS NOT NULL
+                  AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1
+                GROUP BY e.media_format, e.user_intent
+                ORDER BY mean_views DESC NULLS LAST
+            """).fetchall()
+            formats = conn.execute(
+                "SELECT DISTINCT media_format FROM entities WHERE media_format IS NOT NULL ORDER BY media_format"
+            ).fetchall()
+            intents = conn.execute(
+                "SELECT DISTINCT user_intent FROM entities WHERE user_intent IS NOT NULL ORDER BY user_intent"
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "relevance": None,
+                "error": {"code": "matrix_failed", "message": str(exc)},
+            },
+            status_code=500,
+        )
+
+    cells = [
+        {
+            "media_format": r["media_format"],
+            "user_intent": r["user_intent"],
+            "count": r["n"],
+            "mean_views": round(r["mean_views"], 1) if r["mean_views"] is not None else None,
+            "views_available": r["views_available"],
+        }
+        for r in rows
+    ]
+    return JSONResponse({
+        "ok": True,
+        "data": {
+            "cells": cells,
+            "formats": [r[0] for r in formats],
+            "intents": [r[0] for r in intents],
+        },
+        "relevance": relevance,
         "error": None,
     })
 

@@ -169,7 +169,7 @@ python -m siamquantum serve [--port 8765] [--reload]
 
 - Geo coverage: 350/768 sources resolved, 88 origin points (non-CDN)
 - Bootstrap pairwise: covers 2020–2025 (15 pairs). 2026 excluded — only 1 GDELT source with no YouTube view_count
-- All 768 sources backfilled to `is_quantum_tech=1`, `is_thailand_related=1` (whole corpus is Thai quantum by design)
+- Current corpus boundary is operationally backfilled to `is_quantum_tech=1`, `is_thailand_related=1`; `relevance_checked_at` is still unset, so these flags should be read as corpus-scope defaults rather than per-row classifier verification
 - No live GDELT/YouTube pipeline (requires paid API keys — out of scope for local run)
 
 ## Make targets
