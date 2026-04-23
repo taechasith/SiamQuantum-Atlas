@@ -127,6 +127,17 @@
     border: 1px solid rgba(112, 225, 255, 0.34);
     background: rgba(112, 225, 255, 0.14);
     color: var(--accent);
+    min-height: 44px;
+    transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 
   .status-box {
@@ -232,6 +243,7 @@
 <script>
   const form = document.getElementById("community-form");
   const statusBox = document.getElementById("status-box");
+  const submitButton = form.querySelector("button[type='submit']");
 
   function showStatus(text, kind) {
     statusBox.textContent = text;
@@ -249,6 +261,8 @@
     }
 
     try {
+      submitButton.disabled = true;
+      submitButton.textContent = "กำลังส่ง / Submitting...";
       const response = await fetch("/api/community/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -273,6 +287,9 @@
       form.reset();
     } catch (error) {
       showStatus(`ระบบส่งข้อมูลล้มเหลว / ${error.message}`, "status-error");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "ส่งข้อมูล / Submit";
     }
   });
 </script>

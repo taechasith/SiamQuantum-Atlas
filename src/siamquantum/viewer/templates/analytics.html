@@ -108,6 +108,34 @@
     gap: 1.25rem;
   }
 
+  .insight-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+    margin: 1.1rem 0 1.25rem;
+  }
+
+  .insight-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+  }
+
+  .insight-label {
+    color: var(--muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .insight-value {
+    color: var(--text);
+    font-size: 1rem;
+    margin-top: 0.35rem;
+    line-height: 1.45;
+  }
+
   .card {
     padding: 1.25rem;
   }
@@ -407,6 +435,21 @@
       </div>
     </div>
     <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading analytics</div>
+  </div>
+
+  <div class="insight-strip">
+    <div class="insight-card">
+      <div class="insight-label">Corpus framing</div>
+      <div class="insight-value">Operational Thai-quantum corpus boundary, with analytics restricted to Thai web and social engagement.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Method discipline</div>
+      <div class="insight-value">Bootstrap geometric means on log1p views, plus nonparametric group and trend tests.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Reading mode</div>
+      <div class="insight-value">Use the trend panel for year-level change, then scan taxonomy insights for subgroup concentration.</div>
+    </div>
   </div>
 
   <div class="empty-state" id="empty-state">

@@ -85,6 +85,25 @@
     margin-top: 1.25rem;
   }
 
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
   .stat-card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -123,6 +142,17 @@
     align-items: center;
   }
 
+  .toolbar-copy {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .map-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
   .map-title {
     color: var(--text);
     font-size: 1rem;
@@ -152,8 +182,8 @@
   }
 
   .panel-footer {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.2fr);
     gap: 1rem;
     padding: 1rem 1.25rem 1.25rem;
     color: var(--muted);
@@ -296,6 +326,11 @@
         Corpus scope note: the current `is_quantum_tech` and `is_thailand_related` flags are operational corpus-boundary defaults,
         not per-row classifier verification.
       </p>
+      <div class="hero-meta">
+        <span class="meta-pill">Origin-first map framing</span>
+        <span class="meta-pill">CDN rows excluded by default</span>
+        <span class="meta-pill">Leaflet clustering for dense areas</span>
+      </div>
       <div class="stats">
         <div class="stat-card">
           <div class="stat-label">แหล่งข้อมูล / Sources</div>
@@ -327,9 +362,13 @@
 
   <div class="map-card">
     <div class="map-toolbar">
-      <div>
+      <div class="toolbar-copy">
         <div class="map-title">แผนที่ประเทศไทย / Thailand Focus</div>
-        <div class="map-subtitle">Leaflet + marker clustering, backed by `/api/geo/list`</div>
+        <div class="map-subtitle">Leaflet + marker clustering, backed by `/api/geo/list`, with origin-first framing for cleaner trust signals</div>
+        <div class="map-badges">
+          <span class="meta-pill">88 origin points in current baseline</span>
+          <span class="meta-pill">Use popup ISP labels for provenance</span>
+        </div>
       </div>
       <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading data</div>
     </div>

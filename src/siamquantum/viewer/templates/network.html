@@ -102,6 +102,25 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .graph-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .control-chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
   .graph-title {
     color: var(--text);
     font-size: 1rem;
@@ -290,8 +309,10 @@
         <div class="graph-title">3D Force Graph / กราฟความสัมพันธ์สามมิติ</div>
         <div class="graph-subtitle">Concept nodes from triplets · 3d-force-graph CDN · Click node to focus · Scroll to zoom</div>
       </div>
-      <div style="display:flex;align-items:center;gap:0.75rem;">
-        <button id="leaf-toggle" style="background:#1a2040;color:#70e1ff;border:1px solid #2d5a7e;border-radius:6px;padding:0.3rem 0.75rem;cursor:pointer;font-size:0.78rem;font-weight:600;transition:background .15s;" title="Leaf nodes have degree=1 — connecting to only one concept">Show leaf nodes (+1,289)</button>
+      <div class="graph-controls">
+        <span class="control-chip">Degree hubs = most connected</span>
+        <span class="control-chip">Betweenness hubs = bridge concepts</span>
+        <button id="leaf-toggle" style="min-height:44px;background:#14213d;color:#70e1ff;border:1px solid #335c8d;border-radius:999px;padding:0.45rem 0.95rem;cursor:pointer;font-size:0.8rem;font-weight:600;transition:background .15s, transform .15s;" title="Leaf nodes have degree=1 — connecting to only one concept">Show leaf nodes (+1,289)</button>
         <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading graph</div>
       </div>
     </div>
@@ -344,6 +365,7 @@
       </div>
       <div class="info-panel" id="metrics-panel">
         <h3 style="margin-bottom:0.5rem;font-size:0.9rem;color:#70e1ff;letter-spacing:0.06em;text-transform:uppercase;">Graph Metrics</h3>
+        <div style="margin-bottom:0.55rem;color:#99a7d3;font-size:0.82rem;">Use this panel to separate dense topic hubs from bridge nodes and to scan the largest component for coherent communities.</div>
         <div id="metrics-body" style="color:#99a7d3;font-size:0.79rem;line-height:1.7;">Loading…</div>
       </div>
     </div>
