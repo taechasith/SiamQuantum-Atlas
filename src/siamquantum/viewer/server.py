@@ -142,7 +142,7 @@ def api_geo_list(
     Default: only quantum+thai relevant sources (is_quantum_tech=1 AND is_thailand_related=1).
     """
     db = _db()
-    relevance_clause = "" if include_filtered else "AND (s.is_quantum_tech IS NULL OR s.is_quantum_tech = 1) AND (s.is_thailand_related IS NULL OR s.is_thailand_related = 1)"
+    relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
         with get_connection(db) as conn:
             if cdn:
@@ -397,8 +397,8 @@ def api_stats_yearly(
     Method: bootstrap geometric mean on log1p(view_count). Scope: Thai web/social engagement only.
     """
     db = _db()
-    relevance_clause = "" if include_filtered else "WHERE (s.is_quantum_tech IS NULL OR s.is_quantum_tech = 1) AND (s.is_thailand_related IS NULL OR s.is_thailand_related = 1)"
-    relevance_join_clause = "" if include_filtered else "AND (s.is_quantum_tech IS NULL OR s.is_quantum_tech = 1) AND (s.is_thailand_related IS NULL OR s.is_thailand_related = 1)"
+    relevance_clause = "" if include_filtered else "WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+    relevance_join_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     _empty_payload: dict[str, Any] = {
         "scope": "thai_web_engagement",
         "scope_caveat": (
@@ -544,8 +544,8 @@ def api_sources(
     params: list[Any] = []
 
     if not include_filtered:
-        conditions.append("(s.is_quantum_tech IS NULL OR s.is_quantum_tech = 1)")
-        conditions.append("(s.is_thailand_related IS NULL OR s.is_thailand_related = 1)")
+        conditions.append("s.is_quantum_tech = 1")
+        conditions.append("s.is_thailand_related = 1")
     if year is not None:
         conditions.append("s.published_year = ?")
         params.append(year)

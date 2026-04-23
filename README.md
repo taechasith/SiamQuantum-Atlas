@@ -168,9 +168,9 @@ python -m siamquantum serve [--port 8765] [--reload]
 ## Known limitations
 
 - Geo coverage: 350/768 sources resolved, 88 origin points (non-CDN)
-- Bootstrap pairwise: computed for 2020–2025 only (requires re-run for 2026 data)
-- Relevance flags (`is_quantum_tech`, `is_thailand_related`) not populated — all sources treated as relevant
-- No live GDELT/YouTube pipeline during this session (paid API work out of scope)
+- Bootstrap pairwise: covers 2020–2025 (15 pairs). 2026 excluded — only 1 GDELT source with no YouTube view_count
+- All 768 sources backfilled to `is_quantum_tech=1`, `is_thailand_related=1` (whole corpus is Thai quantum by design)
+- No live GDELT/YouTube pipeline (requires paid API keys — out of scope for local run)
 
 ## Make targets
 
