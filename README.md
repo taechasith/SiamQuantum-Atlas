@@ -1,184 +1,99 @@
 # SiamQuantum Atlas
 
-Research platform for tracking Thai public engagement with quantum technology content (2016–2026). Local SQLite tool — not a hosted SaaS.
+SiamQuantum Atlas is the current research-tool version of a Thai quantum discourse mapping system. It ingests a mixed corpus of Thai-relevant quantum sources, stores them in SQLite, enriches them with NLP-derived entities and triplets, and serves a working analyst UI through FastAPI + Jinja2.
 
-Stack: Python 3.11, SQLite, GDELT API v2, YouTube Data API v3, Claude API, FastAPI, openpyxl.
+This repository is not a speculative product shell. It is the live baseline used for corpus review, graph inspection, taxonomy-aware analytics, and operator-led source expansion. A richer next-version UI is in development and will be refined from user feedback, but this repo represents the honest current state.
 
-## Quickstart
+## Current stack
 
-### 1. Environment setup
+- Python 3.10+
+- FastAPI
+- SQLite
+- Jinja2 templates with CDN JavaScript
+- 3d-force-graph / Three.js on the network page
+- Local CLI orchestration with Typer
 
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -e ".[dev]"
-```
+## What the app does now
 
-On Windows PowerShell:
+- Ingests source records from GDELT, YouTube, RSS, curated seeds, and selected source-specific paths.
+- Stores source, geo, entity, triplet, cache, and community-submission data in SQLite.
+- Runs NLP extraction and classification in a resumable pipeline.
+- Builds taxonomy-aware statistics and graph metrics caches.
+- Serves five working pages:
+  - `/dashboard`: geographic and source-overview view
+  - `/network`: 3D concept network with click-through node research detail
+  - `/analytics`: engagement and taxonomy analysis
+  - `/database`: filtered source browser
+  - `/community`: local submission queue workflow
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-```
+## Local run
 
-Copy the example environment file and fill in the required keys:
-
-```bash
-cp .env.example .env
-```
-
-Required settings:
-
-- `SIAMQUANTUM_DATABASE_URL`
-- `SIAMQUANTUM_ANTHROPIC_API_KEY`
-- `SIAMQUANTUM_YOUTUBE_API_KEY`
-- `SIAMQUANTUM_VIEWER_PORT`
-
-### 2. GeoLite2 download
-
-Geo backfill depends on MaxMind GeoLite2 City and ASN databases. Download them before running `ingest geo`.
-
-If the helper script is available in your environment:
+Install and run:
 
 ```bash
-bash scripts/download_geoip.sh
-```
-
-Otherwise:
-
-1. Create a MaxMind account and generate a license key.
-2. Download the GeoLite2 City and GeoLite2 ASN `.mmdb` files.
-3. Place them where the project expects them for Geo/IP enrichment.
-
-### 3. Initialize the database
-
-```bash
-python -m siamquantum db init
-```
-
-Reset the database only when you want a destructive clean rebuild:
-
-```bash
-python -m siamquantum db reset --confirm
-```
-
-## Historical ingest flow
-
-Run the ingest commands year by year for the data you want in the database.
-
-```bash
-python -m siamquantum ingest gdelt --year 2024
-python -m siamquantum ingest youtube --year 2024
-python -m siamquantum ingest geo --pending
-```
-
-To process a range from 2020 through the selected year:
-
-```bash
-python -m siamquantum ingest gdelt --year 2024 --all-years
-python -m siamquantum ingest youtube --year 2024 --all-years
-```
-
-## NLP and stats flow
-
-Run NLP for a specific year:
-
-```bash
-python -m siamquantum analyze nlp --year 2024
-```
-
-Run taxonomy backfill (media_format, user_intent, thai_cultural_angle):
-
-```bash
-python -m siamquantum analyze taxonomy-backfill
-```
-
-Run bootstrap stats pipeline (replaces t-test — uses geometric mean + Mann-Kendall):
-
-```bash
-python -m siamquantum analyze stats
-```
-
-Run taxonomy engagement analysis (Kruskal-Wallis + Chi-square):
-
-```bash
-python -m siamquantum analyze taxonomy-stats
-```
-
-Compute graph centrality metrics:
-
-```bash
-python -m siamquantum analyze graph-metrics
-```
-
-Run the minimal composed flow over years already present in the database:
-
-```bash
-python -m siamquantum analyze full
-```
-
-## Serve the viewer
-
-```bash
+python -m pip install -e .[dev]
 python -m siamquantum serve
 ```
 
 Default viewer URL:
 
-- `http://localhost:8765`
-
-Development auto-reload:
-
-```bash
-python -m siamquantum serve --reload
+```text
+http://127.0.0.1:8765/dashboard
 ```
 
-Custom port:
+Run on another port:
 
 ```bash
 python -m siamquantum serve --port 9000
 ```
 
-## CLI reference
+## Operator workflow
 
-```text
-python -m siamquantum db init
-python -m siamquantum db reset --confirm
+Typical local workflow:
 
-python -m siamquantum ingest gdelt --year YYYY [--all-years]
-python -m siamquantum ingest youtube --year YYYY [--all-years]
-python -m siamquantum ingest geo --pending
-
-python -m siamquantum analyze nlp --year YYYY
+```bash
+python -m siamquantum ingest seeds
+python -m siamquantum ingest rss --feed all
+python -m siamquantum ingest gdelt --year 2024
+python -m siamquantum ingest youtube --year 2024
+python -m siamquantum analyze nlp --year 2024
 python -m siamquantum analyze stats
-python -m siamquantum analyze full
-
-python -m siamquantum serve [--port 8765] [--reload]
+python -m siamquantum analyze taxonomy-stats
+python -m siamquantum analyze graph-metrics
+python -m siamquantum serve
 ```
 
-## Viewer pages
+Not every run needs the full sequence. The current system supports incremental operator-led updates.
 
-- `/dashboard` - Thailand geo dashboard (origin-IP map, Leaflet + marker clustering)
-- `/network` - 3D concept graph from triplets (2,001 nodes, hub/leaf toggle, centrality metrics)
-- `/analytics` - yearly charts + bootstrap probability bands + taxonomy engagement tables
-- `/database` - filtered source cards (year/platform/content_type/media_format/user_intent) + XLSX export
-- `/community` - manual URL submission form (local pipeline only, no auto-run)
+## Current major features
+
+- Operational corpus boundary flags with explicit scope wording in the API/UI.
+- Taxonomy-aware engagement summaries using nonparametric or bootstrap-oriented methods.
+- Concept graph metrics including connected components, hub interpretation, and community summaries.
+- Clickable network node detail with neighbor, relation, source, and taxonomy context.
+- Community submission persistence for local workflow use.
+- XLSX export for source/entity review.
 
 ## Known limitations
 
-- Geo coverage: 350/768 sources resolved, 88 origin points (non-CDN)
-- Bootstrap pairwise: covers 2020–2025 (15 pairs). 2026 excluded — only 1 GDELT source with no YouTube view_count
-- Current corpus boundary is operationally backfilled to `is_quantum_tech=1`, `is_thailand_related=1`; `relevance_checked_at` is still unset, so these flags should be read as corpus-scope defaults rather than per-row classifier verification
-- No live GDELT/YouTube pipeline (requires paid API keys — out of scope for local run)
+- The relevance flags are currently operational corpus defaults unless explicit row-level checking has been run. They should not be read as universal classifier truth.
+- NLP extraction is best-effort and depends on available source text plus configured model access.
+- SQLite is the correct fit for local/demo operation, not for concurrent multi-writer production use.
+- The network view is analytically useful but still an interpretation aid, not a causal or ontological truth layer.
+- Community automation is intentionally partial. The queue is real; downstream processing remains environment-dependent.
 
-## Make targets
+## Deployment reality
 
-```bash
-make install
-make db
-make ingest-historical
-make serve
-make test
-make lint
-```
+The current architecture stays Python + FastAPI + SQLite + Jinja2/CDN JS.
+
+This app can be prepared for Vercel as a read-only demo deployment, but SQLite write workflows are not durable there because the filesystem is ephemeral. In deploy/demo mode:
+
+- read APIs and pages remain available
+- the bundled SQLite dataset should be treated as read-only
+- write-sensitive features such as community submission should be explicitly disabled or gated
+
+If you need durable writes, scheduled ingestion, or automated moderation, keep running the app in a stateful environment rather than assuming Vercel solves that.
+
+## Repo intent
+
+This repository tracks the current research-tool baseline. The next-version UI is being developed separately as a richer interaction layer, and its refinements should be driven by real user feedback from this working system rather than by speculative front-end rewrite churn.
