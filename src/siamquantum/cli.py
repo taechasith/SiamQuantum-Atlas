@@ -54,6 +54,34 @@ def db_reset(
     typer.echo("Database recreated.")
 
 
+@db_app.command("audit")
+def db_audit(
+    fix: bool = typer.Option(False, "--fix", help="Apply deterministic integrity repairs"),
+) -> None:
+    """Run a compact DB integrity audit for orphans, stale abstentions, and duplicate links."""
+    from siamquantum.pipeline.integrity import run_integrity_audit
+
+    db_path = db_path_from_url(settings.database_url)
+    report = run_integrity_audit(db_path, fix=fix)
+    typer.echo(
+        f"geo_isp_sync_candidates={report['geo_isp_sync_candidates']}"
+        f" stale_abstentions={report['stale_abstentions_with_triplets']}"
+        f" duplicate_link_groups={report['duplicate_graph_links']['groups']}"
+        f" duplicate_link_rows={report['duplicate_graph_links']['extra_rows']}"
+    )
+    typer.echo(
+        f"orphans entities={report['orphans']['entities']}"
+        f" triplets={report['orphans']['triplets']}"
+        f" abstentions={report['orphans']['abstentions']}"
+    )
+    if fix:
+        typer.echo(
+            f"fixed geo_isp_synced={report['fixed']['geo_isp_synced']}"
+            f" stale_abstentions_removed={report['fixed']['stale_abstentions_removed']}"
+            f" duplicate_graph_links_removed={report['fixed']['duplicate_graph_links_removed']}"
+        )
+
+
 # ---------------------------------------------------------------------------
 # ingest commands
 # ---------------------------------------------------------------------------

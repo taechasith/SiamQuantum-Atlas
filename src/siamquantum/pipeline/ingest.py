@@ -126,12 +126,12 @@ def backfill_asn(db_path: Path) -> dict[str, int]:
     """
     Populate asn_org / is_cdn_resolved for existing geo rows where is_cdn_resolved IS NULL.
     Reads ip from geo table directly — no DNS re-resolution needed.
-    Returns counts: {updated, skipped_no_ip, skipped_no_asn_db}.
+    If ISP is missing but ASN organisation is known, sync ISP from ASN for display continuity.
+    Returns counts: {updated, isp_synced, skipped_no_ip, skipped_no_asn_db}.
     """
     from siamquantum.services.geoip import lookup_asn, _get_asn_reader
-    from siamquantum.db.repos import GeoRepo
 
-    counts: dict[str, int] = {"updated": 0, "skipped_no_ip": 0, "skipped_no_asn_db": 0}
+    counts: dict[str, int] = {"updated": 0, "isp_synced": 0, "skipped_no_ip": 0, "skipped_no_asn_db": 0}
 
     if not _get_asn_reader():
         with get_connection(db_path) as conn:
@@ -155,11 +155,23 @@ def backfill_asn(db_path: Path) -> dict[str, int]:
 
         asn_org, is_cdn = lookup_asn(ip)
         with get_connection(db_path) as conn:
+            before = conn.execute(
+                "SELECT isp FROM geo WHERE source_id = ?",
+                (source_id,),
+            ).fetchone()
             conn.execute(
-                "UPDATE geo SET asn_org = ?, is_cdn_resolved = ? WHERE source_id = ?",
-                (asn_org, is_cdn, source_id),
+                """
+                UPDATE geo
+                SET asn_org = ?,
+                    is_cdn_resolved = ?,
+                    isp = COALESCE(isp, ?)
+                WHERE source_id = ?
+                """,
+                (asn_org, is_cdn, asn_org, source_id),
             )
             conn.commit()
+        if (before["isp"] if before else None) is None and asn_org:
+            counts["isp_synced"] += 1
         counts["updated"] += 1
 
     return counts

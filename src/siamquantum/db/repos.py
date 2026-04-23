@@ -110,6 +110,7 @@ class GeoRepo:
         self._c = conn
 
     def upsert(self, geo: GeoCreate) -> None:
+        isp = geo.isp or geo.asn_org
         self._c.execute(
             """
             INSERT INTO geo (source_id, ip, lat, lng, city, region, isp, asn_org, is_cdn_resolved)
@@ -121,7 +122,7 @@ class GeoRepo:
             """,
             (
                 geo.source_id, geo.ip, geo.lat, geo.lng,
-                geo.city, geo.region, geo.isp,
+                geo.city, geo.region, isp,
                 geo.asn_org, geo.is_cdn_resolved,
             ),
         )

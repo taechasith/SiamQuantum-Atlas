@@ -31,9 +31,14 @@ def _completed_source_ids(conn) -> set[int]:
     _ensure_nlp_abstentions_table(conn)
     rows = conn.execute(
         """
-        SELECT DISTINCT source_id FROM triplets
+        SELECT DISTINCT t.source_id
+        FROM triplets t
+        JOIN sources s ON s.id = t.source_id
         UNION
-        SELECT source_id FROM nlp_abstentions WHERE status = 'abstained'
+        SELECT a.source_id
+        FROM nlp_abstentions a
+        JOIN sources s ON s.id = a.source_id
+        WHERE a.status = 'abstained'
         """
     ).fetchall()
     return {int(row[0]) for row in rows}
@@ -56,6 +61,13 @@ def _mark_abstained(conn, source_id: int, reason: str) -> None:
 
 def _clear_abstention(conn, source_id: int) -> None:
     _ensure_nlp_abstentions_table(conn)
+    conn.execute("DELETE FROM nlp_abstentions WHERE source_id = ?", (source_id,))
+
+
+def _reset_source_nlp_state(conn, source_id: int) -> None:
+    _ensure_nlp_abstentions_table(conn)
+    conn.execute("DELETE FROM entities WHERE source_id = ?", (source_id,))
+    conn.execute("DELETE FROM triplets WHERE source_id = ?", (source_id,))
     conn.execute("DELETE FROM nlp_abstentions WHERE source_id = ?", (source_id,))
 
 
@@ -93,8 +105,8 @@ def analyze_year(
             sources = [source for source in sources if source.id in forced_ids]
         already_done = _completed_source_ids(conn)
 
-    pending = [s for s in sources if s.id not in already_done]
-    counts["skipped_already_done"] = len(sources) - len(pending)
+    pending = [s for s in sources if s.id in forced_ids or s.id not in already_done]
+    counts["skipped_already_done"] = len([s for s in sources if s.id not in forced_ids and s.id in already_done])
 
     text_sources: list[tuple[object, str]] = []
     for source in pending:
@@ -135,10 +147,8 @@ def analyze_year(
             with get_connection(db_path) as conn:
                 try:
                     conn.execute("BEGIN")
-                    _ensure_nlp_abstentions_table(conn)
-                    # Clean up any stale partial rows from prior interrupted runs.
-                    conn.execute("DELETE FROM entities WHERE source_id = ?", (source.id,))
-                    conn.execute("DELETE FROM triplets WHERE source_id = ?", (source.id,))
+                    # Clean up stale partial rows from prior interrupted runs.
+                    _reset_source_nlp_state(conn, source.id)
                     if entity:
                         conn.execute(
                             """
@@ -160,7 +170,6 @@ def analyze_year(
                             ),
                         )
                     if triplets:
-                        _clear_abstention(conn, source.id)
                         conn.executemany(
                             """
                             INSERT INTO triplets (source_id, subject, relation, object, confidence)
