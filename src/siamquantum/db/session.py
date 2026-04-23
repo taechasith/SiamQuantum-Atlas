@@ -43,6 +43,19 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
         "ALTER TABLE sources ADD COLUMN channel_country TEXT",
         "ALTER TABLE sources ADD COLUMN channel_default_language TEXT",
         "CREATE INDEX IF NOT EXISTS idx_sources_channel ON sources(channel_id)",
+        # DQ-2: taxonomy columns on entities
+        "ALTER TABLE entities ADD COLUMN media_format TEXT",
+        "ALTER TABLE entities ADD COLUMN user_intent TEXT",
+        "ALTER TABLE entities ADD COLUMN thai_cultural_angle TEXT",
+        "CREATE INDEX IF NOT EXISTS idx_entities_media_format ON entities(media_format)",
+        "CREATE INDEX IF NOT EXISTS idx_entities_user_intent ON entities(user_intent)",
+        # nlp_abstentions table (added in NLP phase)
+        """CREATE TABLE IF NOT EXISTS nlp_abstentions (
+            source_id  INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+            status     TEXT NOT NULL DEFAULT 'abstained',
+            reason     TEXT,
+            updated_at TEXT
+        )""",
     ]
     for sql in _migrations:
         try:
