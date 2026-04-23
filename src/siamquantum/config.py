@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     google_cse_key: str = Field(default="")
     google_cse_cx_academic: str = Field(default="")
     google_cse_cx_media: str = Field(default="")
+    deployment_mode: str = "local"
+    database_read_only: bool = False
 
 
 settings = Settings()

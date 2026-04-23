@@ -159,6 +159,7 @@ The current app can be prepared for Vercel only as a constrained demo deployment
 - SQLite should be treated as read-only in deployment mode.
 - Write paths must be disabled or clearly gated.
 - Durable ingest, queue processing, and corpus updates should remain in a stateful runtime.
+- Recommended deploy flags are `SIAMQUANTUM_DEPLOYMENT_MODE=vercel_demo` and `SIAMQUANTUM_DATABASE_READ_ONLY=true`.
 
 That constraint is architectural reality, not a bug to hide.
 

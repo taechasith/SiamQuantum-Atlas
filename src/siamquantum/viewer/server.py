@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import sqlite3
 from collections import Counter
 from pathlib import Path
@@ -68,8 +67,7 @@ def _hub_role(label: str) -> str:
 
 
 def _is_vercel_demo_mode() -> bool:
-    env_value = str(os.getenv("SIAMQUANTUM_DEPLOYMENT_MODE", "")).lower()
-    return os.getenv("VERCEL") == "1" or env_value == "vercel_demo"
+    return getattr(settings, "database_read_only", False) is True or getattr(settings, "deployment_mode", "local") == "vercel_demo"
 
 
 def _relevance_metadata(conn: sqlite3.Connection) -> dict[str, Any]:

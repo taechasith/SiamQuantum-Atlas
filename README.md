@@ -92,6 +92,14 @@ This app can be prepared for Vercel as a read-only demo deployment, but SQLite w
 - the bundled SQLite dataset should be treated as read-only
 - write-sensitive features such as community submission should be explicitly disabled or gated
 
+Recommended deploy env for the current Vercel demo shape:
+
+```text
+SIAMQUANTUM_DEPLOYMENT_MODE=vercel_demo
+SIAMQUANTUM_DATABASE_READ_ONLY=true
+SIAMQUANTUM_DATABASE_URL=sqlite:///data/processed/siamquantum_atlas.db
+```
+
 If you need durable writes, scheduled ingestion, or automated moderation, keep running the app in a stateful environment rather than assuming Vercel solves that.
 
 ## Repo intent

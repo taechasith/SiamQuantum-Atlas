@@ -5,18 +5,27 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
+from siamquantum.config import settings
+
 _SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
 
 def _configure(conn: sqlite3.Connection) -> None:
-    conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        pass
     conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
 
 
 @contextmanager
 def get_connection(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
-    conn = sqlite3.connect(str(db_path))
+    if settings.database_read_only:
+        db_uri = db_path.resolve().as_posix()
+        conn = sqlite3.connect(f"file:{db_uri}?mode=ro", uri=True)
+    else:
+        conn = sqlite3.connect(str(db_path))
     try:
         _configure(conn)
         yield conn
