@@ -69,9 +69,15 @@
 
   .filters {
     display: grid;
-    grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.9rem;
-    align-items: end;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .field label {
@@ -185,6 +191,18 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .chip-format {
+    background: rgba(112, 225, 255, 0.08);
+    color: #70e1ff;
+    border-color: rgba(112, 225, 255, 0.22);
+  }
+
+  .chip-intent {
+    background: rgba(86, 243, 154, 0.08);
+    color: #56f39a;
+    border-color: rgba(86, 243, 154, 0.22);
+  }
+
   .source-url {
     color: var(--muted);
     font-size: 0.84rem;
@@ -256,19 +274,17 @@
     .database-shell {
       padding: 1rem;
     }
-
-    .filters {
-      grid-template-columns: 1fr 1fr;
-    }
   }
 
   @media (max-width: 640px) {
-    .filters,
     .pagination,
     .toolbar {
-      grid-template-columns: 1fr;
       flex-direction: column;
       align-items: stretch;
+    }
+
+    .filter-actions {
+      flex-direction: column;
     }
   }
 </style>
@@ -312,9 +328,20 @@
         </select>
       </div>
       <div class="field">
-        <label>&nbsp;</label>
-        <button class="btn btn-primary" id="apply-filters" type="button">ค้นหา / Apply</button>
+        <label for="filter-media-format">Media Format</label>
+        <select id="filter-media-format">
+          <option value="">All formats</option>
+        </select>
       </div>
+      <div class="field">
+        <label for="filter-user-intent">User Intent</label>
+        <select id="filter-user-intent">
+          <option value="">All intents</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" id="apply-filters" type="button">ค้นหา / Apply</button>
       <button class="btn btn-secondary" id="export-xlsx" type="button">ส่งออก XLSX / Export</button>
     </div>
   </div>
@@ -364,6 +391,8 @@
     filterYear: document.getElementById("filter-year"),
     filterPlatform: document.getElementById("filter-platform"),
     filterContentType: document.getElementById("filter-content-type"),
+    filterMediaFormat: document.getElementById("filter-media-format"),
+    filterUserIntent: document.getElementById("filter-user-intent"),
     apply: document.getElementById("apply-filters"),
     exportBtn: document.getElementById("export-xlsx"),
     status: document.getElementById("status-copy"),
@@ -390,6 +419,8 @@
     if (elements.filterYear.value) params.set("year", elements.filterYear.value);
     if (elements.filterPlatform.value) params.set("platform", elements.filterPlatform.value);
     if (elements.filterContentType.value) params.set("content_type", elements.filterContentType.value);
+    if (elements.filterMediaFormat.value) params.set("media_format", elements.filterMediaFormat.value);
+    if (elements.filterUserIntent.value) params.set("user_intent", elements.filterUserIntent.value);
     return params.toString();
   }
 
@@ -422,8 +453,9 @@
       item.area || "unknown area",
       item.engagement_level || "unknown engagement"
     ];
-    if (item.media_format) chips.push(item.media_format);
-    if (item.user_intent) chips.push(item.user_intent);
+    const taxChips = [];
+    if (item.media_format) taxChips.push(`<span class="chip chip-format">${item.media_format}</span>`);
+    if (item.user_intent) taxChips.push(`<span class="chip chip-intent">${item.user_intent.replace(/_/g," ")}</span>`);
     const counts = [];
     if (item.view_count !== null && item.view_count !== undefined) counts.push(`views ${Number(item.view_count).toLocaleString()}`);
     if (item.like_count !== null && item.like_count !== undefined) counts.push(`likes ${Number(item.like_count).toLocaleString()}`);
@@ -439,6 +471,7 @@
         <div class="meta-grid">
           ${chips.map((chip) => `<span class="chip">${chip}</span>`).join("")}
           ${counts.map((chip) => `<span class="chip">${chip}</span>`).join("")}
+          ${taxChips.join("")}
         </div>
         <div class="source-url">${item.url || "No URL available"}</div>
         <a class="source-link" href="${item.url}" target="_blank" rel="noopener">เปิดต้นฉบับ / Open source</a>
@@ -517,7 +550,28 @@
     if (state.page < state.totalPages) loadSources(state.page + 1);
   });
 
+  async function populateFilterOptions() {
+    try {
+      const r = await fetch("/api/taxonomy/summary");
+      const p = await r.json();
+      if (!p.ok) return;
+      p.data.media_format.forEach(({ label }) => {
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label;
+        elements.filterMediaFormat.appendChild(opt);
+      });
+      p.data.user_intent.forEach(({ label }) => {
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label.replace(/_/g, " ");
+        elements.filterUserIntent.appendChild(opt);
+      });
+    } catch { /* fallback: filters stay at "all" */ }
+  }
+
   populateYears();
+  populateFilterOptions();
   loadSources(1);
 </script>
 {% endblock %}

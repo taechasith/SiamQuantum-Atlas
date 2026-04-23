@@ -271,6 +271,91 @@
     color: var(--danger);
   }
 
+  .taxonomy-card {
+    margin-top: 1.25rem;
+  }
+
+  .tax-counts {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .tax-count-line {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .tax-count-line strong {
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+
+  .tax-tables-row {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .tax-group {
+    min-width: 200px;
+  }
+
+  .tax-group-title {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .tax-kw-line {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .tax-table {
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+
+  .tax-table th {
+    color: var(--muted);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    padding: 0.2rem 0.9rem 0.2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .tax-table td {
+    padding: 0.28rem 0.9rem 0.28rem 0;
+    color: var(--text);
+  }
+
+  .tax-table td.num {
+    color: var(--muted);
+  }
+
+  .tax-chi2-block {
+    margin-top: 0.9rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+
+  .tax-chi2-block strong {
+    color: var(--text);
+  }
+
   @media (max-width: 860px) {
     .analytics-shell {
       padding: 1rem;
@@ -283,6 +368,10 @@
     .sig-item {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .tax-tables-row {
+      flex-direction: column;
     }
   }
 </style>
@@ -383,11 +472,12 @@
   </div>
 </section>
 
-<section class="container" style="margin-top:2rem;">
-  <div class="card" style="padding:1.5rem;">
-    <div class="eyebrow">Taxonomy</div>
-    <h2 style="margin:0.25rem 0 1rem;">Media Format &amp; User Intent</h2>
-    <div id="taxonomy-summary" style="color:var(--muted);font-size:0.9rem;">Loading…</div>
+<section class="analytics-shell" style="padding-top:0;padding-bottom:2rem;">
+  <div class="card taxonomy-card">
+    <div class="eyebrow">DQ-2 · DQ-3 Taxonomy Analysis</div>
+    <h3>Media Format &amp; User Intent</h3>
+    <p>Bootstrap geometric mean engagement · Kruskal-Wallis group comparison · Chi-square independence test</p>
+    <div id="taxonomy-summary" style="margin-top:0.85rem;">Loading…</div>
   </div>
 </section>
 
@@ -605,52 +695,53 @@
       if (!sum.ok) throw new Error(sum?.error?.message || "taxonomy summary error");
 
       const sd = sum.data;
-      const mfList = sd.media_format.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
-      const uiList = sd.user_intent.map(x => `<span style="margin-right:1rem;"><b>${x.label}</b> ${x.count}</span>`).join("");
+      const mfList = sd.media_format.map(x => `<span style="margin-right:1.2rem"><b style="color:var(--text)">${x.label}</b> <span style="color:var(--muted)">${x.count}</span></span>`).join("");
+      const uiList = sd.user_intent.map(x => `<span style="margin-right:1.2rem"><b style="color:var(--text)">${x.label.replace(/_/g," ")}</b> <span style="color:var(--muted)">${x.count}</span></span>`).join("");
 
-      let engBlock = "";
+      let tablesBlock = "";
       let chi2Block = "";
       if (stats.ok && stats.data) {
         const td = stats.data;
         if (td["media_format"] && td["media_format"].summary) {
-          const mfEng = td["media_format"].summary.slice(0, 5)
-            .map(g => `<tr><td style="padding:0.2rem 0.6rem 0.2rem 0;">${g.label}</td><td style="padding:0.2rem 0.6rem;">${Math.round(g.geo_mean).toLocaleString()}</td><td style="padding:0.2rem 0.6rem;">${g.n}</td></tr>`)
+          const fmtKW = (kw) => kw
+            ? `H=${Number(kw.h).toFixed(2)}, p=${Number(kw.p).toFixed(4)}, sig=${kw.significant}`
+            : "—";
+          const mfRows = td["media_format"].summary.slice(0, 6)
+            .map(g => `<tr><td>${g.label}</td><td class="num">${Math.round(g.geo_mean).toLocaleString()}</td><td class="num">${g.n}</td></tr>`)
             .join("");
-          const uiEng = td["user_intent"] && td["user_intent"].summary
-            ? td["user_intent"].summary.slice(0, 5)
-              .map(g => `<tr><td style="padding:0.2rem 0.6rem 0.2rem 0;">${g.label}</td><td style="padding:0.2rem 0.6rem;">${Math.round(g.geo_mean).toLocaleString()}</td><td style="padding:0.2rem 0.6rem;">${g.n}</td></tr>`)
+          const uiRows = td["user_intent"] && td["user_intent"].summary
+            ? td["user_intent"].summary.slice(0, 6)
+              .map(g => `<tr><td>${g.label.replace(/_/g," ")}</td><td class="num">${Math.round(g.geo_mean).toLocaleString()}</td><td class="num">${g.n}</td></tr>`)
               .join("")
             : "";
           const mfKW = td["media_format"].kruskal_wallis;
           const uiKW = td["user_intent"] && td["user_intent"].kruskal_wallis ? td["user_intent"].kruskal_wallis : null;
-          engBlock = `
-            <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-top:1rem;">
-              <div>
-                <b>Engagement by media format</b>
-                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Kruskal-Wallis H=${mfKW ? mfKW.h : "?"}, p=${mfKW ? mfKW.p : "?"}, sig=${mfKW ? mfKW.significant : "?"}</div>
-                <table style="font-size:0.82rem;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:0.2rem 0.6rem 0.2rem 0;">Format</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${mfEng}</tbody></table>
-              </div>
-              <div>
-                <b>Engagement by user intent</b>
-                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Kruskal-Wallis H=${uiKW ? uiKW.h : "?"}, p=${uiKW ? uiKW.p : "?"}, sig=${uiKW ? uiKW.significant : "?"}</div>
-                <table style="font-size:0.82rem;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:0.2rem 0.6rem 0.2rem 0;">Intent</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${uiEng}</tbody></table>
-              </div>
-            </div>`;
+          tablesBlock = `<div class="tax-tables-row">
+            <div class="tax-group">
+              <div class="tax-group-title">Engagement by media format</div>
+              <div class="tax-kw-line">Kruskal-Wallis: ${fmtKW(mfKW)}</div>
+              <table class="tax-table"><thead><tr><th>Format</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${mfRows}</tbody></table>
+            </div>
+            <div class="tax-group">
+              <div class="tax-group-title">Engagement by user intent</div>
+              <div class="tax-kw-line">Kruskal-Wallis: ${fmtKW(uiKW)}</div>
+              <table class="tax-table"><thead><tr><th>Intent</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${uiRows}</tbody></table>
+            </div>
+          </div>`;
         }
         if (td["media_x_intent:chi2"]) {
           const c = td["media_x_intent:chi2"];
-          chi2Block = `<div style="margin-top:0.75rem;font-size:0.85rem;">
-            <b>Media format × User intent (Chi-square):</b>
-            χ²=${c.chi2}, p=${c.p}, dof=${c.dof}, Cramér's V=${c.cramers_v}, significant=${c.significant}
-          </div>`;
+          chi2Block = `<div class="tax-chi2-block"><strong>Media format × User intent (Chi-square):</strong> χ²=${c.chi2}, p=${c.p}, dof=${c.dof}, Cramér's V=${c.cramers_v}, significant=${c.significant}</div>`;
         }
       }
 
       el.innerHTML = `
-        <div style="margin-bottom:0.5rem;"><span style="color:var(--accent);">Media Format counts:</span> ${mfList}</div>
-        <div style="margin-bottom:0.5rem;"><span style="color:var(--accent);">User Intent counts:</span> ${uiList}</div>
-        <div><span style="color:var(--accent);">Thai cultural angle:</span> ${sd.thai_cultural_angle_count} sources</div>
-        ${engBlock}
+        <div class="tax-counts">
+          <div class="tax-count-line"><strong>Media Format:</strong>${mfList}</div>
+          <div class="tax-count-line"><strong>User Intent:</strong>${uiList}</div>
+          <div class="tax-count-line"><strong>Thai cultural angle:</strong> <span style="color:var(--text)">${sd.thai_cultural_angle_count}</span> sources</div>
+        </div>
+        ${tablesBlock}
         ${chi2Block}
       `;
     } catch (e) {

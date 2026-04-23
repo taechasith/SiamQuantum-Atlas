@@ -295,15 +295,27 @@
       <div class="stats">
         <div class="stat-card">
           <div class="stat-label">แหล่งข้อมูล / Sources</div>
-          <div class="stat-value" id="stat-count">0</div>
+          <div class="stat-value" id="stat-count">768</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">แพลตฟอร์ม / Platforms</div>
-          <div class="stat-value" id="stat-platforms">0</div>
+          <div class="stat-label">Entities Classified</div>
+          <div class="stat-value">765</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">โหมดข้อมูล / Mode</div>
-          <div class="stat-value" id="stat-mode">Origin</div>
+          <div class="stat-label">Knowledge Triplets</div>
+          <div class="stat-value">2,083</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Concept Nodes</div>
+          <div class="stat-value">2,001</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ปีที่ศึกษา / Years</div>
+          <div class="stat-value">2016–2026</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Geo Points</div>
+          <div class="stat-value" id="stat-geo">—</div>
         </div>
       </div>
     </div>
@@ -352,7 +364,10 @@
           <span>Other</span>
         </div>
       </div>
-      <div id="footer-summary">แสดงผลเฉพาะ origin IP โดยค่าเริ่มต้น</div>
+      <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
+        <span id="footer-summary">Origin points only (CDN-resolved rows excluded by default)</span>
+        <span style="color:#8b949e;font-size:0.82rem;">Basemap: OpenStreetMap</span>
+      </div>
     </div>
   </div>
 </section>
@@ -383,9 +398,6 @@
 
   const elements = {
     status: document.getElementById("status-pill"),
-    count: document.getElementById("stat-count"),
-    platforms: document.getElementById("stat-platforms"),
-    mode: document.getElementById("stat-mode"),
     footer: document.getElementById("footer-summary"),
     empty: document.getElementById("empty-state"),
     error: document.getElementById("error-state"),
@@ -450,9 +462,7 @@
       const rows = Array.isArray(payload.data) ? payload.data : [];
       const platformSet = new Set(rows.map((row) => row.platform || "other"));
 
-      elements.count.textContent = String(payload.count || rows.length);
-      elements.platforms.textContent = String(platformSet.size);
-      elements.mode.textContent = "Origin";
+      document.getElementById("stat-geo").textContent = String(payload.count || rows.length);
       elements.footer.textContent = "ค่าเริ่มต้นไม่รวม CDN-resolved rows";
 
       if (!rows.length) {
@@ -476,7 +486,7 @@
 
       map.addLayer(clusters);
       map.fitBounds(clusters.getBounds(), { padding: [28, 28], maxZoom: 9 });
-      setStatus(`โหลดแล้ว ${rows.length} จุด / ${rows.length} mapped sources`);
+      setStatus(`${rows.length} origin points mapped`);
     } catch (error) {
       showError(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`);
       elements.footer.textContent = "ตรวจสอบสถานะ `/api/geo/list` และข้อมูลฐานข้อมูล";

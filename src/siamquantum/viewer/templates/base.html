@@ -6,18 +6,12 @@
   <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
-    nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 0 1.5rem; display: flex; align-items: center; gap: 2rem; height: 52px; }
-    nav .brand { font-weight: 700; font-size: 1rem; color: #58a6ff; text-decoration: none; }
-    nav a { color: #8b949e; text-decoration: none; font-size: 0.875rem; padding: 0.25rem 0.5rem; border-radius: 6px; transition: color .15s, background .15s; }
-    nav a:hover, nav a.active { color: #e6edf3; background: #21262d; }
-    .header { padding: 1.5rem; border-bottom: 1px solid #21262d; }
-    .header h1 { font-size: 1.25rem; font-weight: 600; }
-    .header p { color: #8b949e; font-size: 0.875rem; margin-top: 0.25rem; }
-    .content { padding: 1.5rem; }
-    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-    .badge-sig { background: #388bfd26; color: #58a6ff; border: 1px solid #388bfd; }
-    .badge-ns  { background: #8b949e26; color: #8b949e; border: 1px solid #8b949e; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #050816; color: #f3f7ff; min-height: 100vh; }
+    nav { background: rgba(5, 8, 22, 0.96); border-bottom: 1px solid rgba(112, 147, 255, 0.18); backdrop-filter: blur(16px); padding: 0 1.5rem; display: flex; align-items: center; gap: 2rem; height: 52px; position: sticky; top: 0; z-index: 100; }
+    nav .brand { font-weight: 700; font-size: 1rem; color: #70e1ff; text-decoration: none; letter-spacing: -0.01em; }
+    nav a { color: #99a7d3; text-decoration: none; font-size: 0.875rem; padding: 0.25rem 0.6rem; border-radius: 8px; transition: color .15s, background .15s; }
+    nav a:hover { color: #f3f7ff; background: rgba(112, 225, 255, 0.08); }
+    nav a.active { color: #70e1ff; background: rgba(112, 225, 255, 0.12); }
   </style>
   {% block head %}{% endblock %}
 </head>

@@ -1,6 +1,6 @@
 # SiamQuantum Atlas
 
-Research platform for tracking Thai public engagement with quantum technology content from 2020 onward.
+Research platform for tracking Thai public engagement with quantum technology content (2016–2026). Local SQLite tool — not a hosted SaaS.
 
 Stack: Python 3.11, SQLite, GDELT API v2, YouTube Data API v3, Claude API, FastAPI, openpyxl.
 
@@ -88,10 +88,28 @@ Run NLP for a specific year:
 python -m siamquantum analyze nlp --year 2024
 ```
 
-Run the stats pipeline:
+Run taxonomy backfill (media_format, user_intent, thai_cultural_angle):
+
+```bash
+python -m siamquantum analyze taxonomy-backfill
+```
+
+Run bootstrap stats pipeline (replaces t-test — uses geometric mean + Mann-Kendall):
 
 ```bash
 python -m siamquantum analyze stats
+```
+
+Run taxonomy engagement analysis (Kruskal-Wallis + Chi-square):
+
+```bash
+python -m siamquantum analyze taxonomy-stats
+```
+
+Compute graph centrality metrics:
+
+```bash
+python -m siamquantum analyze graph-metrics
 ```
 
 Run the minimal composed flow over years already present in the database:
@@ -141,11 +159,18 @@ python -m siamquantum serve [--port 8765] [--reload]
 
 ## Viewer pages
 
-- `/dashboard` - Thailand geo dashboard
-- `/network` - 3D entity/triplet graph
-- `/analytics` - yearly charts and significance badges
-- `/database` - filtered source cards and XLSX export
-- `/community` - manual community submission form
+- `/dashboard` - Thailand geo dashboard (origin-IP map, Leaflet + marker clustering)
+- `/network` - 3D concept graph from triplets (2,001 nodes, hub/leaf toggle, centrality metrics)
+- `/analytics` - yearly charts + bootstrap probability bands + taxonomy engagement tables
+- `/database` - filtered source cards (year/platform/content_type/media_format/user_intent) + XLSX export
+- `/community` - manual URL submission form (local pipeline only, no auto-run)
+
+## Known limitations
+
+- Geo coverage: 350/768 sources resolved, 88 origin points (non-CDN)
+- Bootstrap pairwise: computed for 2020–2025 only (requires re-run for 2026 data)
+- Relevance flags (`is_quantum_tech`, `is_thailand_related`) not populated — all sources treated as relevant
+- No live GDELT/YouTube pipeline during this session (paid API work out of scope)
 
 ## Make targets
 

@@ -177,6 +177,10 @@
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
 
+  #metrics-panel {
+    grid-column: 1 / -1;
+  }
+
   .legend,
   .info-panel {
     background: rgba(255, 255, 255, 0.03);
@@ -248,21 +252,30 @@
     <div class="eyebrow">Quantum Relationship View</div>
     <h1>เครือข่ายข้อมูลควอนตัมไทย<br>Thai Quantum Network View</h1>
     <p>
-      หน้านี้แสดงโครงสร้างเครือข่ายจากข้อมูล `entities` และ `triplets` ในฐานข้อมูล โดยใช้ 3D force graph
-      เพื่อดูแหล่งข้อมูลและ relation text ในมุมมองเดียวกันแบบเบื้องต้น.
+      Knowledge graph built from 2,083 NLP-extracted triplets across 768 sources (2016–2026).
+      Nodes = unique concept texts. Edges = subject→object relations. Hub size ∝ degree.
+      Thai text = blue · Latin = green · Other = purple.
     </p>
     <div class="stats">
       <div class="stat-card">
-        <div class="stat-label">โหนด / Nodes</div>
-        <div class="stat-value" id="stat-nodes">0</div>
+        <div class="stat-label">Visible Nodes</div>
+        <div class="stat-value" id="stat-nodes">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ลิงก์ / Links</div>
-        <div class="stat-value" id="stat-links">0</div>
+        <div class="stat-label">Visible Links</div>
+        <div class="stat-value" id="stat-links">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">สีหลัก / Coloring</div>
-        <div class="stat-value" id="stat-coloring">Production</div>
+        <div class="stat-label">Total Nodes</div>
+        <div class="stat-value">2,001</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Components</div>
+        <div class="stat-value">309</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Largest Component</div>
+        <div class="stat-value">907</div>
       </div>
     </div>
   </div>
@@ -271,10 +284,10 @@
     <div class="graph-toolbar">
       <div>
         <div class="graph-title">3D Force Graph / กราฟความสัมพันธ์สามมิติ</div>
-        <div class="graph-subtitle">Rendered from `/api/graph` using `3d-force-graph` from CDN</div>
+        <div class="graph-subtitle">Concept nodes from triplets · 3d-force-graph CDN · Click node to focus · Scroll to zoom</div>
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem;">
-        <button id="leaf-toggle" style="background:#1a2040;color:#99a7d3;border:1px solid #2d3a5e;border-radius:4px;padding:0.25rem 0.6rem;cursor:pointer;font-size:0.75rem;">Show leaf nodes</button>
+        <button id="leaf-toggle" style="background:#1a2040;color:#70e1ff;border:1px solid #2d5a7e;border-radius:6px;padding:0.3rem 0.75rem;cursor:pointer;font-size:0.78rem;font-weight:600;transition:background .15s;" title="Leaf nodes have degree=1 — connecting to only one concept">Show leaf nodes (+1,289)</button>
         <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading graph</div>
       </div>
     </div>
@@ -325,9 +338,9 @@
         <h3>รายละเอียดโหนด / Node details</h3>
         เลือกโหนดเพื่อดูชื่อแหล่งข้อมูล ประเภทการผลิต เนื้อหา และลิงก์ต้นฉบับ.
       </div>
-      <div class="info-panel" id="metrics-panel" style="margin-top:0.75rem;">
-        <h3>Graph Metrics</h3>
-        <div id="metrics-body" style="color:#99a7d3;font-size:0.8rem;">Loading…</div>
+      <div class="info-panel" id="metrics-panel">
+        <h3 style="margin-bottom:0.5rem;font-size:0.9rem;color:#70e1ff;letter-spacing:0.06em;text-transform:uppercase;">Graph Metrics</h3>
+        <div id="metrics-body" style="color:#99a7d3;font-size:0.79rem;line-height:1.7;">Loading…</div>
       </div>
     </div>
   </div>
