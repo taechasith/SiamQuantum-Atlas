@@ -3,9 +3,13 @@ from __future__ import annotations
 import re
 import sqlite3
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias
 
-import networkx as nx
+# networkx ships without type information in this environment.
+import networkx as nx  # type: ignore[import-untyped]
+
+NodeId: TypeAlias = str
+WeightedNode: TypeAlias = tuple[NodeId, float]
 
 
 def _norm(text: str) -> str:
@@ -71,10 +75,19 @@ def _hub_role(label: str) -> str:
     return "concept"
 
 
+def _safe_label(label: str | None) -> str:
+    return label or ""
+
+
+def _degree_value(item: WeightedNode) -> float:
+    return item[1]
+
+
 def _community_summaries(U: nx.Graph, label_map: dict[str, str]) -> list[dict[str, Any]]:
     if U.number_of_nodes() < 10:
         return []
-    largest_nodes = max(nx.connected_components(U), key=len, default=set())
+    connected_components: list[set[NodeId]] = [set(component) for component in nx.connected_components(U)]
+    largest_nodes: set[NodeId] = max(connected_components, key=len, default=set())
     if len(largest_nodes) < 10:
         return []
 
@@ -83,12 +96,13 @@ def _community_summaries(U: nx.Graph, label_map: dict[str, str]) -> list[dict[st
     summaries: list[dict[str, Any]] = []
     for community in sorted(communities, key=len, reverse=True)[:5]:
         sub = largest.subgraph(community)
-        degree = dict(sub.degree())
-        hub_id = max(degree, key=degree.get) if degree else ""
+        degree_items: list[WeightedNode] = [(node_id, float(score)) for node_id, score in sub.degree()]
+        hub_id = max(degree_items, key=_degree_value)[0] if degree_items else ""
+        hub_label = _safe_label(label_map.get(hub_id, hub_id))
         summaries.append({
             "size": len(community),
-            "hub": label_map.get(hub_id, hub_id),
-            "hub_role": _hub_role(label_map.get(hub_id, hub_id)),
+            "hub": hub_label,
+            "hub_role": _hub_role(hub_label),
         })
     return summaries
 
@@ -112,32 +126,35 @@ def compute_metrics(db_path: Path) -> dict[str, Any]:
     component_summaries = []
     for comp in components[:10]:
         sub = U.subgraph(comp)
-        sub_deg = dict(sub.degree())
-        top_node = max(sub_deg, key=lambda n: sub_deg[n]) if sub_deg else ""
+        sub_degree_items: list[WeightedNode] = [(node_id, float(score)) for node_id, score in sub.degree()]
+        top_node = max(sub_degree_items, key=_degree_value)[0] if sub_degree_items else ""
+        top_label = _safe_label(label_map.get(top_node, top_node))
         component_summaries.append({
             "size": len(comp),
-            "hub": label_map.get(top_node, top_node),
-            "hub_role": _hub_role(label_map.get(top_node, top_node)),
+            "hub": top_label,
+            "hub_role": _hub_role(top_label),
         })
 
     community_summaries = _community_summaries(U, label_map)
     top_degree_rows = [
         {
             "id": k,
-            "label": label_map.get(k, k),
+            "label": label,
             "score": round(v, 6),
-            "hub_role": _hub_role(label_map.get(k, k)),
+            "hub_role": _hub_role(label),
         }
         for k, v in top_degree
+        for label in [_safe_label(label_map.get(k, k))]
     ]
     top_bet_rows = [
         {
             "id": k,
-            "label": label_map.get(k, k),
+            "label": label,
             "score": round(v, 6),
-            "hub_role": _hub_role(label_map.get(k, k)),
+            "hub_role": _hub_role(label),
         }
         for k, v in top_bet
+        for label in [_safe_label(label_map.get(k, k))]
     ]
 
     hub_interpretation = {
