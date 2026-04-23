@@ -185,6 +185,28 @@ def test_graph_links_have_label(client: TestClient) -> None:
         assert field in link
 
 
+def test_graph_node_detail_schema(client: TestClient) -> None:
+    resp = client.get("/api/graph/node/quantum%20computing")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    data = payload["data"]
+    assert data["label"] == "quantum computing"
+    assert "summary" in data
+    assert "metrics" in data
+    assert "neighbors" in data
+    assert "top_relations" in data
+    assert "supporting_sources" in data
+
+
+def test_graph_node_detail_missing_returns_404(client: TestClient) -> None:
+    resp = client.get("/api/graph/node/not-a-real-concept")
+    assert resp.status_code == 404
+    payload = resp.json()
+    assert payload["ok"] is False
+    assert payload["error"]["code"] == "graph_node_not_found"
+
+
 # ---------------------------------------------------------------------------
 # GET /api/graph/metrics  — envelope: {ok, data:{components,...}, error}
 # ---------------------------------------------------------------------------
@@ -343,3 +365,12 @@ def test_community_submission_queue_lists_recent_rows(client: TestClient) -> Non
     items = payload["data"]["items"]
     assert len(items) >= 2
     assert items[0]["url"] == "https://example.com/queue-b"
+
+
+def test_community_submit_blocked_in_demo_mode(client: TestClient) -> None:
+    with patch("siamquantum.viewer.server._is_vercel_demo_mode", return_value=True):
+        resp = client.post("/api/community/submit", json={"url": "https://example.com/demo"})
+    assert resp.status_code == 503
+    payload = resp.json()
+    assert payload["ok"] is False
+    assert payload["error"]["code"] == "community_disabled_in_demo"

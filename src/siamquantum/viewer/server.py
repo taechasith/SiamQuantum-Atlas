@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import io
 import json
+import os
+import sqlite3
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +34,45 @@ def _db() -> Path:
     return db_path_from_url(settings.database_url)
 
 
-def _relevance_metadata(conn) -> dict[str, Any]:
+def _norm_concept(text: str) -> str:
+    return " ".join(text.strip().lower().split())
+
+
+_HUB_PATTERNS: list[tuple[str, str]] = [
+    ("quantum computing", "computing"),
+    ("quantum", "quantum"),
+    ("thailand", "geography"),
+    ("thai", "geography"),
+    ("cryptography", "security"),
+    ("algorithm", "computing"),
+    ("physics", "physics"),
+    ("entanglement", "physics"),
+    ("technology", "technology"),
+    ("research", "research"),
+    ("university", "institution"),
+    ("government", "institution"),
+    ("nstda", "institution"),
+    ("nectec", "institution"),
+    ("ibm", "industry"),
+    ("google", "industry"),
+    ("communication", "communication"),
+]
+
+
+def _hub_role(label: str) -> str:
+    label_lower = label.lower()
+    for pattern, role in _HUB_PATTERNS:
+        if pattern in label_lower:
+            return role
+    return "concept"
+
+
+def _is_vercel_demo_mode() -> bool:
+    env_value = str(os.getenv("SIAMQUANTUM_DEPLOYMENT_MODE", "")).lower()
+    return os.getenv("VERCEL") == "1" or env_value == "vercel_demo"
+
+
+def _relevance_metadata(conn: sqlite3.Connection) -> dict[str, Any]:
     checked = int(conn.execute(
         "SELECT COUNT(*) FROM sources WHERE relevance_checked_at IS NOT NULL"
     ).fetchone()[0])
@@ -141,7 +182,11 @@ def page_database(request: Request) -> Any:
 
 @app.get("/community", include_in_schema=False)
 def page_community(request: Request) -> Any:
-    return templates.TemplateResponse(request, "community.html")
+    return templates.TemplateResponse(
+        request,
+        "community.html",
+        {"demo_mode": _is_vercel_demo_mode()},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -225,11 +270,6 @@ def api_graph(
     Returns concept-level nodes and edges built from triplets.
     Nodes = unique subject/object concept texts. Edges = subject→object per triplet.
     """
-    import re as _re
-
-    def _norm(text: str) -> str:
-        return _re.sub(r"\s+", " ", text.strip().lower())
-
     db = _db()
     relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
     try:
@@ -267,8 +307,8 @@ def api_graph(
         obj_raw = (row[2] or "").strip()
         conf = float(row[3] or 0.5)
 
-        subj_key = _norm(subj_raw)
-        obj_key = _norm(obj_raw)
+        subj_key = _norm_concept(subj_raw)
+        obj_key = _norm_concept(obj_raw)
 
         if len(subj_key) < 2 or len(obj_key) < 2:
             continue
@@ -321,6 +361,210 @@ def api_graph(
 # ---------------------------------------------------------------------------
 # API — graph metrics
 # ---------------------------------------------------------------------------
+
+@app.get("/api/graph/node/{node_id:path}")
+def api_graph_node_detail(node_id: str) -> JSONResponse:
+    """Return research context for one concept node in the graph."""
+    import networkx as nx  # type: ignore[import-untyped]
+
+    from siamquantum.pipeline.graph_metrics import build_concept_graph, compute_metrics
+
+    normalized_id = _norm_concept(node_id)
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
+            metrics_cache = StatsCacheRepo(conn).get("graph:metrics")
+            rows = conn.execute(
+                """
+                SELECT
+                    t.source_id,
+                    t.subject,
+                    t.relation,
+                    t.object,
+                    t.confidence,
+                    s.title,
+                    s.url,
+                    s.platform,
+                    s.published_year,
+                    s.quantum_domain,
+                    e.production_type,
+                    e.media_format,
+                    e.user_intent
+                FROM triplets t
+                JOIN sources s ON s.id = t.source_id
+                LEFT JOIN entities e ON e.source_id = s.id
+                ORDER BY s.published_year DESC, t.id DESC
+                """
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "relevance": None,
+                "error": {"code": "graph_node_detail_failed", "message": str(exc)},
+            },
+            status_code=500,
+        )
+
+    graph, label_map = build_concept_graph(db)
+    if normalized_id not in graph:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "relevance": relevance,
+                "error": {"code": "graph_node_not_found", "message": "Node not found"},
+            },
+            status_code=404,
+        )
+
+    metrics = metrics_cache if isinstance(metrics_cache, dict) else compute_metrics(db)
+    undirected = graph.to_undirected()
+    connected_components = sorted(nx.connected_components(undirected), key=len, reverse=True)
+    component_rank = next(
+        (index + 1 for index, component in enumerate(connected_components) if normalized_id in component),
+        None,
+    )
+    component_size = next(
+        (len(component) for component in connected_components if normalized_id in component),
+        1,
+    )
+
+    degree_value = int(undirected.degree(normalized_id))
+    degree_centrality = float(nx.degree_centrality(undirected).get(normalized_id, 0.0))
+    largest_component_nodes = connected_components[0] if connected_components else set()
+    betweenness = (
+        float(
+            nx.betweenness_centrality(
+                undirected.subgraph(largest_component_nodes),
+                normalized=True,
+                endpoints=False,
+            ).get(normalized_id, 0.0)
+        )
+        if normalized_id in largest_component_nodes and largest_component_nodes
+        else 0.0
+    )
+
+    neighbors = list(undirected.neighbors(normalized_id))
+    neighbor_counts: Counter[str] = Counter()
+    relation_counts: Counter[str] = Counter()
+    taxonomy_counts: Counter[str] = Counter()
+    domain_counts: Counter[str] = Counter()
+    supporting_sources: list[dict[str, Any]] = []
+    seen_source_ids: set[int] = set()
+
+    for row in rows:
+        subject = (row["subject"] or "").strip()
+        relation = (row["relation"] or "").strip()
+        obj = (row["object"] or "").strip()
+        subject_id = _norm_concept(subject)
+        object_id = _norm_concept(obj)
+
+        if normalized_id == subject_id:
+            other_label = obj
+        elif normalized_id == object_id:
+            other_label = subject
+        else:
+            continue
+
+        if other_label:
+            neighbor_counts[other_label] += 1
+        if relation:
+            relation_counts[relation] += 1
+
+        taxonomy_parts = [row["media_format"], row["user_intent"], row["production_type"]]
+        taxonomy_summary = " · ".join(str(part) for part in taxonomy_parts if part)
+        if taxonomy_summary:
+            taxonomy_counts[taxonomy_summary] += 1
+        if row["quantum_domain"]:
+            domain_counts[str(row["quantum_domain"])] += 1
+
+        source_id = int(row["source_id"])
+        if source_id in seen_source_ids:
+            continue
+        seen_source_ids.add(source_id)
+        supporting_sources.append(
+            {
+                "source_id": source_id,
+                "title": row["title"] or row["url"],
+                "url": row["url"],
+                "platform": row["platform"],
+                "published_year": row["published_year"],
+                "quantum_domain": row["quantum_domain"],
+            }
+        )
+
+    top_degree_rows = metrics.get("top_degree", []) if isinstance(metrics, dict) else []
+    top_bet_rows = metrics.get("top_betweenness", []) if isinstance(metrics, dict) else []
+    degree_rank = next(
+        (index + 1 for index, item in enumerate(top_degree_rows) if item.get("id") == normalized_id),
+        None,
+    )
+    betweenness_rank = next(
+        (index + 1 for index, item in enumerate(top_bet_rows) if item.get("id") == normalized_id),
+        None,
+    )
+
+    label = label_map.get(normalized_id, normalized_id)
+    neighbor_rows = [
+        {
+            "id": neighbor_id,
+            "label": label_map.get(neighbor_id, neighbor_id),
+            "degree": int(undirected.degree(neighbor_id)),
+            "shared_links": neighbor_counts.get(label_map.get(neighbor_id, neighbor_id), 0),
+        }
+        for neighbor_id in sorted(
+            neighbors,
+            key=lambda item: (-int(undirected.degree(item)), label_map.get(item, item)),
+        )[:8]
+    ]
+
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {
+                "id": normalized_id,
+                "label": label,
+                "summary": {
+                    "what_it_is": "A concept extracted from the corpus triplets and merged by normalized text.",
+                    "why_it_matters": (
+                        "Higher degree means the concept appears in more relations; higher betweenness means it bridges otherwise separate topic areas."
+                    ),
+                    "hub_role": _hub_role(label),
+                },
+                "metrics": {
+                    "degree": degree_value,
+                    "degree_centrality": round(degree_centrality, 6),
+                    "betweenness_centrality": round(betweenness, 6),
+                    "component_rank": component_rank,
+                    "component_size": component_size,
+                    "degree_rank": degree_rank,
+                    "betweenness_rank": betweenness_rank,
+                },
+                "neighbors": neighbor_rows,
+                "top_relations": [
+                    {"label": rel, "count": count}
+                    for rel, count in relation_counts.most_common(6)
+                ],
+                "supporting_sources_count": len(supporting_sources),
+                "supporting_sources": supporting_sources[:5],
+                "taxonomy_context": [
+                    {"label": tax, "count": count}
+                    for tax, count in taxonomy_counts.most_common(4)
+                ],
+                "domain_context": [
+                    {"label": domain, "count": count}
+                    for domain, count in domain_counts.most_common(4)
+                ],
+                "nearby_concepts": [row["label"] for row in neighbor_rows[:5]],
+            },
+            "relevance": relevance,
+            "error": None,
+        }
+    )
+
 
 @app.get("/api/graph/metrics")
 def api_graph_metrics() -> JSONResponse:
@@ -784,7 +1028,7 @@ def api_export_xlsx(
     year: int | None = Query(None),
     platform: str | None = Query(None),
     content_type: str | None = Query(None),
-):
+) -> Any:
     """Stream an XLSX file of sources + entities."""
     import openpyxl
     from openpyxl.styles import Font
@@ -905,6 +1149,20 @@ def api_community_submit(
     background_tasks: BackgroundTasks,
 ) -> JSONResponse:
     """Accept a community URL submission."""
+    if _is_vercel_demo_mode():
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {
+                    "code": "community_disabled_in_demo",
+                    "message": (
+                        "Community submissions are disabled in Vercel demo mode because the bundled SQLite dataset is served read-only."
+                    ),
+                },
+            },
+            status_code=503,
+        )
     url = (payload.get("url") or "").strip()
     if not url:
         return JSONResponse(

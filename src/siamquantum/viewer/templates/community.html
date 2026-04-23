@@ -170,6 +170,12 @@
     border-color: rgba(255, 122, 144, 0.28);
   }
 
+  .status-warning {
+    background: rgba(255, 179, 71, 0.08);
+    color: var(--warning);
+    border-color: rgba(255, 179, 71, 0.28);
+  }
+
   .note-list {
     margin: 0.75rem 0 0;
     padding-left: 1.1rem;
@@ -244,6 +250,12 @@
       <h2>ฟอร์มส่งลิงก์ / Submission form</h2>
       <p>กรอก `url` และ `handle` ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
 
+      {% if demo_mode %}
+      <div class="status-box status-warning is-visible">
+        Vercel demo mode is active. Read APIs remain available, but community submissions are disabled because the bundled SQLite dataset is served read-only.
+      </div>
+      {% endif %}
+
       <form id="community-form">
         <div class="field">
           <label for="url">URL *</label>
@@ -285,6 +297,7 @@
 </section>
 
 <script>
+  const communityDemoMode = {{ "true" if demo_mode else "false" }};
   const form = document.getElementById("community-form");
   const statusBox = document.getElementById("status-box");
   const submitButton = form.querySelector("button[type='submit']");
@@ -322,8 +335,17 @@
     }
   }
 
+  if (communityDemoMode) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Demo mode: disabled";
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (communityDemoMode) {
+      showStatus("Community submission is disabled in Vercel demo mode because SQLite writes are not persisted there.", "status-warning");
+      return;
+    }
     const url = document.getElementById("url").value.trim();
     const handle = document.getElementById("handle").value.trim();
 
