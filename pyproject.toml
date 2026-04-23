@@ -39,6 +39,7 @@ dev = [
 
 [project.scripts]
 siamquantum = "siamquantum.cli:app"
+app = "siamquantum.viewer.server:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
