@@ -5,7 +5,7 @@ doc.md
 
 # data
 data/raw/
-data/processed/*.db
+data/processed/*.backup-*.db
 data/geoip/*.mmdb
 
 # python

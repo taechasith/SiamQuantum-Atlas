@@ -82,25 +82,41 @@ Not every run needs the full sequence. The current system supports incremental o
 - The network view is analytically useful but still an interpretation aid, not a causal or ontological truth layer.
 - Community automation is intentionally partial. The queue is real; downstream processing remains environment-dependent.
 
-## Deployment reality
+## Vercel demo deployment
 
-The current architecture stays Python + FastAPI + SQLite + Jinja2/CDN JS.
+The repo ships a read-only Vercel configuration suitable for demo use.
 
-This app can be prepared for Vercel as a read-only demo deployment, but SQLite write workflows are not durable there because the filesystem is ephemeral. In deploy/demo mode:
+**Entrypoint:** `api/index.py` — thin shim that resolves the repo root, sets absolute DB path and demo env vars, then imports the FastAPI `app` object.
 
-- read APIs and pages remain available
-- the bundled SQLite dataset should be treated as read-only
-- write-sensitive features such as community submission should be explicitly disabled or gated
+**Routing:** `vercel.json` routes all requests (`/*`) to `api/index.py`.
 
-Recommended deploy env for the current Vercel demo shape:
+**Python version:** `runtime.txt` pins Python 3.11.
+
+**Dependencies:** `api/requirements.txt` lists only the packages required at serve time (no pipeline/NLP/stats packages). This keeps the Vercel function well under the 250 MB limit.
+
+**Demo-safe behavior:**
+
+- All read pages and APIs work normally (`/dashboard`, `/network`, `/analytics`, `/database`, `/community`, all `/api/*` endpoints).
+- Community submission (`POST /api/community/submit`) returns HTTP 503 with a clear error message — writes are not persisted on Vercel's ephemeral filesystem.
+- SQLite is opened in read-only URI mode (`?mode=ro`) so no write lock is acquired.
+- The bundled dataset (`data/processed/siamquantum_atlas.db`) is committed to the repo and served from `/var/task`.
+
+**Required Vercel env vars** (set in the Vercel dashboard under Project → Settings → Environment Variables):
 
 ```text
 SIAMQUANTUM_DEPLOYMENT_MODE=vercel_demo
 SIAMQUANTUM_DATABASE_READ_ONLY=true
-SIAMQUANTUM_DATABASE_URL=sqlite:///data/processed/siamquantum_atlas.db
 ```
 
-If you need durable writes, scheduled ingestion, or automated moderation, keep running the app in a stateful environment rather than assuming Vercel solves that.
+The `DATABASE_URL` is resolved automatically at runtime from the committed DB path. You only need to override it if you point to an external DB.
+
+**Limitations:**
+
+- No durable writes. Community submissions, ingestion, and NLP runs require a stateful environment.
+- XLSX export works but generates the file in-memory per request (no caching).
+- Graph node detail cache is rebuilt per cold-start if not pre-populated in the bundled DB.
+
+If you need durable writes or scheduled ingestion, run the app locally or on a stateful server instead.
 
 ## Repo intent
 
