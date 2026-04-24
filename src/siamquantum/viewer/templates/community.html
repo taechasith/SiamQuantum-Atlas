@@ -278,11 +278,9 @@
       <h2><span class="th-text">ฟอร์มส่งลิงก์</span><span class="en-text">Submission form</span></h2>
       <p><span class="th-text">กรอก url และ handle ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</span><span class="en-text">Fill in the URL and optional handle. The system stores the row first, then processes it in the background where the environment allows.</span></p>
 
-      {% if demo_mode %}
       <div class="status-box status-warning is-visible">
-        Vercel demo mode is active. Read APIs remain available, but community submissions are disabled because the bundled SQLite dataset is served read-only.
+        <span class="th-text">ฟีเจอร์นี้อยู่ระหว่างพัฒนา — การส่งลิงก์อาจไม่ถูกบันทึกถาวรในขณะนี้</span><span class="en-text">This feature is under active development — submissions may not persist permanently yet.</span>
       </div>
-      {% endif %}
 
       <form id="community-form">
         <div class="field">
