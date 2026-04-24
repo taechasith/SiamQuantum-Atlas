@@ -26,8 +26,7 @@ def _prepare_demo_db() -> str:
     return "sqlite:///data/processed/siamquantum_atlas.db"
 
 
-os.environ.setdefault("SIAMQUANTUM_DEPLOYMENT_MODE", "vercel_demo")
-os.environ.setdefault("SIAMQUANTUM_DATABASE_READ_ONLY", "true")
+os.environ.setdefault("SIAMQUANTUM_DEPLOYMENT_MODE", "vercel")
 os.environ.setdefault("SIAMQUANTUM_DATABASE_URL", _prepare_demo_db())
 
 from siamquantum.viewer.server import app

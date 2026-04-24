@@ -717,15 +717,26 @@
       '</article>'
     ];
 
+    var statusLabel = {
+      queued: L('รอดำเนินการ', 'Queued'),
+      queued_no_source: L('ไม่พบแหล่งที่มา', 'No source found'),
+      queued_no_text: L('ไม่มีเนื้อหา', 'No text content'),
+      processed: L('สำเร็จ', 'Processed'),
+      failed: L('ล้มเหลว', 'Failed'),
+      pending: L('รอดำเนินการ', 'Pending')
+    };
+
     if (!items.length) {
       html.push('<div class="empty-copy">' + L('ยังไม่มีรายการ community submission ล่าสุด', 'No recent community submissions yet.') + '</div>');
     } else {
       items.forEach(function (item) {
+        var st = item.status || 'pending';
+        var stDisplay = statusLabel[st] || st;
         html.push(
           '<article class="live-row">' +
             '<div class="live-row-top">' +
               '<div class="live-row-title">' + escapeHtml(item.handle || item.url) + '</div>' +
-              '<span class="stage-pill ' + escapeHtml(item.status || 'pending') + '">' + escapeHtml(item.status || 'pending') + '</span>' +
+              '<span class="stage-pill ' + escapeHtml(st) + '">' + escapeHtml(stDisplay) + '</span>' +
             '</div>' +
             '<div class="live-row-meta">' + escapeHtml(item.url) + ' · ' + relTime(item.submitted_at) + '</div>' +
           '</article>'
