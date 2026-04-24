@@ -23,8 +23,8 @@ def _configure(conn: sqlite3.Connection, *, read_only: bool = False) -> None:
 @contextmanager
 def get_connection(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
     if settings.database_read_only:
-        db_uri = db_path.resolve().as_posix()
-        conn = sqlite3.connect(f"file:{db_uri}?mode=ro", uri=True)
+        db_uri = db_path.resolve().as_uri()
+        conn = sqlite3.connect(f"{db_uri}?mode=ro", uri=True)
     else:
         conn = sqlite3.connect(str(db_path))
     try:

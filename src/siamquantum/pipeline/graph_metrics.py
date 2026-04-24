@@ -18,7 +18,9 @@ def _norm(text: str) -> str:
 
 def build_concept_graph(db_path: Path) -> tuple[nx.DiGraph, dict[str, str]]:
     """Build directed concept graph from all triplets. Returns (graph, label_map)."""
-    conn = sqlite3.connect(db_path)
+    # Open read-only to support served datasets (Vercel/demo)
+    db_uri = db_path.resolve().as_uri()
+    conn = sqlite3.connect(f"{db_uri}?mode=ro", uri=True)
     rows = conn.execute("SELECT subject, relation, object FROM triplets").fetchall()
     conn.close()
 

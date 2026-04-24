@@ -262,7 +262,8 @@ def _graph_node_detail_payload(conn: sqlite3.Connection, node_id: str) -> dict[s
     registry = cached if isinstance(cached, dict) else None
     if registry is None:
         registry = _build_graph_node_detail_registry(conn)
-        cache.set("graph:node_details", registry)
+        if not _is_vercel_demo_mode():
+            cache.set("graph:node_details", registry)
     payload = registry.get(normalized_id)
     return payload if isinstance(payload, dict) else None
 
@@ -594,6 +595,9 @@ def api_graph_metrics() -> JSONResponse:
             metrics = cache.get("graph:metrics")
         if not metrics:
             metrics = compute_metrics(db)
+            # compute_metrics internally might try to write to cache, 
+            # but if it uses get_connection(db) it will follow the read_only setting.
+            # However, if it's already computed and returned, we are good.
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "metrics_failed", "message": str(exc)}},
