@@ -1,4 +1,6 @@
 .env
+.clude/
+.codex/
 .claude/
 doc.md
 

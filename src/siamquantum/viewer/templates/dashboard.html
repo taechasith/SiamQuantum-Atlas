@@ -398,20 +398,20 @@
           <div class="stat-value" id="stat-count">768</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Entities Classified</div>
-          <div class="stat-value">765</div>
+          <div class="stat-label">Pending Analysis</div>
+          <div class="stat-value" id="stat-pending">â€”</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Knowledge Triplets</div>
-          <div class="stat-value">2,083</div>
+          <div class="stat-value" id="stat-triplets">â€”</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Concept Nodes</div>
-          <div class="stat-value">2,001</div>
+          <div class="stat-label">Latest Fetch</div>
+          <div class="stat-value" id="stat-fetch">â€”</div>
         </div>
         <div class="stat-card">
           <div class="stat-label"><span class="th-text">ปีที่ศึกษา</span><span class="en-text">Years</span></div>
-          <div class="stat-value">2016–2026</div>
+          <div class="stat-value" id="stat-years">â€”</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Geo Points</div>
@@ -542,7 +542,13 @@
     footer: document.getElementById("footer-summary"),
     empty: document.getElementById("empty-state"),
     error: document.getElementById("error-state"),
-    errorCopy: document.getElementById("error-copy")
+    errorCopy: document.getElementById("error-copy"),
+    statCount: document.getElementById("stat-count"),
+    statGeo: document.getElementById("stat-geo"),
+    statTriplets: document.getElementById("stat-triplets"),
+    statPending: document.getElementById("stat-pending"),
+    statFetch: document.getElementById("stat-fetch"),
+    statYears: document.getElementById("stat-years")
   };
 
   const platformClass = {
@@ -592,6 +598,51 @@
     `;
   }
 
+  function applySummary(summary) {
+    if (!summary) return;
+    if (elements.statCount) elements.statCount.textContent = String(summary.total_sources || 0);
+    if (elements.statTriplets) elements.statTriplets.textContent = String(summary.total_triplets || 0);
+    if (elements.statYears && Array.isArray(summary.year_range) && summary.year_range[0] != null) {
+      elements.statYears.textContent = `${summary.year_range[0]}-${summary.year_range[1]}`;
+    }
+  }
+
+  function relTime(value) {
+    if (!value) return "n/a";
+    const ms = Date.now() - new Date(value).getTime();
+    if (!isFinite(ms)) return value;
+    const minutes = Math.max(Math.round(ms / 60000), 0);
+    if (minutes < 60) return `${minutes || 1}m`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.round(hours / 24);
+    return `${days}d`;
+  }
+
+  async function loadPipeline() {
+    try {
+      const response = await fetch("/api/pipeline/live");
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) return;
+      const overview = payload.data && payload.data.overview ? payload.data.overview : {};
+      if (elements.statPending) elements.statPending.textContent = String(overview.pending_sources || 0);
+      if (elements.statFetch) elements.statFetch.textContent = relTime(overview.latest_fetch_at);
+    } catch (error) {
+      // Summary cards remain partially available if pipeline state is unavailable.
+    }
+  }
+
+  async function loadSummary() {
+    try {
+      const response = await fetch("/api/stats/summary");
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) return;
+      applySummary(payload.data || {});
+    } catch (error) {
+      // The map remains usable even if summary stats are unavailable.
+    }
+  }
+
   async function loadGeo() {
     try {
       const response = await fetch("/api/geo/list");
@@ -605,7 +656,7 @@
       const rows = Array.isArray(payload.data) ? payload.data : [];
       const platformSet = new Set(rows.map((row) => row.platform || "other"));
 
-      document.getElementById("stat-geo").textContent = String(payload.count || rows.length);
+      if (elements.statGeo) elements.statGeo.textContent = String(payload.count || rows.length);
       elements.footer.textContent = L("ค่าเริ่มต้นไม่รวม CDN-resolved rows", "CDN-resolved rows excluded by default");
 
       if (!rows.length) {
@@ -636,6 +687,8 @@
     }
   }
 
+  loadSummary();
+  loadPipeline();
   loadGeo();
 </script>
 {% endblock %}

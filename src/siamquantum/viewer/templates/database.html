@@ -129,6 +129,61 @@
     flex-wrap: wrap;
   }
 
+  .quick-filters,
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .quick-filters {
+    margin-bottom: 1rem;
+  }
+
+  .segmented-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.22rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .segment-btn,
+  .filter-chip-btn {
+    min-height: 38px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    padding: 0.45rem 0.85rem;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .segment-btn:hover,
+  .filter-chip-btn:hover {
+    transform: translateY(-1px);
+    color: var(--text);
+  }
+
+  .segment-btn.is-active {
+    background: rgba(112, 225, 255, 0.12);
+    border-color: rgba(112, 225, 255, 0.32);
+    color: var(--accent);
+  }
+
+  .active-filters {
+    margin-top: 0.85rem;
+  }
+
+  .filter-chip-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+    font-size: 0.82rem;
+  }
+
   .field label {
     display: block;
     color: var(--muted);
@@ -189,6 +244,21 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
+  }
+
+  .source-card.is-entering {
+    animation: rise-in 0.22s ease;
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .source-card {
@@ -393,6 +463,13 @@
   <div class="panel-card">
     <h2>Filter Workspace</h2>
     <p class="panel-lead">Use the filters to narrow the corpus by year, platform, entity type, and taxonomy tags. Export respects the same active filters.</p>
+    <div class="quick-filters">
+      <div class="segmented-toggle" role="group" aria-label="Platform quick filters">
+        <button class="segment-btn is-active" data-platform-segment="" type="button">All</button>
+        <button class="segment-btn" data-platform-segment="gdelt" type="button">GDELT</button>
+        <button class="segment-btn" data-platform-segment="youtube" type="button">YouTube</button>
+      </div>
+    </div>
     <div class="filters">
       <div class="field">
         <label for="filter-year"><span class="th-text">ปี</span><span class="en-text">Year</span></label>
@@ -441,6 +518,7 @@
       <button class="btn btn-primary" id="apply-filters" type="button"><span class="th-text">ค้นหา</span><span class="en-text">Apply</span></button>
       <button class="btn btn-secondary" id="export-xlsx" type="button"><span class="th-text">ส่งออก XLSX</span><span class="en-text">Export XLSX</span></button>
     </div>
+    <div class="active-filters" id="active-filters"></div>
   </div>
 
   <div class="toolbar">
@@ -503,7 +581,9 @@
     next: document.getElementById("next-page"),
     empty: document.getElementById("empty-state"),
     error: document.getElementById("error-state"),
-    errorMessage: document.getElementById("error-message")
+    errorMessage: document.getElementById("error-message"),
+    activeFilters: document.getElementById("active-filters"),
+    platformSegments: Array.from(document.querySelectorAll("[data-platform-segment]"))
   };
 
   function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
@@ -525,6 +605,34 @@
     if (elements.filterUserIntent.value) params.set("user_intent", elements.filterUserIntent.value);
     if (elements.filterQuantumDomain.value) params.set("quantum_domain", elements.filterQuantumDomain.value);
     return params.toString();
+  }
+
+  function syncPlatformSegments() {
+    elements.platformSegments.forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.platformSegment === elements.filterPlatform.value);
+    });
+  }
+
+  function currentFilterChips() {
+    return [
+      elements.filterYear.value ? { key: "year", label: `Year: ${elements.filterYear.value}` } : null,
+      elements.filterPlatform.value ? { key: "platform", label: `Platform: ${elements.filterPlatform.value}` } : null,
+      elements.filterContentType.value ? { key: "content_type", label: `Content: ${elements.filterContentType.value}` } : null,
+      elements.filterMediaFormat.value ? { key: "media_format", label: `Format: ${elements.filterMediaFormat.value}` } : null,
+      elements.filterUserIntent.value ? { key: "user_intent", label: `Intent: ${elements.filterUserIntent.value.replace(/_/g, " ")}` } : null,
+      elements.filterQuantumDomain.value ? { key: "quantum_domain", label: `Domain: ${elements.filterQuantumDomain.value.replace(/_/g, " ")}` } : null
+    ].filter(Boolean);
+  }
+
+  function renderActiveFilters() {
+    const chips = currentFilterChips();
+    if (!chips.length) {
+      elements.activeFilters.innerHTML = "";
+      return;
+    }
+    elements.activeFilters.innerHTML = chips.map((chip) => `
+      <button class="filter-chip-btn" type="button" data-clear-filter="${chip.key}">${chip.label} x</button>
+    `).join("");
   }
 
   function hideStates() {
@@ -632,6 +740,9 @@
 
       hideStates();
       elements.grid.innerHTML = items.map(renderCard).join("");
+      Array.from(elements.grid.children).forEach((card) => card.classList.add("is-entering"));
+      renderActiveFilters();
+      syncPlatformSegments();
       setStatus(L(`โหลดแล้ว ${items.length} รายการ`, `Loaded ${items.length} items · page ${currentPage}`));
     } catch (error) {
       showError(L(`ไม่สามารถโหลดข้อมูลแหล่งข้อมูลได้: ${error.message}`, `Could not load sources: ${error.message}`));
@@ -647,6 +758,26 @@
 
   elements.apply.addEventListener("click", () => loadSources(1));
   elements.exportBtn.addEventListener("click", exportXlsx);
+  elements.platformSegments.forEach((button) => {
+    button.addEventListener("click", () => {
+      elements.filterPlatform.value = button.dataset.platformSegment;
+      syncPlatformSegments();
+      loadSources(1);
+    });
+  });
+  elements.activeFilters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-clear-filter]");
+    if (!button) return;
+    const key = button.dataset.clearFilter;
+    if (key === "year") elements.filterYear.value = "";
+    if (key === "platform") elements.filterPlatform.value = "";
+    if (key === "content_type") elements.filterContentType.value = "";
+    if (key === "media_format") elements.filterMediaFormat.value = "";
+    if (key === "user_intent") elements.filterUserIntent.value = "";
+    if (key === "quantum_domain") elements.filterQuantumDomain.value = "";
+    syncPlatformSegments();
+    loadSources(1);
+  });
   elements.prev.addEventListener("click", () => {
     if (state.page > 1) loadSources(state.page - 1);
   });
@@ -682,6 +813,8 @@
 
   populateYears();
   populateFilterOptions();
+  syncPlatformSegments();
+  renderActiveFilters();
   loadSources(1);
 </script>
 {% endblock %}

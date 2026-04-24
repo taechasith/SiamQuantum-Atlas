@@ -1278,3 +1278,169 @@ def api_stats_summary() -> JSONResponse:
         },
         "error": None,
     })
+
+
+@app.get("/api/pipeline/live")
+def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
+    """Real recent intake + analysis readiness for the home page."""
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            recent_rows = conn.execute(
+                """
+                WITH triplet_counts AS (
+                    SELECT source_id, COUNT(*) AS triplet_count
+                    FROM triplets
+                    GROUP BY source_id
+                )
+                SELECT
+                    s.id,
+                    s.platform,
+                    s.url,
+                    s.title,
+                    s.published_year,
+                    s.fetched_at,
+                    CASE WHEN g.source_id IS NULL THEN 0 ELSE 1 END AS has_geo,
+                    CASE WHEN e.source_id IS NULL THEN 0 ELSE 1 END AS has_entity,
+                    COALESCE(tc.triplet_count, 0) AS triplet_count,
+                    na.status AS nlp_status
+                FROM sources s
+                LEFT JOIN geo g ON g.source_id = s.id
+                LEFT JOIN entities e ON e.source_id = s.id
+                LEFT JOIN triplet_counts tc ON tc.source_id = s.id
+                LEFT JOIN nlp_abstentions na ON na.source_id = s.id
+                WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1
+                ORDER BY datetime(s.fetched_at) DESC, s.id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+            overview_row = conn.execute(
+                """
+                WITH triplet_counts AS (
+                    SELECT source_id, COUNT(*) AS triplet_count
+                    FROM triplets
+                    GROUP BY source_id
+                )
+                SELECT
+                    COUNT(*) AS total_sources,
+                    SUM(CASE WHEN g.source_id IS NOT NULL THEN 1 ELSE 0 END) AS geocoded_sources,
+                    SUM(CASE WHEN COALESCE(tc.triplet_count, 0) > 0 THEN 1 ELSE 0 END) AS triplet_ready_sources,
+                    SUM(
+                        CASE
+                            WHEN e.source_id IS NOT NULL
+                              OR COALESCE(tc.triplet_count, 0) > 0
+                              OR na.source_id IS NOT NULL
+                            THEN 1 ELSE 0
+                        END
+                    ) AS analyzed_sources,
+                    MAX(datetime(s.fetched_at)) AS latest_fetch_at
+                FROM sources s
+                LEFT JOIN geo g ON g.source_id = s.id
+                LEFT JOIN entities e ON e.source_id = s.id
+                LEFT JOIN triplet_counts tc ON tc.source_id = s.id
+                LEFT JOIN nlp_abstentions na ON na.source_id = s.id
+                WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1
+                """
+            ).fetchone()
+
+            submission_rows = conn.execute(
+                """
+                SELECT status, COUNT(*) AS n
+                FROM community_submissions
+                GROUP BY status
+                """
+            ).fetchall()
+
+            queue_recent = CommunitySubmissionRepo(conn).list_recent(5)
+
+            stats_cache_row = conn.execute(
+                "SELECT MAX(datetime(computed_at)) AS computed_at FROM stats_cache"
+            ).fetchone()
+            denstream_row = conn.execute(
+                "SELECT MAX(datetime(updated_at)) AS updated_at FROM denstream_state"
+            ).fetchone()
+    except Exception as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "pipeline_live_failed", "message": str(exc)}},
+            status_code=500,
+        )
+
+    submission_counts = {str(row["status"]): int(row["n"]) for row in submission_rows}
+
+    def _stage_for(row: sqlite3.Row) -> tuple[str, str]:
+        if int(row["triplet_count"] or 0) > 0 or row["nlp_status"]:
+            return ("analyzed", "Analyzed")
+        if int(row["has_entity"] or 0) > 0:
+            return ("classified", "Classified")
+        if int(row["has_geo"] or 0) > 0:
+            return ("geocoded", "Geocoded")
+        return ("fetched", "Fetched")
+
+    recent_items = []
+    for row in recent_rows:
+        stage_key, stage_label = _stage_for(row)
+        recent_items.append(
+            {
+                "id": int(row["id"]),
+                "platform": row["platform"],
+                "url": row["url"],
+                "title": row["title"] or row["url"],
+                "published_year": row["published_year"],
+                "fetched_at": row["fetched_at"],
+                "has_geo": bool(row["has_geo"]),
+                "has_entity": bool(row["has_entity"]),
+                "triplet_count": int(row["triplet_count"] or 0),
+                "nlp_status": row["nlp_status"],
+                "stage_key": stage_key,
+                "stage_label": stage_label,
+            }
+        )
+
+    analysis_timestamps = [
+        value
+        for value in [
+            stats_cache_row["computed_at"] if stats_cache_row else None,
+            denstream_row["updated_at"] if denstream_row else None,
+        ]
+        if value
+    ]
+    latest_analysis_at = max(analysis_timestamps) if analysis_timestamps else None
+
+    overview = {
+        "total_sources": int(overview_row["total_sources"] or 0),
+        "geocoded_sources": int(overview_row["geocoded_sources"] or 0),
+        "triplet_ready_sources": int(overview_row["triplet_ready_sources"] or 0),
+        "analyzed_sources": int(overview_row["analyzed_sources"] or 0),
+        "pending_sources": max(
+            int(overview_row["total_sources"] or 0) - int(overview_row["analyzed_sources"] or 0),
+            0,
+        ),
+        "latest_fetch_at": overview_row["latest_fetch_at"] if overview_row else None,
+        "latest_analysis_at": latest_analysis_at,
+    }
+
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {
+                "overview": overview,
+                "recent_sources": recent_items,
+                "submissions": {
+                    "counts": submission_counts,
+                    "recent": [
+                        {
+                            "id": item.id,
+                            "url": item.url,
+                            "handle": item.handle,
+                            "status": item.status,
+                            "submitted_at": item.submitted_at,
+                        }
+                        for item in queue_recent
+                    ],
+                },
+            },
+            "error": None,
+        }
+    )

@@ -412,6 +412,29 @@
     border: 1px solid rgba(255, 255, 255, 0.07);
   }
 
+  .stack-link {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .interpret-panel {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.65rem;
+  }
+
+  .interpret-item {
+    padding: 0.75rem 0.8rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
   .stack-item strong,
   .stack-item a,
   .drawer strong {
@@ -544,7 +567,6 @@
     }
   }
 
-  /* ── graph launch overlay ── */
   .graph-launch-overlay {
     position: absolute;
     inset: 0;
@@ -606,38 +628,38 @@
 <section class="network-shell">
   <section class="hero">
     <div>
-      <div class="eyebrow">Quantum Relationship View</div>
-      <h1>Research graph for the Thai quantum discourse landscape.</h1>
+      <div class="eyebrow"><span class="th-text">มุมมองความสัมพันธ์ควอนตัม</span><span class="en-text">Quantum Relationship View</span></div>
+      <h1><span class="th-text">กราฟงานวิจัยสำหรับภูมิทัศน์วาทกรรมควอนตัมของไทย</span><span class="en-text">Research graph for the Thai quantum discourse landscape.</span></h1>
       <p class="hero-copy">
-        This page turns extracted triplets into a navigable 3D concept graph. Nodes represent normalized concepts
-        from the current corpus. Links represent observed relations between those concepts. Larger nodes are more
-        connected; bridge nodes sit between otherwise separate clusters.
+        <span class="th-text">หน้านี้เปลี่ยน triplet ที่สกัดได้ให้เป็นกราฟแนวคิด 3 มิติที่สำรวจได้ โหนดแทนแนวคิดที่ผ่านการทำ normalization จากคอร์ปัสปัจจุบัน เส้นเชื่อมแทนความสัมพันธ์ที่ตรวจพบระหว่างแนวคิดเหล่านั้น โหนดที่ใหญ่กว่าจะเชื่อมต่อมากกว่า ส่วนโหนดสะพานจะอยู่ระหว่างคลัสเตอร์ที่แยกจากกัน</span>
+        <span class="en-text">This page turns extracted triplets into a navigable 3D concept graph. Nodes represent normalized concepts from the current corpus. Links represent observed relations between those concepts. Larger nodes are more connected; bridge nodes sit between otherwise separate clusters.</span>
       </p>
       <div class="hero-note">
-        <strong>Scope note.</strong> The graph reflects the current operational Thai-quantum corpus boundary. Some low-degree
-        leaf nodes are hidden by default to keep the structure interpretable for first-pass review.
+        <span class="th-text"><strong>หมายเหตุเรื่องขอบเขต</strong> กราฟนี้สะท้อนขอบเขตคอร์ปัสควอนตัมไทยที่ระบบใช้งานอยู่ในขณะนี้ โหนดปลายทางที่มี degree ต่ำบางส่วนจะถูกซ่อนไว้ตามค่าเริ่มต้นเพื่อให้มองโครงสร้างหลักได้ง่ายในการอ่านรอบแรก</span>
+        <span class="en-text"><strong>Scope note.</strong> The graph reflects the current operational Thai-quantum corpus boundary. Some low-degree leaf nodes are hidden by default to keep the structure interpretable for first-pass review.</span>
       </div>
     </div>
     <div class="summary-grid">
       <article class="summary-card">
-        <div class="label">Visible Nodes</div>
+        <div class="label"><span class="th-text">โหนดที่แสดง</span><span class="en-text">Visible Nodes</span></div>
         <div class="value" id="stat-nodes">-</div>
-        <div class="subcopy">Current scene after leaf filtering and interaction changes.</div>
+        <div class="subcopy"><span class="th-text">จำนวนโหนดในฉากปัจจุบันหลังกรอง leaf node และเปลี่ยนสถานะการโต้ตอบ</span><span class="en-text">Current scene after leaf filtering and interaction changes.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label">Visible Links</div>
+        <div class="label"><span class="th-text">เส้นเชื่อมที่แสดง</span><span class="en-text">Visible Links</span></div>
         <div class="value" id="stat-links">-</div>
-        <div class="subcopy">Directed relations currently shown in the 3D view.</div>
+        <div class="subcopy"><span class="th-text">ความสัมพันธ์แบบมีทิศทางที่กำลังแสดงอยู่ในมุมมอง 3 มิติ</span><span class="en-text">Directed relations currently shown in the 3D view.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label">Selected Concept</div>
+        <div class="label"><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected Concept</span></div>
         <div class="value" id="stat-selection">None</div>
-        <div class="subcopy">Click a node to open the research detail drawer.</div>
+        <div class="subcopy"><span class="th-text">คลิกโหนดเพื่อเปิดแผงรายละเอียดเชิงวิจัย</span><span class="en-text">Click a node to open the research detail drawer.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label">Reading Guide</div>
+        <div class="label"><span class="th-text">คู่มือการอ่าน</span><span class="en-text">Reading Guide</span></div>
         <div class="subcopy">
-          Degree hubs show dense attention. Betweenness hubs show bridge concepts connecting topic islands.
+          <span class="th-text">ฮับที่มี degree สูงแสดงจุดที่ได้รับความสนใจหนาแน่น ส่วนฮับที่มี betweenness สูงแสดงแนวคิดสะพานที่เชื่อมหัวข้อซึ่งแยกจากกัน</span>
+          <span class="en-text">Degree hubs show dense attention. Betweenness hubs show bridge concepts connecting topic islands.</span>
         </div>
       </article>
     </div>
@@ -646,15 +668,16 @@
   <section class="surface">
     <div class="surface-header">
       <div>
-        <h2 class="surface-title">Three.js-style concept network</h2>
+        <h2 class="surface-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D concept network</span></h2>
         <div class="surface-subtitle">
-          Smooth camera focus, light directional particle motion, node detail on click, and concise method notes for non-technical viewers.
+          <span class="th-text">โฟกัสกล้องลื่นไหล อนุภาคเคลื่อนที่ตามทิศทางแบบเบา ๆ ดูรายละเอียดโหนดได้เมื่อคลิก และมีคำอธิบายวิธีอ่านแบบกระชับสำหรับผู้ชมที่ไม่ใช่สายเทคนิค</span>
+          <span class="en-text">Smooth camera focus, light directional particle motion, node detail on click, and concise method notes for non-technical viewers.</span>
         </div>
       </div>
       <div class="status-row">
-        <span class="micro-pill">Nodes = concepts</span>
-        <span class="micro-pill">Links = extracted relations</span>
-        <span class="micro-pill">Hubs = more connected concepts</span>
+        <span class="micro-pill"><span class="th-text">โหนด = แนวคิด</span><span class="en-text">Nodes = concepts</span></span>
+        <span class="micro-pill"><span class="th-text">เส้นเชื่อม = ความสัมพันธ์ที่สกัดได้</span><span class="en-text">Links = extracted relations</span></span>
+        <span class="micro-pill"><span class="th-text">ฮับ = แนวคิดที่เชื่อมต่อมากกว่า</span><span class="en-text">Hubs = more connected concepts</span></span>
         <span class="status-pill" id="status-pill">Click canvas to load</span>
       </div>
     </div>
@@ -662,15 +685,15 @@
     <div class="surface-body">
       <div class="hud hud-left">
         <aside class="callout">
-          <h3>How to read this graph</h3>
+          <h3><span class="th-text">วิธีอ่านกราฟนี้</span><span class="en-text">How to read this graph</span></h3>
           <p>
-            Start with the largest nodes, then inspect the drawer. It explains what the concept is, why it matters,
-            what it connects to, and which source/taxonomy signals support that reading.
+            <span class="th-text">เริ่มจากโหนดที่ใหญ่ที่สุด แล้วเปิดแผงรายละเอียดต่อ แผงนี้จะอธิบายว่าแนวคิดนั้นคืออะไร สำคัญอย่างไร เชื่อมกับอะไร และมีสัญญาณจากแหล่งข้อมูลหรือ taxonomy ใดรองรับการตีความนั้น</span>
+            <span class="en-text">Start with the largest nodes, then inspect the drawer. It explains what the concept is, why it matters, what it connects to, and which source/taxonomy signals support that reading.</span>
           </p>
           <ul class="mini-list">
-            <li>Blue labels contain Thai script.</li>
-            <li>Green labels are mostly Latin-script concepts.</li>
-            <li>Leaf nodes are hidden first to reduce visual noise.</li>
+            <li><span class="th-text">ป้ายสีน้ำเงินมีอักษรไทย</span><span class="en-text">Blue labels contain Thai script.</span></li>
+            <li><span class="th-text">ป้ายสีเขียวส่วนใหญ่เป็นแนวคิดที่ใช้อักษรละติน</span><span class="en-text">Green labels are mostly Latin-script concepts.</span></li>
+            <li><span class="th-text">ระบบซ่อน leaf node ก่อนเพื่อลดสัญญาณรบกวนทางสายตา</span><span class="en-text">Leaf nodes are hidden first to reduce visual noise.</span></li>
           </ul>
         </aside>
       </div>
@@ -679,11 +702,11 @@
         <div class="control-stack">
           <div class="control-row">
             <button class="control-btn primary" id="leaf-toggle" type="button">Show leaf nodes</button>
-            <button class="control-btn" id="reset-view" type="button">Reset view</button>
-            <button class="control-btn warning" id="clear-selection" type="button">Clear selection</button>
+            <button class="control-btn" id="reset-view" type="button"><span class="th-text">รีเซ็ตมุมมอง</span><span class="en-text">Reset view</span></button>
+            <button class="control-btn warning" id="clear-selection" type="button"><span class="th-text">ล้างการเลือก</span><span class="en-text">Clear selection</span></button>
           </div>
           <div class="control-row">
-            <span class="micro-pill" id="legend-pill">Leafs hidden for first-pass readability</span>
+            <span class="micro-pill" id="legend-pill">Leaf nodes are hidden for readability</span>
             <span class="micro-pill" id="selection-pill">No concept selected</span>
           </div>
         </div>
@@ -693,11 +716,12 @@
         <div class="graph-launch-overlay" id="graph-launch-overlay">
           <div class="graph-launch-inner">
             <div class="graph-launch-icon">🕸️</div>
-            <div class="graph-launch-title">3D Concept Network</div>
+            <div class="graph-launch-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D Concept Network</span></div>
             <p class="graph-launch-desc">
-              Click to launch the interactive graph. Loads ~1 MB of WebGL assets and corpus triplets.
+              <span class="th-text">คลิกเพื่อเปิดกราฟแบบโต้ตอบ จะโหลด WebGL assets และ triplet ของคอร์ปัสประมาณ 1 MB</span>
+              <span class="en-text">Click to launch the interactive graph. Loads ~1 MB of WebGL assets and corpus triplets.</span>
             </p>
-            <button class="graph-launch-btn" id="graph-launch-btn" type="button">Launch 3D Graph</button>
+            <button class="graph-launch-btn" id="graph-launch-btn" type="button"><span class="th-text">เปิดกราฟ 3 มิติ</span><span class="en-text">Launch 3D Graph</span></button>
           </div>
         </div>
       </div>
@@ -705,27 +729,27 @@
       <aside class="drawer" id="detail-drawer" aria-live="polite">
         <div class="drawer-top">
           <div>
-            <div class="drawer-kicker">Node Detail</div>
+            <div class="drawer-kicker"><span class="th-text">รายละเอียดโหนด</span><span class="en-text">Node Detail</span></div>
             <div class="drawer-title" id="drawer-title">Select a concept</div>
           </div>
           <button class="drawer-close" id="drawer-close" type="button" aria-label="Close detail panel">x</button>
         </div>
         <div id="drawer-body">
-          <p>Click a node to inspect its role in the graph, nearby concepts, dominant relation types, and supporting source context.</p>
+          <p><span class="th-text">คลิกโหนดเพื่อดูบทบาทของมันในกราฟ แนวคิดข้างเคียง ประเภทความสัมพันธ์เด่น และบริบทจากแหล่งข้อมูลที่รองรับ</span><span class="en-text">Click a node to inspect its role in the graph, nearby concepts, dominant relation types, and supporting source context.</span></p>
         </div>
       </aside>
 
       <div class="overlay" id="empty-state">
         <div>
-          <div class="overlay-title">No graph data available</div>
-          <div class="overlay-copy">The network endpoint responded, but no concept nodes were available to render.</div>
+          <div class="overlay-title"><span class="th-text">ไม่มีข้อมูลกราฟให้แสดง</span><span class="en-text">No graph data available</span></div>
+          <div class="overlay-copy" id="empty-message"><span class="th-text">network endpoint ตอบกลับแล้ว แต่ไม่มี concept node ที่พร้อมสำหรับการเรนเดอร์</span><span class="en-text">The network endpoint responded, but no concept nodes were available to render.</span></div>
         </div>
       </div>
 
       <div class="overlay" id="error-state">
         <div>
-          <div class="overlay-title">Graph load failed</div>
-          <div class="overlay-copy" id="error-message">The page could not load the current graph payload.</div>
+          <div class="overlay-title"><span class="th-text">โหลดกราฟไม่สำเร็จ</span><span class="en-text">Graph load failed</span></div>
+          <div class="overlay-copy" id="error-message"><span class="th-text">หน้าเว็บไม่สามารถโหลด payload ของกราฟปัจจุบันได้</span><span class="en-text">The page could not load the current graph payload.</span></div>
         </div>
       </div>
     </div>
@@ -733,27 +757,28 @@
 
   <section class="metrics-grid">
     <article class="panel">
-      <h2>Legend</h2>
-      <p>Color is script-based for quick reading; size and line emphasis carry the actual analytical meaning.</p>
+      <h2><span class="th-text">คำอธิบายสัญลักษณ์</span><span class="en-text">Legend</span></h2>
+      <p><span class="th-text">สีใช้แยกประเภทสคริปต์เพื่อให้อ่านเร็วขึ้น ส่วนขนาดและความเด่นของเส้นคือสัญญาณเชิงวิเคราะห์ที่มีความหมายจริง</span><span class="en-text">Color is script-based for quick reading; size and line emphasis carry the actual analytical meaning.</span></p>
       <div class="legend-key">
-        <div class="legend-row"><span class="legend-dot" style="background:#78c9ff;color:#78c9ff;"></span>Thai-script concept label</div>
-        <div class="legend-row"><span class="legend-dot" style="background:#5ff2c8;color:#5ff2c8;"></span>Latin-script concept label</div>
-        <div class="legend-row"><span class="legend-dot" style="background:#c8a8ff;color:#c8a8ff;"></span>Mixed or other script label</div>
-        <div class="legend-row"><span class="legend-dot" style="background:#ffb86b;color:#ffb86b;"></span>Selected concept</div>
+        <div class="legend-row"><span class="legend-dot" style="background:#78c9ff;color:#78c9ff;"></span><span class="th-text">ป้ายแนวคิดที่ใช้อักษรไทย</span><span class="en-text">Thai-script concept label</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#5ff2c8;color:#5ff2c8;"></span><span class="th-text">ป้ายแนวคิดที่ใช้อักษรละติน</span><span class="en-text">Latin-script concept label</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#c8a8ff;color:#c8a8ff;"></span><span class="th-text">ป้ายที่เป็นสคริปต์ผสมหรือสคริปต์อื่น</span><span class="en-text">Mixed or other script label</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#ffb86b;color:#ffb86b;"></span><span class="th-text">แนวคิดที่ถูกเลือก</span><span class="en-text">Selected concept</span></div>
       </div>
     </article>
     <article class="panel">
-      <h2>Interpretation Layer</h2>
+      <h2><span class="th-text">ชั้นการตีความ</span><span class="en-text">Interpretation Layer</span></h2>
       <p>
-        This is not a causal map. It is a discourse map built from extracted relations in the current dataset.
-        Stronger-looking regions usually mean denser repeated mention, not ground truth importance.
+        <span class="th-text">นี่ไม่ใช่แผนที่เชิงเหตุและผล แต่เป็นแผนที่ของวาทกรรมที่สร้างจากความสัมพันธ์ที่สกัดได้ในชุดข้อมูลปัจจุบัน พื้นที่ที่ดูเด่นกว่ามักหมายถึงการถูกกล่าวถึงซ้ำหนาแน่นกว่า ไม่ได้แปลว่ามีความสำคัญเชิงข้อเท็จจริงมากกว่าเสมอไป</span>
+        <span class="en-text">This is not a causal map. It is a discourse map built from extracted relations in the current dataset. Stronger-looking regions usually mean denser repeated mention, not ground truth importance.</span>
       </p>
       <p>
-        Hidden leaf nodes are still available on demand. They are suppressed initially because single-edge concepts can overwhelm the layout while adding little orientation value.
+        <span class="th-text">leaf node ที่ถูกซ่อนยังสามารถเปิดดูได้ตามต้องการ ระบบซ่อนไว้ตอนเริ่มต้นเพราะแนวคิดที่มีเพียงเส้นเชื่อมเดียวอาจทำให้เลย์เอาต์รกโดยเพิ่มคุณค่าในการวางทิศทางเพียงเล็กน้อย</span>
+        <span class="en-text">Hidden leaf nodes are still available on demand. They are suppressed initially because single-edge concepts can overwhelm the layout while adding little orientation value.</span>
       </p>
     </article>
     <article class="panel">
-      <h2>Graph Metrics</h2>
+      <h2><span class="th-text">ตัวชี้วัดกราฟ</span><span class="en-text">Graph Metrics</span></h2>
       <div id="metrics-body">Loading metrics...</div>
     </article>
   </section>
@@ -774,6 +799,7 @@
     clearSelection: document.getElementById("clear-selection"),
     legendPill: document.getElementById("legend-pill"),
     empty: document.getElementById("empty-state"),
+    emptyMessage: document.getElementById("empty-message"),
     error: document.getElementById("error-state"),
     errorMessage: document.getElementById("error-message"),
     drawer: document.getElementById("detail-drawer"),
@@ -789,6 +815,153 @@
   let graph = null;
   let showLeaves = false;
   let selectedNodeId = null;
+  let graphLaunched = false;
+  let lastEmptyMessage = null;
+  let lastErrorMessage = null;
+
+  const i18n = {
+    th: {
+      clickCanvasToLoad: "คลิกพื้นที่กราฟเพื่อเริ่มโหลด",
+      noGraphData: "ไม่มีข้อมูลกราฟ",
+      graphRequestFailed: "คำขอกราฟล้มเหลว",
+      leafVisible: "กำลังแสดง leaf node",
+      leafHidden: "ซ่อน leaf node เพื่อให้อ่านง่าย",
+      noSelection: "ไม่มีแนวคิดที่เลือก",
+      selectConcept: "เลือกแนวคิด",
+      none: "ไม่มี",
+      drawerPrompt: "คลิกโหนดเพื่อดูบทบาทของมันในกราฟ แนวคิดข้างเคียง ประเภทความสัมพันธ์เด่น และบริบทจากแหล่งข้อมูลที่รองรับ",
+      loadingNodeDetail: "กำลังโหลดรายละเอียดโหนด...",
+      nodeDetailFailed: "โหลดรายละเอียดโหนดไม่สำเร็จ",
+      nodeDetailUnavailable: "ไม่สามารถแสดงรายละเอียดโหนดได้",
+      degree: "ดีกรี",
+      degreeLower: "ดีกรี",
+      componentSize: "ขนาดคอมโพเนนต์",
+      degreeRank: "อันดับดีกรี",
+      betweennessRank: "อันดับ betweenness",
+      unranked: "ยังไม่จัดอันดับ",
+      researchReading: "การอ่านเชิงวิจัย",
+      whatItIs: "คืออะไร",
+      whyItMatters: "สำคัญอย่างไร",
+      hubRole: "บทบาทฮับ",
+      degreeCentrality: "degree centrality",
+      betweenness: "betweenness",
+      notCached: "ยังไม่แคช",
+      nearbyConcepts: "แนวคิดใกล้เคียง",
+      sharedLinks: "เส้นเชื่อมร่วม",
+      noNearbyConcepts: "ไม่พบแนวคิดใกล้เคียง",
+      topRelations: "ความสัมพันธ์เด่น",
+      noDominantRelationLabels: "ไม่มีป้ายความสัมพันธ์เด่น",
+      taxonomyAndDomainContext: "บริบท taxonomy และโดเมน",
+      supportingSourcesCount: "แหล่งข้อมูลสนับสนุน",
+      noTaxonomyContext: "ไม่พบบริบท taxonomy สำหรับแนวคิดนี้",
+      noDomainContext: "ไม่พบบริบทโดเมนที่เด่น",
+      supportingSources: "แหล่งข้อมูลสนับสนุน",
+      domainUnknown: "ไม่ทราบโดเมน",
+      noSourceExamples: "ไม่พบตัวอย่างแหล่งข้อมูลสำหรับแนวคิดนี้",
+      interpretationGuide: "วิธีอ่านโหนดนี้",
+      interpretationDensity: "ตำแหน่งในเครือข่าย",
+      interpretationMeaning: "บันทึกเชิงวิเคราะห์",
+      jumpToConcept: "ย้ายไปยังแนวคิดนี้",
+      currentDatabaseNoNodes: "ฐานข้อมูลปัจจุบันไม่มี concept node สำหรับเรนเดอร์",
+      unknownGraphApiError: "API กราฟส่งข้อผิดพลาดที่ไม่ทราบสาเหตุ",
+      nodeStatus: (label, degree) => `${label} · ดีกรี ${degree}`,
+      selected: (label) => `เลือกแล้ว: ${label}`,
+      resetCamera: "กำลังรีเซ็ตกล้อง",
+      nodesLinks: (nodes, links) => `${nodes} โหนด, ${links} เส้นเชื่อม`,
+      showLeafNodes: "แสดง leaf node",
+      hideLeafNodes: "ซ่อน leaf node",
+      couldNotLoadGraphData: (message) => `ไม่สามารถโหลดข้อมูลกราฟได้: ${message}`,
+      metricsUnavailableShort: "ไม่สามารถโหลดตัวชี้วัดได้",
+      components: "คอมโพเนนต์",
+      largestComponent: "คอมโพเนนต์ที่ใหญ่ที่สุด",
+      nodesUnit: "โหนด",
+      hubInterpretation: "การตีความฮับ",
+      degreeHub: "ฮับดีกรี",
+      brokerHub: "ฮับตัวกลาง",
+      role: "บทบาท",
+      communityHub: "ฮับชุมชน",
+      size: "ขนาด",
+      noTopDegreeNodes: "ไม่มีโหนดดีกรีสูงให้แสดง",
+      noStableCommunitySummaries: "ไม่มีสรุปชุมชนที่เสถียร",
+      metricsUnavailable: (message) => `ไม่สามารถโหลดตัวชี้วัดได้: ${message}`,
+      loadingMetrics: "กำลังโหลดตัวชี้วัด..."
+    },
+    en: {
+      clickCanvasToLoad: "Click canvas to load",
+      noGraphData: "No graph data",
+      graphRequestFailed: "Graph request failed",
+      leafVisible: "Leaf nodes are visible",
+      leafHidden: "Leaf nodes are hidden for readability",
+      noSelection: "No concept selected",
+      selectConcept: "Select a concept",
+      none: "None",
+      drawerPrompt: "Click a node to inspect its role in the graph, nearby concepts, dominant relation types, and supporting source context.",
+      loadingNodeDetail: "Loading node detail...",
+      nodeDetailFailed: "Node detail failed",
+      nodeDetailUnavailable: "Node detail unavailable",
+      degree: "Degree",
+      degreeLower: "degree",
+      componentSize: "Component Size",
+      degreeRank: "Degree Rank",
+      betweennessRank: "Betweenness Rank",
+      unranked: "Unranked",
+      researchReading: "Research reading",
+      whatItIs: "What it is",
+      whyItMatters: "Why it matters",
+      hubRole: "hub role",
+      degreeCentrality: "degree centrality",
+      betweenness: "betweenness",
+      notCached: "not cached",
+      nearbyConcepts: "Nearby concepts",
+      sharedLinks: "shared links",
+      noNearbyConcepts: "No nearby concepts available.",
+      topRelations: "Top relations",
+      noDominantRelationLabels: "No dominant relation labels",
+      taxonomyAndDomainContext: "Taxonomy and domain context",
+      supportingSourcesCount: "supporting sources",
+      noTaxonomyContext: "No taxonomy context found for this concept.",
+      noDomainContext: "No dominant domain context found.",
+      supportingSources: "Supporting sources",
+      domainUnknown: "domain unknown",
+      noSourceExamples: "No source examples were derived for this concept.",
+      interpretationGuide: "How to interpret this node",
+      interpretationDensity: "Network position",
+      interpretationMeaning: "Analyst note",
+      jumpToConcept: "Jump to concept",
+      currentDatabaseNoNodes: "The current database returned no concept nodes for rendering.",
+      unknownGraphApiError: "Unknown graph API error",
+      nodeStatus: (label, degree) => `${label} · degree ${degree}`,
+      selected: (label) => `Selected: ${label}`,
+      resetCamera: "Resetting camera",
+      nodesLinks: (nodes, links) => `${nodes} nodes, ${links} links`,
+      showLeafNodes: "Show leaf nodes",
+      hideLeafNodes: "Hide leaf nodes",
+      couldNotLoadGraphData: (message) => `Could not load graph data: ${message}`,
+      metricsUnavailableShort: "Metrics unavailable",
+      components: "Components",
+      largestComponent: "Largest component",
+      nodesUnit: "nodes",
+      hubInterpretation: "Hub interpretation.",
+      degreeHub: "Degree hub",
+      brokerHub: "Broker hub",
+      role: "role",
+      communityHub: "community hub",
+      size: "size",
+      noTopDegreeNodes: "No top-degree nodes available.",
+      noStableCommunitySummaries: "No stable community summaries available.",
+      metricsUnavailable: (message) => `Metrics unavailable: ${message}`,
+      loadingMetrics: "Loading metrics..."
+    }
+  };
+
+  function currentLang() {
+    return document.documentElement.dataset.lang === "en" ? "en" : "th";
+  }
+
+  function t(key, ...args) {
+    const value = i18n[currentLang()][key];
+    return typeof value === "function" ? value(...args) : value;
+  }
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -812,7 +985,7 @@
     return `
       <div style="padding:0.35rem 0.55rem;color:#f6f8fe;line-height:1.55;">
         <strong>${escapeHtml(node.label || node.id)}</strong><br>
-        <span style="color:#98a7c6;">degree ${degree}</span>
+        <span style="color:#98a7c6;">${escapeHtml(t("degreeLower"))} ${degree}</span>
       </div>
     `;
   }
@@ -836,17 +1009,19 @@
   }
 
   function showEmpty(message) {
-    elements.empty.querySelector(".overlay-copy").textContent = message;
+    lastEmptyMessage = message;
+    elements.emptyMessage.textContent = message;
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
-    setStatus("No graph data");
+    setStatus(t("noGraphData"));
   }
 
   function showError(message) {
+    lastErrorMessage = message;
     elements.errorMessage.textContent = message;
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
-    setStatus("Graph request failed");
+    setStatus(t("graphRequestFailed"));
   }
 
   function isSelectedLink(link) {
@@ -861,16 +1036,16 @@
     graph.graphData({ nodes, links });
     elements.nodes.textContent = String(nodes.length);
     elements.links.textContent = String(links.length);
-    elements.legendPill.textContent = showLeaves ? "Leaf nodes are visible" : "Leaf nodes are hidden for readability";
-    setStatus(`${nodes.length} nodes, ${links.length} links`);
+    elements.legendPill.textContent = showLeaves ? t("leafVisible") : t("leafHidden");
+    setStatus(t("nodesLinks", nodes.length, links.length));
   }
 
   function closeDrawer() {
     selectedNodeId = null;
-    elements.selection.textContent = "None";
-    elements.selectionPill.textContent = "No concept selected";
-    elements.drawerTitle.textContent = "Select a concept";
-    elements.drawerBody.innerHTML = "<p>Click a node to inspect its role in the graph, nearby concepts, and supporting research context.</p>";
+    elements.selection.textContent = t("none");
+    elements.selectionPill.textContent = t("noSelection");
+    elements.drawerTitle.textContent = t("selectConcept");
+    elements.drawerBody.innerHTML = `<p>${escapeHtml(t("drawerPrompt"))}</p>`;
     elements.drawer.classList.remove("is-open");
     if (graph) graph.refresh();
   }
@@ -892,20 +1067,49 @@
     return items.map(renderer).join("");
   }
 
+  function findNodeById(nodeId) {
+    return allNodes.find((item) => item.id === nodeId) || null;
+  }
+
+  function interpretationMarkup(detail, metrics, role) {
+    const density = currentLang() === "en"
+      ? (Number(metrics.degree || 0) >= 8
+          ? t("hubRole") + ": " + role + ". " + t("degree") + " " + (metrics.degree ?? "-") + " suggests a high-traffic concept cluster."
+          : t("hubRole") + ": " + role + ". " + t("degree") + " " + (metrics.degree ?? "-") + " suggests a narrower or more contextual concept.")
+      : (Number(metrics.degree || 0) >= 8
+          ? t("hubRole") + ": " + role + " " + t("degree") + " " + (metrics.degree ?? "-") + " สื่อว่าแนวคิดนี้อยู่ในกลุ่มความสนใจหลักของเครือข่าย"
+          : t("hubRole") + ": " + role + " " + t("degree") + " " + (metrics.degree ?? "-") + " สื่อว่าแนวคิดนี้มีบทบาทเฉพาะทางหรืออยู่ในบริบทที่แคบกว่า");
+    const note = detail.summary && detail.summary.why_it_matters
+      ? detail.summary.why_it_matters
+      : (currentLang() === "en" ? "No cached interpretation is available yet." : "ยังไม่มีคำอธิบายที่แคชไว้สำหรับแนวคิดนี้");
+    return `
+      <div class="interpret-panel">
+        <div class="interpret-item">
+          <strong>${escapeHtml(t("interpretationDensity"))}</strong>
+          <p>${escapeHtml(density)}</p>
+        </div>
+        <div class="interpret-item">
+          <strong>${escapeHtml(t("interpretationMeaning"))}</strong>
+          <p>${escapeHtml(note)}</p>
+        </div>
+      </div>
+    `;
+  }
+
   async function openNodeDetail(node) {
     selectedNodeId = node.id;
     elements.selection.textContent = String(node.label || node.id);
-    elements.selectionPill.textContent = `Selected: ${node.label || node.id}`;
+    elements.selectionPill.textContent = t("selected", String(node.label || node.id));
     elements.drawer.classList.add("is-open");
     elements.drawerTitle.textContent = String(node.label || node.id);
-    elements.drawerBody.innerHTML = "<p>Loading node detail...</p>";
+    elements.drawerBody.innerHTML = `<p>${escapeHtml(t("loadingNodeDetail"))}</p>`;
     if (graph) graph.refresh();
 
     try {
       const response = await fetch(`/api/graph/node?node_id=${encodeURIComponent(node.id)}`);
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload?.error?.message || "Node detail failed");
+        throw new Error(payload?.error?.message || t("nodeDetailFailed"));
       }
 
       const detail = payload.data || {};
@@ -916,76 +1120,80 @@
       elements.drawerTitle.textContent = String(detail.label || node.label || node.id);
       elements.drawerBody.innerHTML = `
         <div class="metric-strip">
-          <div class="metric-box"><div class="name">Degree</div><div class="num">${escapeHtml(metrics.degree ?? "-")}</div></div>
-          <div class="metric-box"><div class="name">Component Size</div><div class="num">${escapeHtml(metrics.component_size ?? "-")}</div></div>
-          <div class="metric-box"><div class="name">Degree Rank</div><div class="num">${escapeHtml(metrics.degree_rank ?? "Unranked")}</div></div>
-          <div class="metric-box"><div class="name">Betweenness Rank</div><div class="num">${escapeHtml(metrics.betweenness_rank ?? "Unranked")}</div></div>
+          <div class="metric-box"><div class="name">${escapeHtml(t("degree"))}</div><div class="num">${escapeHtml(metrics.degree ?? "-")}</div></div>
+          <div class="metric-box"><div class="name">${escapeHtml(t("componentSize"))}</div><div class="num">${escapeHtml(metrics.component_size ?? "-")}</div></div>
+          <div class="metric-box"><div class="name">${escapeHtml(t("degreeRank"))}</div><div class="num">${escapeHtml(metrics.degree_rank ?? t("unranked"))}</div></div>
+          <div class="metric-box"><div class="name">${escapeHtml(t("betweennessRank"))}</div><div class="num">${escapeHtml(metrics.betweenness_rank ?? t("unranked"))}</div></div>
         </div>
 
         <div class="section">
-          <h2>Research reading</h2>
-          <p><strong>What it is:</strong> ${escapeHtml(summary.what_it_is || "")}</p>
-          <p><strong>Why it matters:</strong> ${escapeHtml(summary.why_it_matters || "")}</p>
+          <h2>${escapeHtml(t("researchReading"))}</h2>
+          <p><strong>${escapeHtml(t("whatItIs"))}:</strong> ${escapeHtml(summary.what_it_is || "")}</p>
+          <p><strong>${escapeHtml(t("whyItMatters"))}:</strong> ${escapeHtml(summary.why_it_matters || "")}</p>
           <div class="tag-row">
-            <span class="tag">hub role: ${escapeHtml(role)}</span>
-            <span class="tag">degree centrality: ${escapeHtml(metrics.degree_centrality ?? "-")}</span>
-            <span class="tag">betweenness: ${escapeHtml(metrics.betweenness_centrality ?? "not cached")}</span>
+            <span class="tag">${escapeHtml(t("hubRole"))}: ${escapeHtml(role)}</span>
+            <span class="tag">${escapeHtml(t("degreeCentrality"))}: ${escapeHtml(metrics.degree_centrality ?? "-")}</span>
+            <span class="tag">${escapeHtml(t("betweenness"))}: ${escapeHtml(metrics.betweenness_centrality ?? t("notCached"))}</span>
           </div>
+          <h2 style="margin-top:0.85rem;">${escapeHtml(t("interpretationGuide"))}</h2>
+          ${interpretationMarkup(detail, metrics, role)}
         </div>
 
         <div class="section">
-          <h2>Nearby concepts</h2>
+          <h2>${escapeHtml(t("nearbyConcepts"))}</h2>
           <div class="stack-list">
             ${listMarkup(detail.neighbors, (item) => `
               <div class="stack-item">
-                <strong>${escapeHtml(item.label)}</strong>
-                <div class="stack-meta">degree ${escapeHtml(item.degree)} · shared links ${escapeHtml(item.shared_links)}</div>
+                <button class="stack-link" type="button" data-node-jump="${escapeHtml(item.id)}">
+                  <strong>${escapeHtml(item.label)}</strong>
+                  <div class="stack-meta">${escapeHtml(t("degreeLower"))} ${escapeHtml(item.degree)} · ${escapeHtml(t("sharedLinks"))} ${escapeHtml(item.shared_links)} · ${escapeHtml(t("jumpToConcept"))}</div>
+                </button>
               </div>
-            `, "No nearby concepts available.")}
+            `, t("noNearbyConcepts"))}
           </div>
         </div>
 
         <div class="section">
-          <h2>Top relations</h2>
+          <h2>${escapeHtml(t("topRelations"))}</h2>
           <div class="tag-row">
             ${Array.isArray(detail.top_relations) && detail.top_relations.length
               ? detail.top_relations.map((item) => `<span class="tag">${escapeHtml(item.label)} (${escapeHtml(item.count)})</span>`).join("")
-              : `<span class="tag">No dominant relation labels</span>`}
+              : `<span class="tag">${escapeHtml(t("noDominantRelationLabels"))}</span>`}
           </div>
         </div>
 
         <div class="section">
-          <h2>Taxonomy and domain context</h2>
+          <h2>${escapeHtml(t("taxonomyAndDomainContext"))}</h2>
           <div class="stack-list">
             ${listMarkup(detail.taxonomy_context, (item) => `
               <div class="stack-item">
                 <strong>${escapeHtml(item.label)}</strong>
-                <div class="stack-meta">${escapeHtml(item.count)} supporting sources</div>
+                <div class="stack-meta">${escapeHtml(item.count)} ${escapeHtml(t("supportingSourcesCount"))}</div>
               </div>
-            `, "No taxonomy context found for this concept.")}
+            `, t("noTaxonomyContext"))}
             ${listMarkup(detail.domain_context, (item) => `
               <div class="stack-item">
                 <strong>${escapeHtml(item.label)}</strong>
-                <div class="stack-meta">${escapeHtml(item.count)} supporting sources</div>
+                <div class="stack-meta">${escapeHtml(item.count)} ${escapeHtml(t("supportingSourcesCount"))}</div>
               </div>
-            `, "No dominant domain context found.")}
+            `, t("noDomainContext"))}
           </div>
         </div>
 
         <div class="section">
-          <h2>Supporting sources</h2>
+          <h2>${escapeHtml(t("supportingSources"))}</h2>
           <div class="stack-list">
             ${listMarkup(detail.supporting_sources, (item) => `
               <div class="stack-item">
                 <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>
-                <div class="stack-meta">${escapeHtml(item.platform)} · ${escapeHtml(item.published_year)} · ${escapeHtml(item.quantum_domain || "domain unknown")}</div>
+                <div class="stack-meta">${escapeHtml(item.platform)} · ${escapeHtml(item.published_year)} · ${escapeHtml(item.quantum_domain || t("domainUnknown"))}</div>
               </div>
-            `, "No source examples were derived for this concept.")}
+            `, t("noSourceExamples"))}
           </div>
         </div>
       `;
     } catch (error) {
-      elements.drawerBody.innerHTML = `<p>Node detail unavailable: ${escapeHtml(error.message)}</p>`;
+      elements.drawerBody.innerHTML = `<p>${escapeHtml(t("nodeDetailUnavailable"))}: ${escapeHtml(error.message)}</p>`;
     }
   }
 
@@ -994,13 +1202,13 @@
       const response = await fetch("/api/graph");
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload?.error?.message || "Unknown graph API error");
+        throw new Error(payload?.error?.message || t("unknownGraphApiError"));
       }
 
       allNodes = Array.isArray(payload.data?.nodes) ? payload.data.nodes : [];
       allLinks = Array.isArray(payload.data?.links) ? payload.data.links : [];
       if (!allNodes.length) {
-        showEmpty("The current database returned no concept nodes for rendering.");
+        showEmpty(t("currentDatabaseNoNodes"));
         return;
       }
 
@@ -1034,7 +1242,7 @@
         .linkLabel((link) => String(link.label || ""))
         .onNodeHover((node) => {
           if (!node || selectedNodeId) return;
-          setStatus(`${node.label || node.id} · degree ${node.val || 1}`);
+          setStatus(t("nodeStatus", String(node.label || node.id), node.val || 1));
         })
         .onNodeClick(async (node) => {
           focusOnNode(node);
@@ -1046,13 +1254,13 @@
 
       elements.leafToggle.addEventListener("click", () => {
         showLeaves = !showLeaves;
-        elements.leafToggle.textContent = showLeaves ? "Hide leaf nodes" : "Show leaf nodes";
+        elements.leafToggle.textContent = showLeaves ? t("hideLeafNodes") : t("showLeafNodes");
         renderGraph();
         setTimeout(() => graph.zoomToFit(700, 70), 260);
       });
 
       elements.resetView.addEventListener("click", () => {
-        setStatus("Resetting camera");
+        setStatus(t("resetCamera"));
         setTimeout(() => graph.zoomToFit(800, 90), 60);
       });
 
@@ -1063,8 +1271,16 @@
       elements.drawerClose.addEventListener("click", () => {
         closeDrawer();
       });
+      elements.drawerBody.addEventListener("click", async (event) => {
+        const trigger = event.target.closest("[data-node-jump]");
+        if (!trigger) return;
+        const jumpNode = findNodeById(trigger.dataset.nodeJump);
+        if (!jumpNode) return;
+        focusOnNode(jumpNode);
+        await openNodeDetail(jumpNode);
+      });
     } catch (error) {
-      showError(`Could not load graph data: ${error.message}`);
+      showError(t("couldNotLoadGraphData", error.message));
     }
   }
 
@@ -1073,7 +1289,7 @@
       const response = await fetch("/api/graph/metrics");
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload?.error?.message || "Metrics unavailable");
+        throw new Error(payload?.error?.message || t("metricsUnavailableShort"));
       }
 
       const data = payload.data || {};
@@ -1082,31 +1298,67 @@
       const communities = Array.isArray(data.community_summaries) ? data.community_summaries.slice(0, 3) : [];
 
       elements.metricsBody.innerHTML = `
-        <p><strong style="color:#f6f8fe;">Components</strong> ${escapeHtml(data.components ?? "-")} · <strong style="color:#f6f8fe;">Largest component</strong> ${escapeHtml(data.largest_component_size ?? "-")} nodes</p>
-        <p><strong style="color:#f6f8fe;">Hub interpretation.</strong> Degree hub: ${escapeHtml(hub.degree_hub?.label || "-")} · Broker hub: ${escapeHtml(hub.broker_hub?.label || "-")}</p>
+        <p><strong style="color:#f6f8fe;">${escapeHtml(t("components"))}</strong> ${escapeHtml(data.components ?? "-")} · <strong style="color:#f6f8fe;">${escapeHtml(t("largestComponent"))}</strong> ${escapeHtml(data.largest_component_size ?? "-")} ${escapeHtml(t("nodesUnit"))}</p>
+        <p><strong style="color:#f6f8fe;">${escapeHtml(t("hubInterpretation"))}</strong> ${escapeHtml(t("degreeHub"))}: ${escapeHtml(hub.degree_hub?.label || "-")} · ${escapeHtml(t("brokerHub"))}: ${escapeHtml(hub.broker_hub?.label || "-")}</p>
         <div class="stack-list">
           ${listMarkup(topDegree, (item) => `
             <div class="stack-item">
               <strong>${escapeHtml(item.label)}</strong>
-              <div class="stack-meta">degree centrality ${escapeHtml(item.score)} · role ${escapeHtml(item.hub_role || "concept")}</div>
+              <div class="stack-meta">${escapeHtml(t("degreeCentrality"))} ${escapeHtml(item.score)} · ${escapeHtml(t("role"))} ${escapeHtml(item.hub_role || "concept")}</div>
             </div>
-          `, "No top-degree nodes available.")}
+          `, t("noTopDegreeNodes"))}
           ${listMarkup(communities, (item) => `
             <div class="stack-item">
               <strong>${escapeHtml(item.hub)}</strong>
-              <div class="stack-meta">community hub · ${escapeHtml(item.hub_role)} · size ${escapeHtml(item.size)}</div>
+              <div class="stack-meta">${escapeHtml(t("communityHub"))} · ${escapeHtml(item.hub_role)} · ${escapeHtml(t("size"))} ${escapeHtml(item.size)}</div>
             </div>
-          `, "No stable community summaries available.")}
+          `, t("noStableCommunitySummaries"))}
         </div>
       `;
     } catch (error) {
-      elements.metricsBody.textContent = `Metrics unavailable: ${error.message}`;
+      elements.metricsBody.textContent = t("metricsUnavailable", error.message);
     }
   }
 
-  var graphLaunched = false;
-  var launchOverlay = document.getElementById("graph-launch-overlay");
-  var launchBtn = document.getElementById("graph-launch-btn");
+  function applyLanguageState() {
+    if (!graphLaunched) {
+      setStatus(t("clickCanvasToLoad"));
+    }
+
+    elements.leafToggle.textContent = showLeaves ? t("hideLeafNodes") : t("showLeafNodes");
+
+    if (!selectedNodeId) {
+      elements.selection.textContent = t("none");
+      elements.selectionPill.textContent = t("noSelection");
+      elements.drawerTitle.textContent = t("selectConcept");
+      elements.drawerBody.innerHTML = `<p>${escapeHtml(t("drawerPrompt"))}</p>`;
+    }
+
+    if (!graph) {
+      elements.legendPill.textContent = showLeaves ? t("leafVisible") : t("leafHidden");
+    }
+
+    if (!lastEmptyMessage && !lastErrorMessage && !elements.metricsBody.innerHTML.trim()) {
+      elements.metricsBody.textContent = t("loadingMetrics");
+    }
+  }
+
+  window.onLangChange = function () {
+    applyLanguageState();
+    if (graph) {
+      renderGraph();
+      graph.refresh();
+    }
+    if (elements.empty.classList.contains("is-visible") && lastEmptyMessage) {
+      elements.emptyMessage.textContent = lastEmptyMessage;
+    }
+    if (elements.error.classList.contains("is-visible") && lastErrorMessage) {
+      elements.errorMessage.textContent = lastErrorMessage;
+    }
+  };
+
+  const launchOverlay = document.getElementById("graph-launch-overlay");
+  const launchBtn = document.getElementById("graph-launch-btn");
 
   function launchGraph() {
     if (graphLaunched) return;
@@ -1119,6 +1371,7 @@
     launchBtn.addEventListener("click", launchGraph);
   }
 
+  applyLanguageState();
   loadMetrics();
 </script>
 {% endblock %}

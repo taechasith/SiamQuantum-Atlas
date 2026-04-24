@@ -10,7 +10,7 @@ This repository is not a speculative product shell. It is the live baseline used
 - FastAPI
 - SQLite
 - Jinja2 templates with CDN JavaScript
-- 3d-force-graph / Three.js on the network page
+- 3d-force-graph on the network page
 - Local CLI orchestration with Typer
 
 ## What the app does now
@@ -19,7 +19,8 @@ This repository is not a speculative product shell. It is the live baseline used
 - Stores source, geo, entity, triplet, cache, and community-submission data in SQLite.
 - Runs NLP extraction and classification in a resumable pipeline.
 - Builds taxonomy-aware statistics and graph metrics caches.
-- Serves five working pages:
+- Serves six working pages:
+  - `/`: home and live platform overview
   - `/dashboard`: geographic and source-overview view
   - `/network`: 3D concept network with click-through node research detail
   - `/analytics`: engagement and taxonomy analysis
@@ -120,4 +121,4 @@ If you need durable writes or scheduled ingestion, run the app locally or on a s
 
 ## Repo intent
 
-This repository tracks the current research-tool baseline. The next-version UI is being developed separately as a richer interaction layer, and its refinements should be driven by real user feedback from this working system rather than by speculative front-end rewrite churn.
+This repository tracks the current research-platform baseline. The current version already has working analytics and viewer pages, while the UI is being pushed toward the next version through iterative design work. The next stage is gathering user feedback to improve UX/UI further without changing the underlying stack.

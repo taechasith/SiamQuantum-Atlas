@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}SiamQuantum Atlas — Thai Quantum Discourse Research{% endblock %}
+{% block title %}SiamQuantum Atlas - Thai Quantum Discourse Research{% endblock %}
 {% set active = 'home' %}
 
 {% block head %}
@@ -11,31 +11,26 @@
     --text: #eef4ff;
     --muted: #8fa4cc;
     --accent: #60a5fa;
-    --accent-2: #f59e0b;
-    --accent-3: #34d399;
-    --glow-blue: rgba(96, 165, 250, 0.15);
-    --glow-amber: rgba(245, 158, 11, 0.12);
+    --accent-2: #8b82ff;
+    --accent-3: #4fd7ff;
   }
 
   body {
     background:
       radial-gradient(ellipse 80% 50% at 50% -10%, rgba(96, 165, 250, 0.18), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(245, 158, 11, 0.1), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 130, 255, 0.1), transparent),
       linear-gradient(180deg, #03060f 0%, #050b1a 60%, #03060f 100%);
   }
 
-  /* ── layout ── */
   .home-shell {
     max-width: 1180px;
     margin: 0 auto;
     padding: 3rem 1.5rem 5rem;
   }
 
-  /* ── hero ── */
   .hero-section {
     text-align: center;
     padding: 4rem 1rem 3.5rem;
-    position: relative;
   }
 
   .hero-eyebrow {
@@ -52,24 +47,26 @@
     margin-bottom: 2rem;
   }
 
-  .hero-eyebrow::before {
-    content: '';
+  .hero-eyebrow::before,
+  .live-status::before {
+    content: "";
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent);
+    background: currentColor;
+    box-shadow: 0 0 16px currentColor;
     animation: pulse-dot 2s ease-in-out infinite;
   }
 
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
+    50% { opacity: 0.4; transform: scale(0.72); }
   }
 
   .hero-title {
     font-family: var(--font-heading);
     font-size: clamp(2.6rem, 6vw, 5rem);
-    line-height: 1.0;
+    line-height: 1;
     color: var(--text);
     margin-bottom: 0.5rem;
     letter-spacing: -0.02em;
@@ -86,65 +83,251 @@
     line-height: 1.7;
   }
 
-  /* ── stats strip ── */
-  .stats-strip {
+  .stats-strip,
+  .pipeline-meters {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
+  }
+
+  .stats-strip {
+    grid-template-columns: repeat(4, 1fr);
     margin: 3rem 0;
   }
 
-  @media (max-width: 720px) {
-    .stats-strip { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media (max-width: 420px) {
-    .stats-strip { grid-template-columns: 1fr; }
+  .stat-card,
+  .meter-card,
+  .feature-card,
+  .about-strip,
+  .live-section {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
   }
 
   .stat-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
     border-radius: 18px;
     padding: 1.4rem 1.2rem;
     text-align: center;
     transition: border-color .2s, transform .2s;
   }
 
-  .stat-card:hover {
+  .stat-card:hover,
+  .feature-card:hover {
     border-color: rgba(96, 165, 250, 0.4);
     transform: translateY(-2px);
   }
 
-  .stat-value {
+  .stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+
+  .stat-value,
+  .meter-value {
     font-family: var(--font-heading);
-    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
     color: var(--text);
     line-height: 1;
+  }
+
+  .stat-value {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
     margin-bottom: 0.35rem;
   }
 
-  .stat-value.loading { color: var(--muted); font-size: 1.4rem; }
-  .stat-label {
+  .stat-value.loading {
+    color: var(--muted);
+    font-size: 1.4rem;
+  }
+
+  .stat-label,
+  .meter-label,
+  .section-label {
     font-size: 0.78rem;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
 
-  .stat-icon {
-    font-size: 1.6rem;
-    margin-bottom: 0.6rem;
-    display: block;
+  .live-section {
+    border-radius: 24px;
+    padding: 1.4rem;
+    margin-bottom: 3rem;
+    background: linear-gradient(180deg, rgba(8, 14, 30, 0.94), rgba(6, 11, 22, 0.92));
   }
 
-  /* ── section grid (feature cards) ── */
-  .section-label {
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+  .live-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .live-title {
+    font-family: var(--font-heading);
+    font-size: 1.08rem;
+    color: var(--text);
+    margin-bottom: 0.45rem;
+  }
+
+  .live-copy,
+  .card-desc,
+  .about-strip p,
+  .about-strip li,
+  .empty-copy {
     color: var(--muted);
-    margin-bottom: 1.2rem;
+    line-height: 1.65;
+  }
+
+  .live-copy,
+  .empty-copy {
+    font-size: 0.88rem;
+  }
+
+  .live-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    background: rgba(96, 165, 250, 0.08);
+    color: var(--accent);
+    padding: 0.35rem 0.8rem;
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+
+  .pipeline-meters {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 1rem;
+  }
+
+  .meter-card {
+    border-radius: 18px;
+    padding: 0.95rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .meter-label {
+    margin-bottom: 0.45rem;
+  }
+
+  .meter-value {
+    font-size: 1.65rem;
+  }
+
+  .meter-meta {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 0.45rem;
+  }
+
+  .live-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.95fr);
+    gap: 1rem;
+  }
+
+  .live-panel {
+    border-radius: 20px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .live-panel h3,
+  .about-strip h2,
+  .card-title {
+    color: var(--text);
+    font-family: var(--font-heading);
+  }
+
+  .live-panel h3 {
+    font-size: 0.98rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .live-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .live-row {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.85rem 0.9rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .live-row-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .live-row-title {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  .live-row-meta {
+    color: var(--muted);
+    font-size: 0.78rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .stage-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.74rem;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .stage-pill.fetched,
+  .stage-pill.pending,
+  .stage-pill.queued,
+  .stage-pill.queued_no_source,
+  .stage-pill.queued_no_text {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.28);
+    background: rgba(251, 191, 36, 0.08);
+  }
+
+  .stage-pill.geocoded {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.28);
+    background: rgba(96, 165, 250, 0.08);
+  }
+
+  .stage-pill.classified {
+    color: #a78bfa;
+    border-color: rgba(167, 139, 250, 0.28);
+    background: rgba(167, 139, 250, 0.08);
+  }
+
+  .stage-pill.analyzed,
+  .stage-pill.processed {
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.28);
+    background: rgba(52, 211, 153, 0.08);
+  }
+
+  .stage-pill.failed {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.28);
+    background: rgba(251, 113, 133, 0.08);
   }
 
   .feature-grid {
@@ -155,8 +338,6 @@
   }
 
   .feature-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
     border-radius: 20px;
     padding: 1.5rem;
     text-decoration: none;
@@ -165,73 +346,29 @@
     flex-direction: column;
     gap: 0.75rem;
     transition: border-color .2s, transform .2s, box-shadow .2s;
-    position: relative;
-    overflow: hidden;
   }
-
-  .feature-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity .2s;
-    border-radius: inherit;
-  }
-
-  .feature-card.blue::before  { background: radial-gradient(circle at top left, rgba(96,165,250,0.08), transparent 60%); }
-  .feature-card.amber::before { background: radial-gradient(circle at top left, rgba(245,158,11,0.08), transparent 60%); }
-  .feature-card.green::before { background: radial-gradient(circle at top left, rgba(52,211,153,0.08), transparent 60%); }
-  .feature-card.purple::before{ background: radial-gradient(circle at top left, rgba(168,85,247,0.08), transparent 60%); }
-  .feature-card.rose::before  { background: radial-gradient(circle at top left, rgba(251,113,133,0.08), transparent 60%); }
-
-  .feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-
-  .feature-card:hover::before { opacity: 1; }
-  .feature-card:hover.blue   { border-color: rgba(96,165,250,0.4); }
-  .feature-card:hover.amber  { border-color: rgba(245,158,11,0.4); }
-  .feature-card:hover.green  { border-color: rgba(52,211,153,0.4); }
-  .feature-card:hover.purple { border-color: rgba(168,85,247,0.4); }
-  .feature-card:hover.rose   { border-color: rgba(251,113,133,0.4); }
 
   .card-icon {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     line-height: 1;
   }
 
   .card-title {
-    font-family: var(--font-heading);
     font-size: 1.05rem;
-    color: var(--text);
   }
 
   .card-desc {
     font-size: 0.87rem;
-    color: var(--muted);
-    line-height: 1.65;
     flex: 1;
   }
 
   .card-arrow {
     font-size: 0.82rem;
     color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
     margin-top: auto;
   }
 
-  .feature-card.amber .card-arrow  { color: var(--accent-2); }
-  .feature-card.green .card-arrow  { color: var(--accent-3); }
-  .feature-card.purple .card-arrow { color: #c084fc; }
-  .feature-card.rose .card-arrow   { color: #fb7185; }
-
-  /* ── about strip ── */
   .about-strip {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
     border-radius: 20px;
     padding: 2rem;
     display: grid;
@@ -240,21 +377,9 @@
     margin-bottom: 3rem;
   }
 
-  @media (max-width: 640px) {
-    .about-strip { grid-template-columns: 1fr; }
-  }
-
   .about-strip h2 {
-    font-family: var(--font-heading);
-    font-size: 1.1rem;
-    color: var(--text);
+    font-size: 1.08rem;
     margin-bottom: 0.75rem;
-  }
-
-  .about-strip p, .about-strip li {
-    font-size: 0.88rem;
-    color: var(--muted);
-    line-height: 1.7;
   }
 
   .about-strip ul {
@@ -264,7 +389,6 @@
     gap: 0.35rem;
   }
 
-  /* ── platforms ── */
   .platform-chips {
     display: flex;
     flex-wrap: wrap;
@@ -278,7 +402,7 @@
     padding: 0.25rem 0.75rem;
     border: 1px solid var(--panel-border);
     color: var(--muted);
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     font-family: var(--font-mono);
   }
 
@@ -287,7 +411,6 @@
     margin-left: 0.3rem;
   }
 
-  /* ── footer note ── */
   .home-footer {
     text-align: center;
     font-size: 0.78rem;
@@ -296,131 +419,190 @@
     border-top: 1px solid var(--panel-border);
     opacity: 0.6;
   }
+
+  @media (max-width: 900px) {
+    .stats-strip,
+    .pipeline-meters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .live-head,
+    .live-grid,
+    .about-strip {
+      grid-template-columns: 1fr;
+      display: grid;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .stats-strip,
+    .pipeline-meters {
+      grid-template-columns: 1fr;
+    }
+
+    .home-shell {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .live-row-top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="home-shell">
-
-  <!-- ── Hero ── -->
   <section class="hero-section">
-    <div class="hero-eyebrow">Thai Quantum Media Research · 2014–2024</div>
+    <div class="hero-eyebrow">Thai Quantum Media Research · 2014-2024</div>
     <h1 class="hero-title">
       <span class="hl-blue">Siam</span><span class="hl-amber">Quantum</span> Atlas
     </h1>
     <p class="hero-sub">
-      <span class="th-text">ระบบวิเคราะห์วาทกรรมควอนตัมในประเทศไทย — คลังข้อมูล 10 ปีของวาทกรรมควอนตัมที่เกี่ยวข้องกับไทย พร้อมสำหรับการสำรวจวิเคราะห์</span>
-      <span class="en-text">A 10-year corpus of Thai-relevant quantum discourse — mapped, extracted, and ready for analyst exploration.</span>
+      <span class="th-text">คลังสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยสำหรับการสำรวจเชิงวิจัย</span>
+      <span class="en-text">A 10-year corpus of Thai-relevant quantum discourse, mapped, extracted, and ready for analyst exploration.</span>
     </p>
   </section>
 
-  <!-- ── Stats Strip ── -->
   <div class="stats-strip" id="stats-strip">
     <div class="stat-card">
-      <span class="stat-icon">📄</span>
-      <div class="stat-value loading" id="stat-sources">—</div>
+      <span class="stat-icon">[S]</span>
+      <div class="stat-value loading" id="stat-sources">-</div>
       <div class="stat-label">Corpus Sources</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">🔗</span>
-      <div class="stat-value loading" id="stat-triplets">—</div>
+      <span class="stat-icon">[T]</span>
+      <div class="stat-value loading" id="stat-triplets">-</div>
       <div class="stat-label">Knowledge Triplets</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">📍</span>
-      <div class="stat-value loading" id="stat-geo">—</div>
+      <span class="stat-icon">[G]</span>
+      <div class="stat-value loading" id="stat-geo">-</div>
       <div class="stat-label">Geolocated Sources</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">📅</span>
-      <div class="stat-value loading" id="stat-years">—</div>
+      <span class="stat-icon">[Y]</span>
+      <div class="stat-value loading" id="stat-years">-</div>
       <div class="stat-label">Year Range</div>
     </div>
   </div>
 
-  <!-- ── Feature Cards ── -->
+  <section class="live-section">
+    <div class="live-head">
+      <div>
+        <div class="section-label"><span class="th-text">สถานะ pipeline แบบสด</span><span class="en-text">Live pipeline</span></div>
+        <div class="live-title"><span class="th-text">เส้นทางข้อมูลจริงจากการดึงผ่านอินเทอร์เน็ตสู่การวิเคราะห์</span><span class="en-text">Real intake from internet pull to analysis.</span></div>
+        <div class="live-copy">
+          <span class="th-text">ส่วนนี้อ่านจากฐานข้อมูลจริงและรีเฟรชตามรอบเวลาเพื่อแสดงว่า source ล่าสุดถูกดึงเข้าแล้ว ผูกพิกัดแล้ว หรือผ่านการสร้าง triplet และอัปเดตการวิเคราะห์แล้วหรือยัง</span>
+          <span class="en-text">This section reads the real database on an interval. It shows whether recent sources have been fetched, geocoded, and pushed through triplet extraction or downstream analysis.</span>
+        </div>
+      </div>
+      <div class="live-status" id="pipeline-status">Checking live pipeline</div>
+    </div>
+
+    <div class="pipeline-meters">
+      <div class="meter-card">
+        <div class="meter-label"><span class="th-text">ดึงเข้าคอร์ปัสแล้ว</span><span class="en-text">Fetched</span></div>
+        <div class="meter-value" id="pipe-total">-</div>
+        <div class="meter-meta" id="pipe-fetch-meta">Waiting for live data</div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-label"><span class="th-text">ผูกพิกัดแล้ว</span><span class="en-text">Geocoded</span></div>
+        <div class="meter-value" id="pipe-geo">-</div>
+        <div class="meter-meta"><span class="th-text">พร้อมเข้าสู่ชั้นแผนที่</span><span class="en-text">Ready for the map layer</span></div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-label"><span class="th-text">ผ่านการวิเคราะห์แล้ว</span><span class="en-text">Analyzed</span></div>
+        <div class="meter-value" id="pipe-analyzed">-</div>
+        <div class="meter-meta" id="pipe-analysis-meta"><span class="th-text">รอข้อมูลจริง</span><span class="en-text">Waiting for live data</span></div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-label"><span class="th-text">คิวชุมชน</span><span class="en-text">Community queue</span></div>
+        <div class="meter-value" id="pipe-queue">-</div>
+        <div class="meter-meta" id="pipe-queue-meta"><span class="th-text">รายการที่ยังรอประมวลผล</span><span class="en-text">Pending items still waiting</span></div>
+      </div>
+    </div>
+
+    <div class="live-grid">
+      <div class="live-panel">
+        <h3><span class="th-text">แหล่งข้อมูลล่าสุด</span><span class="en-text">Latest fetched sources</span></h3>
+        <div class="live-list" id="live-source-list">
+          <div class="empty-copy"><span class="th-text">กำลังอ่านสถานะ pipeline...</span><span class="en-text">Reading live pipeline state...</span></div>
+        </div>
+      </div>
+      <div class="live-panel">
+        <h3><span class="th-text">คิวและสถานะรีเฟรช</span><span class="en-text">Queue and refresh state</span></h3>
+        <div class="live-list" id="live-queue-list">
+          <div class="empty-copy"><span class="th-text">กำลังโหลดสถานะคิว...</span><span class="en-text">Loading queue state...</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <p class="section-label">Explore the research workspace</p>
   <div class="feature-grid">
-
-    <a class="feature-card blue" href="/dashboard">
-      <span class="card-icon">🗺️</span>
+    <a class="feature-card" href="/dashboard">
+      <span class="card-icon">[Map]</span>
       <div class="card-title">Geographic Map</div>
-      <p class="card-desc">
-        Leaflet map of all geolocated quantum-discourse sources across Thailand and the world.
-        Cluster view with platform and year filters.
-      </p>
-      <span class="card-arrow">แผนที่ / Map →</span>
+      <p class="card-desc">Leaflet map of geolocated quantum-discourse sources across Thailand and the wider network footprint.</p>
+      <span class="card-arrow">Map -></span>
     </a>
 
-    <a class="feature-card amber" href="/network">
-      <span class="card-icon">🕸️</span>
+    <a class="feature-card" href="/network">
+      <span class="card-icon">[Net]</span>
       <div class="card-title">Concept Network</div>
-      <p class="card-desc">
-        3D force-directed graph of concept relations extracted from the corpus.
-        Click any node to inspect betweenness, connections, and supporting sources.
-      </p>
-      <span class="card-arrow">เครือข่าย / Network →</span>
+      <p class="card-desc">3D concept graph built from extracted triplets with clickable node detail and graph metrics.</p>
+      <span class="card-arrow">Network -></span>
     </a>
 
-    <a class="feature-card green" href="/analytics">
-      <span class="card-icon">📊</span>
+    <a class="feature-card" href="/analytics">
+      <span class="card-icon">[Ana]</span>
       <div class="card-title">Engagement Analytics</div>
-      <p class="card-desc">
-        Yearly trend analysis with bootstrap geometric means, Mann-Kendall tests,
-        and taxonomy-aware subgroup comparisons.
-      </p>
-      <span class="card-arrow">สถิติ / Analytics →</span>
+      <p class="card-desc">Yearly trend analysis with bootstrap geometric means, Mann-Kendall tests, and taxonomy-aware comparisons.</p>
+      <span class="card-arrow">Analytics -></span>
     </a>
 
-    <a class="feature-card purple" href="/database">
-      <span class="card-icon">🗄️</span>
+    <a class="feature-card" href="/database">
+      <span class="card-icon">[DB]</span>
       <div class="card-title">Source Database</div>
-      <p class="card-desc">
-        Paginated browser of all corpus sources. Filter by platform, year, media format,
-        user intent, and quantum domain. Exportable to XLSX.
-      </p>
-      <span class="card-arrow">ฐานข้อมูล / Database →</span>
+      <p class="card-desc">Paginated browser of corpus sources with platform, year, taxonomy, and domain filters.</p>
+      <span class="card-arrow">Database -></span>
     </a>
 
-    <a class="feature-card rose" href="/community">
-      <span class="card-icon">🤝</span>
+    <a class="feature-card" href="/community">
+      <span class="card-icon">[Q]</span>
       <div class="card-title">Community Queue</div>
-      <p class="card-desc">
-        Submit new URLs for corpus intake. Sources are queued for best-effort NLP processing
-        and appear in the review log.
-      </p>
-      <span class="card-arrow">ชุมชน / Community →</span>
+      <p class="card-desc">Submit URLs for intake and monitor best-effort downstream processing in the queue log.</p>
+      <span class="card-arrow">Community -></span>
     </a>
-
   </div>
 
-  <!-- ── About Strip ── -->
   <div class="about-strip">
     <div>
       <h2><span class="th-text">เกี่ยวกับระบบ</span><span class="en-text">What this is</span></h2>
       <p>
-        <span class="th-text">SiamQuantum Atlas คือเครื่องมือวิจัยสำหรับติดตามและตีความวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทย ครอบคลุมข้อมูล 10 ปี (2014–2024) จาก GDELT, YouTube, RSS feeds และ curated seed lists.</span>
-        <span class="en-text">SiamQuantum Atlas is a research instrument for tracking and interpreting Thai-relevant quantum discourse across web, video, and social platforms. It covers 10 years (2014–2024) of sources collected from GDELT, YouTube, RSS feeds, and curated seed lists.</span>
+        <span class="th-text">SiamQuantum Atlas เป็นเครื่องมือวิจัยสำหรับติดตามสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยจากเว็บ วิดีโอ และแหล่งข้อมูลที่ระบบดึงเข้ามาเป็นคอร์ปัส</span>
+        <span class="en-text">SiamQuantum Atlas is a research instrument for tracking and interpreting Thai-relevant quantum discourse across web, video, and social platforms.</span>
       </p>
       <div class="platform-chips" id="platform-chips">
-        <span class="chip">loading…</span>
+        <span class="chip">loading...</span>
       </div>
     </div>
     <div>
-      <h2><span class="th-text">แนวทางวิจัย</span><span class="en-text">Research posture</span></h2>
+      <h2><span class="th-text">แนวทางวิเคราะห์</span><span class="en-text">Research posture</span></h2>
       <ul>
-        <li>Bootstrap geometric mean engagement inference (not naive parametric tests)</li>
+        <li>Bootstrap geometric mean engagement inference</li>
         <li>Mann-Kendall nonparametric trend detection</li>
-        <li>Taxonomy-aware subgroup analysis (media format × user intent)</li>
-        <li>NetworkX graph metrics: degree, betweenness, connected components</li>
-        <li>Relevance flags are corpus-scope operational defaults, not per-row classifiers</li>
+        <li>Taxonomy-aware subgroup analysis</li>
+        <li>NetworkX graph metrics on extracted concept relations</li>
+        <li>Operational corpus-scope relevance defaults, not per-row manual truth labels</li>
       </ul>
     </div>
   </div>
 
-  <p class="home-footer">
-    SiamQuantum Atlas · Thai Quantum Signals Workspace · SQLite + FastAPI + Jinja2
-  </p>
+  <p class="home-footer">SiamQuantum Atlas · Thai Quantum Signals Workspace · SQLite + FastAPI + Jinja2</p>
 </div>
 
 <script>
@@ -430,36 +612,207 @@
     return String(n);
   }
 
+  function lang() {
+    return document.documentElement.dataset.lang === 'en' ? 'en' : 'th';
+  }
+
+  function L(th, en) {
+    return lang() === 'en' ? en : th;
+  }
+
+  function relTime(value) {
+    if (!value) return L('ไม่พบเวลา', 'No timestamp');
+    var ms = Date.now() - new Date(value).getTime();
+    if (!isFinite(ms)) return value;
+    var seconds = Math.max(Math.round(ms / 1000), 0);
+    if (seconds < 60) return L('เมื่อสักครู่', 'just now');
+    var minutes = Math.round(seconds / 60);
+    if (minutes < 60) return L(minutes + ' นาทีที่แล้ว', minutes + ' min ago');
+    var hours = Math.round(minutes / 60);
+    if (hours < 24) return L(hours + ' ชั่วโมงที่แล้ว', hours + ' hr ago');
+    var days = Math.round(hours / 24);
+    return L(days + ' วันที่แล้ว', days + ' day ago');
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function applySummary(res) {
+    if (!res.ok || !res.data) return;
+    var d = res.data;
+
+    var srcEl = document.getElementById('stat-sources');
+    if (srcEl) { srcEl.textContent = fmt(d.total_sources); srcEl.classList.remove('loading'); }
+
+    var tripEl = document.getElementById('stat-triplets');
+    if (tripEl) { tripEl.textContent = fmt(d.total_triplets); tripEl.classList.remove('loading'); }
+
+    var geoEl = document.getElementById('stat-geo');
+    if (geoEl) { geoEl.textContent = fmt(d.geo_count); geoEl.classList.remove('loading'); }
+
+    var yrEl = document.getElementById('stat-years');
+    if (yrEl && d.year_range && d.year_range[0] != null) {
+      yrEl.textContent = d.year_range[0] + '-' + d.year_range[1];
+      yrEl.classList.remove('loading');
+    }
+
+    var chipsEl = document.getElementById('platform-chips');
+    if (chipsEl && d.platforms && d.platforms.length) {
+      chipsEl.innerHTML = d.platforms.map(function (p) {
+        return '<span class="chip">' + escapeHtml(p.platform || '?') +
+          '<span class="chip-count">' + fmt(p.count) + '</span></span>';
+      }).join('');
+    }
+  }
+
+  function renderSourceFeed(items) {
+    var host = document.getElementById('live-source-list');
+    if (!host) return;
+    if (!items || !items.length) {
+      host.innerHTML = '<div class="empty-copy">' + L('ยังไม่พบ source ที่ถูกดึงเข้าคอร์ปัส', 'No fetched sources are available yet.') + '</div>';
+      return;
+    }
+
+    host.innerHTML = items.map(function (item) {
+      var meta = [
+        escapeHtml(item.platform || '?'),
+        item.triplet_count ? escapeHtml(String(item.triplet_count)) + ' ' + L('triplet', 'triplets') : null,
+        item.has_geo ? L('มีพิกัดแล้ว', 'geo ready') : L('รอพิกัด', 'geo pending'),
+        relTime(item.fetched_at)
+      ].filter(Boolean).join(' · ');
+
+      return '<article class="live-row">' +
+        '<div class="live-row-top">' +
+          '<div class="live-row-title">' + escapeHtml(item.title || item.url || 'Untitled source') + '</div>' +
+          '<span class="stage-pill ' + escapeHtml(item.stage_key || 'fetched') + '">' + escapeHtml(item.stage_label || 'Fetched') + '</span>' +
+        '</div>' +
+        '<div class="live-row-meta">' + meta + '</div>' +
+      '</article>';
+    }).join('');
+  }
+
+  function renderQueueFeed(submissions) {
+    var host = document.getElementById('live-queue-list');
+    if (!host) return;
+
+    var items = (submissions && submissions.recent) || [];
+    var counts = (submissions && submissions.counts) || {};
+    var pending = Number(counts.pending || counts.queued || 0);
+    var processed = Number(counts.processed || 0);
+    var failed = Number(counts.failed || 0);
+    var html = [
+      '<article class="live-row">' +
+        '<div class="live-row-title">' + L('คิว intake ที่รอประมวลผล', 'Community intake waiting') + '</div>' +
+        '<div class="live-row-meta">' +
+          L('รออยู่', 'pending') + ' ' + fmt(pending) + ' · ' +
+          L('สำเร็จ', 'processed') + ' ' + fmt(processed) + ' · ' +
+          L('ล้มเหลว', 'failed') + ' ' + fmt(failed) +
+        '</div>' +
+      '</article>'
+    ];
+
+    if (!items.length) {
+      html.push('<div class="empty-copy">' + L('ยังไม่มีรายการ community submission ล่าสุด', 'No recent community submissions yet.') + '</div>');
+    } else {
+      items.forEach(function (item) {
+        html.push(
+          '<article class="live-row">' +
+            '<div class="live-row-top">' +
+              '<div class="live-row-title">' + escapeHtml(item.handle || item.url) + '</div>' +
+              '<span class="stage-pill ' + escapeHtml(item.status || 'pending') + '">' + escapeHtml(item.status || 'pending') + '</span>' +
+            '</div>' +
+            '<div class="live-row-meta">' + escapeHtml(item.url) + ' · ' + relTime(item.submitted_at) + '</div>' +
+          '</article>'
+        );
+      });
+    }
+
+    host.innerHTML = html.join('');
+  }
+
+  function applyPipeline(res) {
+    if (!res.ok || !res.data) return;
+    var data = res.data;
+    var overview = data.overview || {};
+    var submissions = data.submissions || {};
+    var counts = submissions.counts || {};
+    var pendingQueue = Number(counts.pending || counts.queued || 0);
+
+    var statusEl = document.getElementById('pipeline-status');
+    if (statusEl) {
+      statusEl.textContent = overview.latest_fetch_at
+        ? L('รีเฟรชล่าสุด ' + relTime(overview.latest_fetch_at), 'Refreshed ' + relTime(overview.latest_fetch_at))
+        : L('ยังไม่พบข้อมูลการดึงล่าสุด', 'No recent fetch signal');
+    }
+
+    var totalEl = document.getElementById('pipe-total');
+    if (totalEl) totalEl.textContent = fmt(overview.total_sources || 0);
+
+    var geoEl = document.getElementById('pipe-geo');
+    if (geoEl) geoEl.textContent = fmt(overview.geocoded_sources || 0);
+
+    var analyzedEl = document.getElementById('pipe-analyzed');
+    if (analyzedEl) analyzedEl.textContent = fmt(overview.analyzed_sources || 0);
+
+    var queueEl = document.getElementById('pipe-queue');
+    if (queueEl) queueEl.textContent = fmt(pendingQueue);
+
+    var fetchMetaEl = document.getElementById('pipe-fetch-meta');
+    if (fetchMetaEl) {
+      fetchMetaEl.textContent = overview.latest_fetch_at
+        ? L('ล่าสุด ' + relTime(overview.latest_fetch_at), 'Latest ' + relTime(overview.latest_fetch_at))
+        : L('ยังไม่พบเวลา fetch', 'No fetch timestamp');
+    }
+
+    var analysisMetaEl = document.getElementById('pipe-analysis-meta');
+    if (analysisMetaEl) {
+      analysisMetaEl.textContent = overview.latest_analysis_at
+        ? L('analysis อัปเดต ' + relTime(overview.latest_analysis_at), 'Analysis updated ' + relTime(overview.latest_analysis_at))
+        : L('ยังไม่พบการอัปเดต analysis cache', 'No analysis cache update detected');
+    }
+
+    var queueMetaEl = document.getElementById('pipe-queue-meta');
+    if (queueMetaEl) {
+      queueMetaEl.textContent = pendingQueue > 0
+        ? L('มี ' + fmt(pendingQueue) + ' รายการรอประมวลผล', fmt(pendingQueue) + ' items still waiting')
+        : L('ไม่มีรายการค้างในคิวตอนนี้', 'No pending queue items right now');
+    }
+
+    renderSourceFeed(data.recent_sources || []);
+    renderQueueFeed(submissions);
+  }
+
   fetch('/api/stats/summary')
     .then(function (r) { return r.json(); })
-    .then(function (res) {
-      if (!res.ok || !res.data) return;
-      var d = res.data;
-
-      var srcEl = document.getElementById('stat-sources');
-      if (srcEl) { srcEl.textContent = fmt(d.total_sources); srcEl.classList.remove('loading'); }
-
-      var tripEl = document.getElementById('stat-triplets');
-      if (tripEl) { tripEl.textContent = fmt(d.total_triplets); tripEl.classList.remove('loading'); }
-
-      var geoEl = document.getElementById('stat-geo');
-      if (geoEl) { geoEl.textContent = fmt(d.geo_count); geoEl.classList.remove('loading'); }
-
-      var yrEl = document.getElementById('stat-years');
-      if (yrEl && d.year_range && d.year_range[0]) {
-        yrEl.textContent = d.year_range[0] + '–' + d.year_range[1];
-        yrEl.classList.remove('loading');
-      }
-
-      var chipsEl = document.getElementById('platform-chips');
-      if (chipsEl && d.platforms && d.platforms.length) {
-        chipsEl.innerHTML = d.platforms.map(function (p) {
-          return '<span class="chip">' + (p.platform || '?') +
-                 '<span class="chip-count">' + fmt(p.count) + '</span></span>';
-        }).join('');
-      }
-    })
+    .then(applySummary)
     .catch(function () {});
+
+  function loadPipeline() {
+    fetch('/api/pipeline/live')
+      .then(function (r) { return r.json(); })
+      .then(applyPipeline)
+      .catch(function (error) {
+        var statusEl = document.getElementById('pipeline-status');
+        if (statusEl) statusEl.textContent = L('โหลดสถานะ pipeline ไม่สำเร็จ', 'Pipeline status unavailable');
+
+        var host = document.getElementById('live-source-list');
+        if (host) {
+          host.innerHTML = '<div class="empty-copy">' +
+            L('ระบบอ่านสถานะ pipeline ไม่สำเร็จ: ', 'Could not read pipeline state: ') +
+            escapeHtml(error && error.message ? error.message : 'request failed') +
+            '</div>';
+        }
+      });
+  }
+
+  loadPipeline();
+  setInterval(loadPipeline, 15000);
 })();
 </script>
 {% endblock %}

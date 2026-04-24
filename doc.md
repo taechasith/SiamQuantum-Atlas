@@ -70,7 +70,7 @@ The app uses SQLite as the source of truth for the current local/demo workflow.
 
 ### `/` (home)
 
-Landing page presenting the project purpose, live corpus stats (sources, triplets, geo coverage, year range), and navigation cards to all major sections. Fetches `/api/stats/summary` asynchronously — the page renders instantly without waiting for data. No heavy JavaScript or libraries are loaded on this page.
+Landing page presenting the project purpose, live corpus stats (sources, triplets, geo coverage, year range), page entry cards, and a real pipeline-status section backed by `/api/stats/summary` and `/api/pipeline/live`. The current UI direction is a premium dark research-platform shell, but the stack remains the same FastAPI + Jinja2 implementation.
 
 ### `/dashboard`
 
@@ -78,13 +78,15 @@ Dashboard for source geography and coverage framing. It is intended for quick or
 
 ### `/network`
 
-Three.js-style 3D concept network using `3d-force-graph`. The page supports:
+3D concept network using `3d-force-graph`. The page supports:
 
 - graph-level framing and help text
 - leaf-node suppression for readability
 - smoother camera focus
 - graph metrics panel
 - click-through node detail
+- richer plain-language interpretation for selected nodes
+- jump-through navigation from neighbor items inside the detail drawer
 
 **Performance:** The 3D scene is lazy-loaded behind a "Launch 3D Graph" button. Three.js and 3d-force-graph scripts (~1 MB combined) are deferred and the WebGL render loop does not start until the user explicitly launches the scene.
 
@@ -154,7 +156,7 @@ Performance improvements applied (2026-04-24):
 - 3D force graph is lazy-loaded — scripts deferred, WebGL init only on user click
 - Nav brand link routes to `/` (home) instead of `/dashboard`
 
-This is still the current research-tool version. The next-version UI under development is intended to go further on interaction design and polish, then be refined from user feedback rather than imposed as an architecture rewrite.
+This is still the current research-platform version. The next-version UI under development is intended to go further on interaction design and polish, then be refined from user feedback rather than imposed as an architecture rewrite.
 
 ## Known limitations
 

@@ -92,13 +92,14 @@ def client(seeded_db: Path) -> TestClient:
 
 
 # ---------------------------------------------------------------------------
-# Root redirect
+# Root home page
 # ---------------------------------------------------------------------------
 
-def test_root_redirects_to_dashboard(client: TestClient) -> None:
-    resp = client.get("/", follow_redirects=False)
-    assert resp.status_code in (301, 302, 307, 308)
-    assert resp.headers["location"] == "/dashboard"
+def test_root_returns_home_page(client: TestClient) -> None:
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "SiamQuantum Atlas" in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +258,27 @@ def test_stats_yearly_method_field(client: TestClient) -> None:
     assert data.get("method") == "bootstrap_geometric_mean"
     assert "operational" in data.get("relevance_scope_note", "")
     assert payload["relevance"]["mode"] == "operational_default"
+
+
+# ---------------------------------------------------------------------------
+# GET /api/pipeline/live
+# ---------------------------------------------------------------------------
+
+def test_pipeline_live_schema(client: TestClient) -> None:
+    resp = client.get("/api/pipeline/live")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    data = payload["data"]
+    assert "overview" in data
+    assert "recent_sources" in data
+    assert "submissions" in data
+    assert data["overview"]["total_sources"] == 2
+    assert len(data["recent_sources"]) == 2
+    first = data["recent_sources"][0]
+    for key in ("id", "platform", "url", "fetched_at", "stage_key", "stage_label", "triplet_count"):
+        assert key in first
+    assert first["stage_key"] == "analyzed"
 
 
 # ---------------------------------------------------------------------------

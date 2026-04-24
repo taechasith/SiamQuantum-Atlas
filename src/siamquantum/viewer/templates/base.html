@@ -6,23 +6,31 @@
   <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07111f;
-      --surface: rgba(8, 19, 39, 0.9);
-      --surface-2: rgba(14, 28, 52, 0.78);
-      --border: rgba(96, 165, 250, 0.24);
-      --border-strong: rgba(245, 158, 11, 0.3);
-      --text: #eff6ff;
-      --muted: #b4c4e3;
-      --accent: #60a5fa;
-      --accent-2: #f59e0b;
-      --ring: rgba(96, 165, 250, 0.38);
-      --shadow: 0 26px 72px rgba(2, 8, 23, 0.34);
-      --font-body: "Fira Sans", system-ui, sans-serif;
-      --font-heading: "Fira Code", monospace;
-      --font-mono: "Fira Code", monospace;
+      --bg: #02040a;
+      --bg-soft: #07101d;
+      --surface: rgba(7, 13, 24, 0.82);
+      --surface-strong: rgba(9, 17, 31, 0.92);
+      --surface-glass: rgba(10, 19, 36, 0.58);
+      --border: rgba(122, 168, 255, 0.18);
+      --border-strong: rgba(132, 208, 255, 0.34);
+      --text: #eff5ff;
+      --muted: #9cb0d0;
+      --muted-strong: #c6d3ea;
+      --accent: #84cfff;
+      --accent-2: #6c89ff;
+      --accent-3: #6be6ff;
+      --accent-4: #8d7dff;
+      --success: #53d8b3;
+      --danger: #ff7f96;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
+      --ring: rgba(132, 207, 255, 0.42);
+      --font-body: "Sarabun", "Noto Sans Thai", system-ui, sans-serif;
+      --font-heading: "Sarabun", "Noto Sans Thai", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+      --content-max: 1240px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,224 +38,928 @@
     body {
       font-family: var(--font-body);
       background:
-        radial-gradient(circle at top left, rgba(96, 165, 250, 0.12), transparent 24%),
-        radial-gradient(circle at top right, rgba(245, 158, 11, 0.1), transparent 20%),
-        linear-gradient(180deg, #07111f 0%, #081427 52%, #07111f 100%);
+        radial-gradient(circle at 14% 10%, rgba(132, 207, 255, 0.14), transparent 18%),
+        radial-gradient(circle at 84% 18%, rgba(108, 137, 255, 0.12), transparent 18%),
+        radial-gradient(circle at 52% 78%, rgba(107, 230, 255, 0.10), transparent 20%),
+        linear-gradient(180deg, #02040a 0%, #040814 42%, #02050c 100%);
       color: var(--text);
       min-height: 100vh;
-      line-height: 1.58;
+      line-height: 1.62;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(2, 4, 10, 0.06), rgba(2, 4, 10, 0.28)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.015) 0,
+          rgba(255, 255, 255, 0.015) 1px,
+          transparent 1px,
+          transparent 120px
+        );
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 84%);
+      z-index: -1;
     }
 
     a, button, input, select, textarea { font: inherit; }
 
-    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
       outline: 3px solid var(--ring);
       outline-offset: 2px;
     }
 
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.56;
+      z-index: -2;
+    }
+
+    .page-shell {
+      width: min(100%, var(--content-max));
+      margin: 0 auto;
+      padding: 0 1rem 1.25rem;
+    }
+
     nav {
-      background: rgba(6, 14, 28, 0.92);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 0.85rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 110;
+      padding: 1rem 1rem 0.85rem;
+      background: linear-gradient(180deg, rgba(2, 4, 10, 0.86), rgba(2, 4, 10, 0.18));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .nav-shell {
+      width: min(100%, var(--content-max));
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(6, 12, 22, 0.76);
+      box-shadow: var(--shadow);
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.95rem;
       text-decoration: none;
       color: var(--text);
       min-height: 44px;
+      cursor: pointer;
     }
 
     .brand-mark {
-      width: 2.25rem;
-      height: 2.25rem;
+      width: 2.5rem;
+      height: 2.5rem;
       display: grid;
       place-items: center;
-      border-radius: 0.9rem;
-      background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(245, 158, 11, 0.14));
+      border-radius: 1rem;
       border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-      font-family: var(--font-heading);
-      font-size: 0.84rem;
+      background:
+        linear-gradient(135deg, rgba(132, 207, 255, 0.14), rgba(108, 137, 255, 0.10)),
+        rgba(255, 255, 255, 0.03);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
       color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      letter-spacing: 0.08em;
     }
 
     .brand-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 0.08rem;
+      display: grid;
+      gap: 0.06rem;
     }
 
     .brand-title {
       font-family: var(--font-heading);
-      font-size: 0.98rem;
+      font-size: 1rem;
+      font-weight: 600;
       color: var(--text);
+      letter-spacing: 0.01em;
     }
 
     .brand-subtitle {
-      font-size: 0.73rem;
+      font-size: 0.78rem;
       color: var(--muted);
     }
 
     .nav-right {
       display: flex;
       align-items: center;
+      gap: 0.65rem;
       flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 0.45rem;
+    }
+
+    .lang-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      padding: 0.2rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      min-height: 34px;
+      padding: 0 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .lang-btn.active {
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(132, 207, 255, 0.18), rgba(108, 137, 255, 0.16));
+    }
+
+    .lang-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .nav-links {
       display: flex;
       flex-wrap: wrap;
+      gap: 0.4rem;
       justify-content: flex-end;
-      gap: 0.45rem;
     }
 
     .nav-links a {
       color: var(--muted);
       text-decoration: none;
       font-size: 0.86rem;
-      min-height: 44px;
+      min-height: 42px;
       display: inline-flex;
       align-items: center;
-      padding: 0.45rem 0.9rem;
+      padding: 0.5rem 0.92rem;
       border-radius: 999px;
       border: 1px solid transparent;
       transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+      cursor: pointer;
     }
 
     .nav-links a:hover {
       color: var(--text);
-      background: rgba(96, 165, 250, 0.08);
+      background: rgba(132, 207, 255, 0.08);
       border-color: var(--border);
       transform: translateY(-1px);
     }
 
     .nav-links a.active {
       color: var(--text);
-      background: rgba(96, 165, 250, 0.12);
+      background: linear-gradient(135deg, rgba(132, 207, 255, 0.12), rgba(108, 137, 255, 0.12));
       border-color: var(--border-strong);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
-    /* ── Language toggle ── */
-    .lang-toggle {
-      display: inline-flex;
+    .global-live {
+      margin-top: 0.95rem;
+    }
+
+    .global-live-card {
+      border-radius: 24px;
       border: 1px solid var(--border);
-      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(7, 13, 24, 0.88), rgba(7, 13, 24, 0.74));
+      box-shadow: var(--shadow);
+      padding: 1rem 1.15rem 1.15rem;
+      display: grid;
+      gap: 0.95rem;
       overflow: hidden;
-      flex-shrink: 0;
+      position: relative;
     }
 
-    .lang-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-family: var(--font-mono);
-      letter-spacing: 0.06em;
-      min-height: 36px;
-      padding: 0 0.8rem;
-      cursor: pointer;
-      transition: background .15s, color .15s;
+    .global-live-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(132, 207, 255, 0.10), transparent 22%),
+        radial-gradient(circle at 88% 26%, rgba(141, 125, 255, 0.10), transparent 18%);
+      pointer-events: none;
     }
 
-    .lang-btn.active {
-      background: rgba(96, 165, 250, 0.15);
-      color: var(--accent);
+    .global-live-head,
+    .global-live-row {
+      position: relative;
+      z-index: 1;
     }
 
-    .lang-btn:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.05);
+    .global-live-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .global-live-title {
       color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.22rem;
     }
 
-    /* ── i18n visibility ── */
+    .global-live-copy {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      max-width: 72ch;
+    }
+
+    .global-live-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 34px;
+      padding: 0.3rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(132, 207, 255, 0.08);
+      color: var(--accent);
+      white-space: nowrap;
+      font-size: 0.78rem;
+    }
+
+    .global-live-status::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    .global-live-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .global-live-metric {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 0.82rem 0.92rem;
+      min-height: 88px;
+    }
+
+    .global-live-metric-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .global-live-metric-value {
+      color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 1.18rem;
+      font-weight: 600;
+      margin-top: 0.34rem;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .global-live-feed {
+      display: grid;
+      gap: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .global-live-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.8rem 0.9rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .global-live-row-copy {
+      color: var(--text);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .global-live-row-meta {
+      color: var(--muted);
+      font-size: 0.77rem;
+      white-space: nowrap;
+    }
+
+    .cat-guide {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 120;
+      display: grid;
+      gap: 0.55rem;
+      justify-items: end;
+    }
+
+    .cat-panel {
+      width: min(320px, calc(100vw - 1.5rem));
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(6, 12, 22, 0.92);
+      color: var(--muted);
+      box-shadow: var(--shadow);
+      transform: translateY(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+
+    .cat-panel.is-open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .cat-panel-title {
+      color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 0.94rem;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    .cat-panel-copy {
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .cat-trigger {
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(132, 207, 255, 0.18), rgba(108, 137, 255, 0.16));
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .cat-trigger:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      background: linear-gradient(135deg, rgba(132, 207, 255, 0.24), rgba(108, 137, 255, 0.22));
+    }
+
+    .cat-trigger svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     html[data-lang="en"] .th-text { display: none !important; }
     html[data-lang="th"] .en-text { display: none !important; }
 
-    @media (max-width: 820px) {
-      nav {
+    @media (max-width: 980px) {
+      .nav-shell {
+        border-radius: 28px;
         align-items: flex-start;
         flex-direction: column;
       }
 
-      .nav-right {
+      .nav-right,
+      .nav-links {
         width: 100%;
         justify-content: flex-start;
       }
 
-      .nav-links {
-        justify-content: flex-start;
+      .global-live-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .global-live-head,
+      .global-live-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      nav {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+
+      .page-shell {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+
+      .global-live-metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
   {% block head %}{% endblock %}
 </head>
 <body>
+  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
+
   <nav>
-    <a class="brand" href="/">
-      <span class="brand-mark">SQ</span>
-      <span class="brand-copy">
-        <span class="brand-title">SiamQuantum Atlas</span>
-        <span class="brand-subtitle">
-          <span class="th-text">พื้นที่วิจัยสัญญาณควอนตัมไทย</span>
-          <span class="en-text">Thai Quantum Signals Workspace</span>
+    <div class="nav-shell">
+      <a class="brand" href="/">
+        <span class="brand-mark">SQ</span>
+        <span class="brand-copy">
+          <span class="brand-title">SiamQuantum Atlas</span>
+          <span class="brand-subtitle">
+            <span class="th-text">แพลตฟอร์มสำรวจสัญญาณควอนตัมไทย</span>
+            <span class="en-text">Thai Quantum Research Signal Platform</span>
+          </span>
         </span>
-      </span>
-    </a>
-    <div class="nav-right">
-      <div class="lang-toggle" role="group" aria-label="Language">
-        <button class="lang-btn" id="btn-th" type="button" aria-pressed="true" onclick="setLang('th')">TH</button>
-        <button class="lang-btn" id="btn-en" type="button" aria-pressed="false" onclick="setLang('en')">EN</button>
+      </a>
+      <div class="nav-right">
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn" id="btn-th" type="button" aria-pressed="true" onclick="setLang('th')">TH</button>
+          <button class="lang-btn" id="btn-en" type="button" aria-pressed="false" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="nav-links">
+          <a href="/" {% if active == 'home' %}class="active"{% endif %}>
+            <span class="th-text">หน้าแรก</span><span class="en-text">Home</span>
+          </a>
+          <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>
+            <span class="th-text">แผนที่</span><span class="en-text">Map</span>
+          </a>
+          <a href="/network" {% if active == 'network' %}class="active"{% endif %}>
+            <span class="th-text">เครือข่าย</span><span class="en-text">Network</span>
+          </a>
+          <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>
+            <span class="th-text">สถิติ</span><span class="en-text">Analytics</span>
+          </a>
+          <a href="/database" {% if active == 'database' %}class="active"{% endif %}>
+            <span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span>
+          </a>
+          <a href="/community" {% if active == 'community' %}class="active"{% endif %}>
+            <span class="th-text">ชุมชน</span><span class="en-text">Community</span>
+          </a>
+        </div>
       </div>
-      <div class="nav-links">
-        <a href="/" {% if active == 'home' %}class="active"{% endif %}>
-          <span class="th-text">หน้าหลัก</span><span class="en-text">Home</span>
-        </a>
-        <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>
-          <span class="th-text">แผนที่</span><span class="en-text">Map</span>
-        </a>
-        <a href="/network" {% if active == 'network' %}class="active"{% endif %}>
-          <span class="th-text">เครือข่าย</span><span class="en-text">Network</span>
-        </a>
-        <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>
-          <span class="th-text">สถิติ</span><span class="en-text">Analytics</span>
-        </a>
-        <a href="/database" {% if active == 'database' %}class="active"{% endif %}>
-          <span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span>
-        </a>
-        <a href="/community" {% if active == 'community' %}class="active"{% endif %}>
-          <span class="th-text">ชุมชน</span><span class="en-text">Community</span>
-        </a>
+    </div>
+    <div class="page-shell global-live" aria-label="Live page data">
+      <div class="global-live-card">
+        <div class="global-live-head">
+          <div>
+            <div class="global-live-title" id="global-live-title">Live page data</div>
+            <div class="global-live-copy" id="global-live-copy">Reading the real backend state for this page.</div>
+          </div>
+          <div class="global-live-status" id="global-live-status">Loading</div>
+        </div>
+        <div class="global-live-metrics" id="global-live-metrics"></div>
+        <div class="global-live-feed" id="global-live-feed"></div>
       </div>
     </div>
   </nav>
+
   {% block body %}{% endblock %}
+
+  <div class="cat-guide" aria-live="polite">
+    <div class="cat-panel" id="cat-panel">
+      <div class="cat-panel-title" id="cat-panel-title">Atlas guide</div>
+      <div class="cat-panel-copy" id="cat-panel-copy">A small guide for reading this page will appear here.</div>
+    </div>
+    <button class="cat-trigger" id="cat-trigger" type="button" aria-expanded="false" aria-controls="cat-panel" aria-label="Open page guide">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6.5 9.5 8.5 4l3.2 3h.6L15.5 4l2 5.5"></path>
+        <path d="M5.5 14.2c0-3.7 2.9-6.7 6.5-6.7s6.5 3 6.5 6.7c0 2.6-1.4 4.8-3.4 6.1l.2 2.2-2.2-1.2c-.4.1-.7.2-1.1.2s-.7-.1-1.1-.2l-2.2 1.2.2-2.2c-2-1.3-3.4-3.5-3.4-6.1Z"></path>
+        <path d="M9.2 14.5h.01M14.8 14.5h.01"></path>
+        <path d="M10.3 17.3c1 .6 2.4.6 3.4 0"></path>
+      </svg>
+    </button>
+  </div>
+
   <script>
     function setLang(lang) {
       document.documentElement.dataset.lang = lang;
       document.documentElement.lang = lang;
-      localStorage.setItem('sq-lang', lang);
-      document.getElementById('btn-th').classList.toggle('active', lang === 'th');
-      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-      if (typeof onLangChange === 'function') onLangChange(lang);
+      localStorage.setItem("sq-lang", lang);
+      document.getElementById("btn-th").classList.toggle("active", lang === "th");
+      document.getElementById("btn-en").classList.toggle("active", lang === "en");
+      document.getElementById("btn-th").setAttribute("aria-pressed", lang === "th" ? "true" : "false");
+      document.getElementById("btn-en").setAttribute("aria-pressed", lang === "en" ? "true" : "false");
+      if (typeof window.__sq_apply_language === "function") window.__sq_apply_language();
+      if (typeof window.onLangChange === "function") window.onLangChange(lang);
     }
+
     (function () {
-      var saved = localStorage.getItem('sq-lang') || 'th';
+      var saved = localStorage.getItem("sq-lang") || "th";
       setLang(saved);
+    })();
+  </script>
+  <script defer src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+  <script>
+    (function () {
+      function lang() {
+        return document.documentElement.dataset.lang === "en" ? "en" : "th";
+      }
+
+      function L(th, en) {
+        return lang() === "en" ? en : th;
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function relTime(value) {
+        if (!value) return L("ไม่พบเวลา", "No timestamp");
+        var ms = Date.now() - new Date(value).getTime();
+        if (!isFinite(ms)) return value;
+        var seconds = Math.max(Math.round(ms / 1000), 0);
+        if (seconds < 60) return L("เมื่อสักครู่", "just now");
+        var minutes = Math.round(seconds / 60);
+        if (minutes < 60) return L(minutes + " นาทีที่แล้ว", minutes + " min ago");
+        var hours = Math.round(minutes / 60);
+        if (hours < 24) return L(hours + " ชั่วโมงที่แล้ว", hours + " hr ago");
+        var days = Math.round(hours / 24);
+        return L(days + " วันที่แล้ว", days + " day ago");
+      }
+
+      function fmt(n) {
+        return typeof n === "number" ? n.toLocaleString() : String(n == null ? "-" : n);
+      }
+
+      function safeArray(value) {
+        return Array.isArray(value) ? value : [];
+      }
+
+      function reducedMotion() {
+        return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      }
+
+      var els = {
+        title: document.getElementById("global-live-title"),
+        copy: document.getElementById("global-live-copy"),
+        status: document.getElementById("global-live-status"),
+        metrics: document.getElementById("global-live-metrics"),
+        feed: document.getElementById("global-live-feed"),
+        catPanel: document.getElementById("cat-panel"),
+        catPanelTitle: document.getElementById("cat-panel-title"),
+        catPanelCopy: document.getElementById("cat-panel-copy"),
+        catTrigger: document.getElementById("cat-trigger")
+      };
+
+      var catGuides = {
+        "/": {
+          title: () => L("แมวไกด์: หน้าแรก", "Cat guide: Home"),
+          copy: () => L("เริ่มจาก live panel ด้านบนเพื่อดูว่าคอร์ปัสกำลังเคลื่อนไหวตรงไหน จากนั้นค่อยกระโดดไปยังแผนที่ เครือข่าย หรือสถิติตามคำถามวิจัยของคุณ", "Start with the live panel above to see where the corpus is moving, then jump to the map, network, or analytics view based on your research question.")
+        },
+        "/dashboard": {
+          title: () => L("แมวไกด์: แผนที่", "Cat guide: Map"),
+          copy: () => L("มอง cluster เป็นสัญญาณโครงสร้างพื้นฐาน ไม่ใช่ความนิยม ตรวจ popup ของแต่ละจุดเพื่อแยก origin hosting ออกจาก delivery layer", "Read clusters as infrastructure signals rather than popularity. Open each point to separate origin hosting from delivery layers.")
+        },
+        "/network": {
+          title: () => L("แมวไกด์: เครือข่าย", "Cat guide: Network"),
+          copy: () => L("โหนดใหญ่ไม่ได้แปลว่าสำคัญเชิงวิทยาศาสตร์เสมอไป แต่มักหมายถึงการถูกเชื่อมโยงหรือถูกกล่าวถึงบ่อย เริ่มจากฮับหลักแล้วค่อยดู detail drawer", "Large nodes do not automatically mean scientific importance. They usually indicate repeated linkage or repeated mention. Start with the main hubs, then read the detail drawer.")
+        },
+        "/analytics": {
+          title: () => L("แมวไกด์: สถิติ", "Cat guide: Analytics"),
+          copy: () => L("อ่านค่าความน่าจะเป็นและแนวโน้มก่อน แล้วค่อยลงรายละเอียดใน taxonomy เพื่อดูว่าการเปลี่ยนแปลงมาจากปริมาณหรือจากองค์ประกอบของคอร์ปัส", "Read probabilities and trend direction first, then move into taxonomy to see whether the change comes from volume or composition.")
+        },
+        "/database": {
+          title: () => L("แมวไกด์: ฐานข้อมูล", "Cat guide: Database"),
+          copy: () => L("ใช้ตัวกรองเป็น workflow ตรวจสอบคอร์ปัส เริ่มกว้างแล้วค่อยลดขอบเขตตาม platform ปี และ taxonomy เพื่อหาชุดข้อมูลที่คุณต้องการตรวจด้วยมือ", "Use filters as a corpus review workflow. Start broad, then narrow by platform, year, and taxonomy to reach the slice you want to inspect manually.")
+        },
+        "/community": {
+          title: () => L("แมวไกด์: ชุมชน", "Cat guide: Community"),
+          copy: () => L("หน้านี้เป็น intake queue จริง ถ้าสถานะยังอยู่ที่ queued หรือ queued_no_text นั่นคือสัญญาณ workflow ไม่ได้หมายความว่ารายการหายไป", "This page is a real intake queue. If an item remains queued or queued_no_text, it is a workflow signal rather than a missing submission.")
+        }
+      };
+
+      function setPanel(data) {
+        els.title.textContent = data.title;
+        els.copy.textContent = data.copy;
+        els.status.textContent = data.status;
+        els.metrics.innerHTML = safeArray(data.metrics).map(function (item) {
+          return '<article class="global-live-metric">' +
+            '<div class="global-live-metric-label">' + escapeHtml(item.label) + '</div>' +
+            '<div class="global-live-metric-value">' + escapeHtml(item.value) + '</div>' +
+          '</article>';
+        }).join("");
+        els.feed.innerHTML = safeArray(data.feed).length
+          ? safeArray(data.feed).map(function (item) {
+              return '<article class="global-live-row">' +
+                '<div class="global-live-row-copy">' + escapeHtml(item.copy) + '</div>' +
+                '<div class="global-live-row-meta">' + escapeHtml(item.meta || "") + '</div>' +
+              '</article>';
+            }).join("")
+          : '<article class="global-live-row"><div class="global-live-row-copy">' +
+              escapeHtml(L("ยังไม่มีสัญญาณข้อมูลสดสำหรับหน้านี้", "No live backend signal is available for this page yet.")) +
+            '</div></article>';
+      }
+
+      async function fetchJson(url) {
+        var response = await fetch(url);
+        var payload = await response.json();
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload && payload.error ? payload.error.message : "request failed");
+        }
+        return payload.data;
+      }
+
+      async function loadPageLive() {
+        var path = window.location.pathname;
+
+        if (path === "/dashboard") {
+          var geoPayload = await fetch("/api/geo/list");
+          var geo = await geoPayload.json();
+          var pipeline = await fetchJson("/api/pipeline/live");
+          return {
+            title: L("สถานะข้อมูลของหน้าแผนที่", "Live map data pull"),
+            copy: L("หน้านี้อ่านข้อมูลพิกัดจริงจาก /api/geo/list และเทียบกับ intake ล่าสุดในฐานข้อมูล", "This page reads real geolocation rows from /api/geo/list and compares them with the latest intake state."),
+            status: L("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+            metrics: [
+              { label: L("พิกัดพร้อมใช้", "Geo rows"), value: fmt(geo.count || 0) },
+              { label: L("ดึงเข้าคอร์ปัส", "Fetched"), value: fmt(pipeline.overview.total_sources || 0) },
+              { label: L("ผูกพิกัดแล้ว", "Geocoded"), value: fmt(pipeline.overview.geocoded_sources || 0) },
+              { label: L("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+            ],
+            feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
+              return {
+                copy: item.title || item.url,
+                meta: (item.platform || "?") + " · " + relTime(item.fetched_at)
+              };
+            })
+          };
+        }
+
+        if (path === "/network") {
+          var graph = await fetchJson("/api/graph");
+          var metrics = await fetchJson("/api/graph/metrics");
+          var pipelineNet = await fetchJson("/api/pipeline/live");
+          return {
+            title: L("สถานะข้อมูลของหน้าเครือข่าย", "Live network data pull"),
+            copy: L("หน้าเครือข่ายดึงโหนดและความสัมพันธ์จริงจาก /api/graph พร้อมตัวชี้วัดจาก /api/graph/metrics", "The network page pulls real nodes and relations from /api/graph with graph metrics from /api/graph/metrics."),
+            status: L("อัปเดตกราฟ " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at), "Graph updated " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at)),
+            metrics: [
+              { label: L("โหนด", "Nodes"), value: fmt(safeArray(graph.nodes).length) },
+              { label: L("เส้นเชื่อม", "Links"), value: fmt(safeArray(graph.links).length) },
+              { label: L("คอมโพเนนต์", "Components"), value: fmt(metrics.components || 0) },
+              { label: L("ฮับหลัก", "Top hub"), value: (metrics.hub_interpretation && metrics.hub_interpretation.degree_hub && metrics.hub_interpretation.degree_hub.label) || "-" }
+            ],
+            feed: safeArray(metrics.top_degree).slice(0, 3).map(function (item) {
+              return {
+                copy: item.label || "-",
+                meta: L("degree centrality ", "degree centrality ") + fmt(item.score)
+              };
+            })
+          };
+        }
+
+        if (path === "/analytics") {
+          var yearly = await fetchJson("/api/stats/yearly");
+          var tax = await fetchJson("/api/taxonomy/stats");
+          return {
+            title: L("สถานะข้อมูลของหน้า analytics", "Live analytics data pull"),
+            copy: L("หน้านี้ใช้ผลวิเคราะห์รายปีจาก /api/stats/yearly และชั้น taxonomy จาก /api/taxonomy/stats", "This page uses yearly analysis from /api/stats/yearly and taxonomy detail from /api/taxonomy/stats."),
+            status: L("รีเฟรชข้อมูลวิเคราะห์แล้ว", "Analytics data refreshed"),
+            metrics: [
+              { label: L("ปีที่มีข้อมูล", "Years"), value: fmt(safeArray(yearly.years).length) },
+              { label: L("คู่เปรียบเทียบ", "Pairwise"), value: fmt(safeArray(yearly.pairwise).length) },
+              { label: L("แนวโน้ม", "Trend"), value: (yearly.trend && yearly.trend.mannkendall_trend) || "-" },
+              { label: "Taxonomy", value: tax["insight:strongest_trend"] ? "ready" : "partial" }
+            ],
+            feed: safeArray(yearly.pairwise).slice(0, 3).map(function (item) {
+              return {
+                copy: item.year_a + " vs " + item.year_b,
+                meta: "ratio " + fmt(item.ratio)
+              };
+            })
+          };
+        }
+
+        if (path === "/database") {
+          var sources = await fetchJson("/api/sources?page=1&page_size=5");
+          var taxonomy = await fetchJson("/api/taxonomy/summary");
+          return {
+            title: L("สถานะข้อมูลของหน้าฐานข้อมูล", "Live database data pull"),
+            copy: L("หน้าฐานข้อมูลอ่านแถวจริงจาก /api/sources และตัวเลือกกรองจาก /api/taxonomy/summary", "The database page reads real rows from /api/sources and filter options from /api/taxonomy/summary."),
+            status: L("รีเฟรชรายการล่าสุดแล้ว", "Latest rows refreshed"),
+            metrics: [
+              { label: L("แถวทั้งหมด", "Total rows"), value: fmt(sources.total || 0) },
+              { label: L("โหลดรอบนี้", "Loaded"), value: fmt(safeArray(sources.items).length) },
+              { label: "Media formats", value: fmt(safeArray(taxonomy.media_format).length) },
+              { label: "User intents", value: fmt(safeArray(taxonomy.user_intent).length) }
+            ],
+            feed: safeArray(sources.items).slice(0, 3).map(function (item) {
+              return {
+                copy: item.title || item.url,
+                meta: (item.platform || "?") + " · " + fmt(item.published_year)
+              };
+            })
+          };
+        }
+
+        if (path === "/community") {
+          var submissions = await fetchJson("/api/community/submissions");
+          var queueItems = safeArray(submissions.items);
+          return {
+            title: L("สถานะข้อมูลของหน้าชุมชน", "Live community queue pull"),
+            copy: L("หน้าชุมชนอ่านคิวจริงจาก /api/community/submissions และแสดงสถานะ intake ล่าสุด", "The community page reads the real queue from /api/community/submissions and shows the latest intake states."),
+            status: L("รีเฟรชคิวแล้ว", "Queue refreshed"),
+            metrics: [
+              { label: L("รายการล่าสุด", "Recent items"), value: fmt(queueItems.length) },
+              { label: "Queued", value: fmt(queueItems.filter(function (item) { return String(item.status).indexOf("queued") === 0 || item.status === "pending"; }).length) },
+              { label: "Processed", value: fmt(queueItems.filter(function (item) { return item.status === "processed"; }).length) },
+              { label: "Failed", value: fmt(queueItems.filter(function (item) { return item.status === "failed"; }).length) }
+            ],
+            feed: queueItems.slice(0, 3).map(function (item) {
+              return {
+                copy: item.url,
+                meta: item.status || "-"
+              };
+            })
+          };
+        }
+
+        var summary = await fetchJson("/api/stats/summary");
+        var pipeline = await fetchJson("/api/pipeline/live");
+        return {
+          title: L("สถานะข้อมูลของหน้าแรก", "Live home data pull"),
+          copy: L("หน้าแรกอ่านภาพรวมคอร์ปัสจาก /api/stats/summary และ intake ล่าสุดจาก /api/pipeline/live", "The home page reads the live corpus summary from /api/stats/summary and recent intake from /api/pipeline/live."),
+          status: L("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+          metrics: [
+            { label: L("แหล่งข้อมูล", "Sources"), value: fmt(summary.total_sources || 0) },
+            { label: "Triplets", value: fmt(summary.total_triplets || 0) },
+            { label: "Geo", value: fmt(summary.geo_count || 0) },
+            { label: L("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+          ],
+          feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
+            return {
+              copy: item.title || item.url,
+              meta: (item.stage_label || "-") + " · " + relTime(item.fetched_at)
+            };
+          })
+        };
+      }
+
+      function applyCatGuide() {
+        var guide = catGuides[window.location.pathname] || catGuides["/"];
+        els.catPanelTitle.textContent = guide.title();
+        els.catPanelCopy.textContent = guide.copy();
+      }
+
+      async function refreshLivePanel() {
+        try {
+          setPanel(await loadPageLive());
+        } catch (error) {
+          setPanel({
+            title: L("สถานะข้อมูลสดของหน้านี้", "Live page data"),
+            copy: L("ระบบไม่สามารถอ่านสถานะข้อมูลจริงของหน้านี้ได้ในขณะนี้", "The app could not read the real backend state for this page right now."),
+            status: L("โหลดไม่สำเร็จ", "Unavailable"),
+            metrics: [
+              { label: "error", value: error && error.message ? error.message : "request failed" }
+            ],
+            feed: []
+          });
+        }
+      }
+
+      function toggleCatGuide() {
+        var isOpen = els.catPanel.classList.toggle("is-open");
+        els.catTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      els.catTrigger.addEventListener("click", toggleCatGuide);
+
+      window.__sq_apply_language = function () {
+        applyCatGuide();
+        refreshLivePanel();
+      };
+
+      applyCatGuide();
+      refreshLivePanel();
+      setInterval(refreshLivePanel, 15000);
+
+      if (!reducedMotion()) {
+        window.addEventListener("load", function () {
+          if (!window.THREE) return;
+
+          var canvas = document.getElementById("ambient-canvas");
+          var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+          var scene = new window.THREE.Scene();
+          var camera = new window.THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+          camera.position.z = 100;
+
+          var pointsCount = 88;
+          var positions = new Float32Array(pointsCount * 3);
+          var velocities = new Float32Array(pointsCount * 3);
+
+          for (var i = 0; i < pointsCount; i += 1) {
+            var ix = i * 3;
+            positions[ix] = (Math.random() - 0.5) * 240;
+            positions[ix + 1] = (Math.random() - 0.5) * 150;
+            positions[ix + 2] = (Math.random() - 0.5) * 120;
+            velocities[ix] = (Math.random() - 0.5) * 0.02;
+            velocities[ix + 1] = (Math.random() - 0.5) * 0.02;
+            velocities[ix + 2] = (Math.random() - 0.5) * 0.008;
+          }
+
+          var geometry = new window.THREE.BufferGeometry();
+          geometry.setAttribute("position", new window.THREE.BufferAttribute(positions, 3));
+          var material = new window.THREE.PointsMaterial({
+            color: 0x84cfff,
+            size: 1.6,
+            transparent: true,
+            opacity: 0.68,
+            depthWrite: false
+          });
+
+          var particles = new window.THREE.Points(geometry, material);
+          scene.add(particles);
+
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+
+          function resize() {
+            renderer.setSize(window.innerWidth, window.innerHeight, false);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+          }
+
+          resize();
+          window.addEventListener("resize", resize);
+
+          function animate() {
+            var array = geometry.attributes.position.array;
+            for (var i = 0; i < pointsCount; i += 1) {
+              var ix = i * 3;
+              array[ix] += velocities[ix];
+              array[ix + 1] += velocities[ix + 1];
+              array[ix + 2] += velocities[ix + 2];
+
+              if (array[ix] > 120 || array[ix] < -120) velocities[ix] *= -1;
+              if (array[ix + 1] > 75 || array[ix + 1] < -75) velocities[ix + 1] *= -1;
+              if (array[ix + 2] > 60 || array[ix + 2] < -60) velocities[ix + 2] *= -1;
+            }
+            geometry.attributes.position.needsUpdate = true;
+            particles.rotation.y += 0.0008;
+            particles.rotation.x += 0.0002;
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(animate);
+          }
+
+          animate();
+        });
+      }
     })();
   </script>
 </body>
