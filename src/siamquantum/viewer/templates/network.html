@@ -833,7 +833,7 @@
     if (graph) graph.refresh();
 
     try {
-      const response = await fetch(`/api/graph/node/${encodeURIComponent(node.id)}`);
+      const response = await fetch(`/api/graph/node?node_id=${encodeURIComponent(node.id)}`);
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
         throw new Error(payload?.error?.message || "Node detail failed");
@@ -860,7 +860,7 @@
           <div class="tag-row">
             <span class="tag">hub role: ${escapeHtml(role)}</span>
             <span class="tag">degree centrality: ${escapeHtml(metrics.degree_centrality ?? "-")}</span>
-            <span class="tag">betweenness: ${escapeHtml(metrics.betweenness_centrality ?? "-")}</span>
+            <span class="tag">betweenness: ${escapeHtml(metrics.betweenness_centrality ?? "not cached")}</span>
           </div>
         </div>
 

@@ -43,6 +43,13 @@
     margin-bottom: 1.25rem;
   }
 
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.95fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
   .eyebrow {
     color: var(--accent);
     font-size: 0.8rem;
@@ -224,6 +231,10 @@
       padding: 1rem;
     }
 
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
     .community-grid {
       grid-template-columns: 1fr;
     }
@@ -233,7 +244,8 @@
 
 {% block body %}
 <section class="community-shell">
-  <div class="hero-card">
+  <div class="hero-grid">
+  <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Community Submission</div>
     <h1>ส่งลิงก์จากชุมชนเข้าสู่ระบบ<br>Thai Quantum Community Submission</h1>
     <p>
@@ -243,6 +255,17 @@
     <div style="margin-top:1rem;padding:0.75rem 1rem;border-radius:12px;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.28);color:#ffb347;font-size:0.85rem;display:flex;gap:0.6rem;align-items:flex-start;">
       <span><b>Local workflow:</b> submissions persist immediately in SQLite, then move through a local queue. Automation is best-effort only and does not pretend to be fully hands-free.</span>
     </div>
+  </div>
+  <div class="side-card">
+    <h2>Workflow states</h2>
+    <p>This page is now a real local intake workflow. It records the submission immediately, then exposes queue state instead of pretending the downstream pipeline is always automatic.</p>
+    <ul class="side-list">
+      <li><strong>queued</strong>: stored and accepted</li>
+      <li><strong>processed</strong>: follow-up work completed</li>
+      <li><strong>queued_no_source</strong> or <strong>queued_no_text</strong>: stored, but enrichment could not proceed</li>
+      <li><strong>failed</strong>: request persisted, background follow-up failed</li>
+    </ul>
+  </div>
   </div>
 
   <div class="community-grid">
@@ -388,3 +411,29 @@
   loadQueue();
 </script>
 {% endblock %}
+  .side-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+    padding: 1.25rem;
+  }
+
+  .side-card h2 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .side-card p,
+  .side-card li {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+
+  .side-list {
+    margin: 0.55rem 0 0;
+    padding-left: 1rem;
+  }

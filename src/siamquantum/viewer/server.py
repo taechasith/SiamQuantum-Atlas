@@ -87,6 +87,184 @@ def _relevance_metadata(conn: sqlite3.Connection) -> dict[str, Any]:
     }
 
 
+def _graph_metrics_lookup(conn: sqlite3.Connection) -> tuple[dict[str, Any], dict[str, int], dict[str, float]]:
+    metrics_obj = StatsCacheRepo(conn).get("graph:metrics")
+    metrics = metrics_obj if isinstance(metrics_obj, dict) else {}
+    bet_rows = metrics.get("top_betweenness", []) if isinstance(metrics, dict) else []
+    bet_rank = {
+        str(item.get("id")): index + 1
+        for index, item in enumerate(bet_rows)
+        if isinstance(item, dict) and item.get("id")
+    }
+    bet_score = {
+        str(item.get("id")): float(item.get("score", 0.0))
+        for item in bet_rows
+        if isinstance(item, dict) and item.get("id") is not None
+    }
+    return metrics, bet_rank, bet_score
+
+
+def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any]:
+    import networkx as nx  # type: ignore[import-untyped]
+
+    rows = conn.execute(
+        """
+        SELECT
+            t.source_id,
+            t.subject,
+            t.relation,
+            t.object,
+            s.title,
+            s.url,
+            s.platform,
+            s.published_year,
+            s.quantum_domain,
+            e.production_type,
+            e.media_format,
+            e.user_intent
+        FROM triplets t
+        JOIN sources s ON s.id = t.source_id
+        LEFT JOIN entities e ON e.source_id = s.id
+        ORDER BY s.published_year DESC, t.id DESC
+        """
+    ).fetchall()
+
+    graph: nx.Graph = nx.Graph()
+    labels: dict[str, str] = {}
+    relation_counts_by_node: dict[str, Counter[str]] = {}
+    taxonomy_counts_by_node: dict[str, Counter[str]] = {}
+    domain_counts_by_node: dict[str, Counter[str]] = {}
+    neighbor_shared_counts_by_node: dict[str, Counter[str]] = {}
+    supporting_sources_by_node: dict[str, list[dict[str, Any]]] = {}
+    seen_sources_by_node: dict[str, set[int]] = {}
+
+    for row in rows:
+        subject = (row["subject"] or "").strip()
+        relation = (row["relation"] or "").strip()
+        obj = (row["object"] or "").strip()
+        subject_id = _norm_concept(subject)
+        object_id = _norm_concept(obj)
+        if len(subject_id) < 2 or len(object_id) < 2 or subject_id == object_id:
+            continue
+
+        labels.setdefault(subject_id, subject)
+        labels.setdefault(object_id, obj)
+        graph.add_edge(subject_id, object_id)
+
+        taxonomy_parts = [row["media_format"], row["user_intent"], row["production_type"]]
+        taxonomy_summary = " · ".join(str(part) for part in taxonomy_parts if part)
+        source_payload = {
+            "source_id": int(row["source_id"]),
+            "title": row["title"] or row["url"],
+            "url": row["url"],
+            "platform": row["platform"],
+            "published_year": row["published_year"],
+            "quantum_domain": row["quantum_domain"],
+        }
+
+        for node_id, other_label in ((subject_id, obj), (object_id, subject)):
+            relation_counts_by_node.setdefault(node_id, Counter())
+            taxonomy_counts_by_node.setdefault(node_id, Counter())
+            domain_counts_by_node.setdefault(node_id, Counter())
+            neighbor_shared_counts_by_node.setdefault(node_id, Counter())
+            supporting_sources_by_node.setdefault(node_id, [])
+            seen_sources_by_node.setdefault(node_id, set())
+
+            if relation:
+                relation_counts_by_node[node_id][relation] += 1
+            if taxonomy_summary:
+                taxonomy_counts_by_node[node_id][taxonomy_summary] += 1
+            if row["quantum_domain"]:
+                domain_counts_by_node[node_id][str(row["quantum_domain"])] += 1
+            if other_label:
+                neighbor_shared_counts_by_node[node_id][other_label] += 1
+
+            source_id = int(row["source_id"])
+            if source_id not in seen_sources_by_node[node_id]:
+                seen_sources_by_node[node_id].add(source_id)
+                supporting_sources_by_node[node_id].append(source_payload)
+
+    _, bet_rank_lookup, bet_score_lookup = _graph_metrics_lookup(conn)
+    node_count = graph.number_of_nodes()
+    degrees = {node_id: int(graph.degree(node_id)) for node_id in graph.nodes}
+    sorted_degrees = sorted(degrees.items(), key=lambda item: (-item[1], labels.get(item[0], item[0])))
+    degree_rank_lookup = {node_id: index + 1 for index, (node_id, _degree) in enumerate(sorted_degrees)}
+
+    components = sorted(nx.connected_components(graph), key=len, reverse=True)
+    component_lookup: dict[str, tuple[int, int]] = {}
+    for index, component in enumerate(components, start=1):
+        component_size = len(component)
+        for node_id in component:
+            component_lookup[node_id] = (index, component_size)
+
+    registry: dict[str, Any] = {}
+    for node_id in graph.nodes:
+        degree_value = degrees.get(node_id, 0)
+        component_rank, component_size = component_lookup.get(node_id, (None, 1))
+        neighbor_ids = sorted(
+            graph.neighbors(node_id),
+            key=lambda item: (-degrees.get(item, 0), labels.get(item, item)),
+        )[:8]
+        registry[node_id] = {
+            "id": node_id,
+            "label": labels.get(node_id, node_id),
+            "summary": {
+                "what_it_is": "A concept extracted from corpus triplets and merged by normalized text.",
+                "why_it_matters": (
+                    "Higher degree means the concept appears in more relations; a broker rank appears when the graph-metrics cache identifies it as a bridge concept."
+                ),
+                "hub_role": _hub_role(labels.get(node_id, node_id)),
+            },
+            "metrics": {
+                "degree": degree_value,
+                "degree_centrality": round((degree_value / max(node_count - 1, 1)), 6),
+                "betweenness_centrality": round(bet_score_lookup[node_id], 6) if node_id in bet_score_lookup else None,
+                "component_rank": component_rank,
+                "component_size": component_size,
+                "degree_rank": degree_rank_lookup.get(node_id),
+                "betweenness_rank": bet_rank_lookup.get(node_id),
+            },
+            "neighbors": [
+                {
+                    "id": neighbor_id,
+                    "label": labels.get(neighbor_id, neighbor_id),
+                    "degree": degrees.get(neighbor_id, 0),
+                    "shared_links": neighbor_shared_counts_by_node.get(node_id, Counter()).get(labels.get(neighbor_id, neighbor_id), 0),
+                }
+                for neighbor_id in neighbor_ids
+            ],
+            "top_relations": [
+                {"label": label, "count": count}
+                for label, count in relation_counts_by_node.get(node_id, Counter()).most_common(6)
+            ],
+            "supporting_sources_count": len(supporting_sources_by_node.get(node_id, [])),
+            "supporting_sources": supporting_sources_by_node.get(node_id, [])[:5],
+            "taxonomy_context": [
+                {"label": label, "count": count}
+                for label, count in taxonomy_counts_by_node.get(node_id, Counter()).most_common(4)
+            ],
+            "domain_context": [
+                {"label": label, "count": count}
+                for label, count in domain_counts_by_node.get(node_id, Counter()).most_common(4)
+            ],
+            "nearby_concepts": [labels.get(neighbor_id, neighbor_id) for neighbor_id in neighbor_ids[:5]],
+        }
+
+    return registry
+
+
+def _graph_node_detail_payload(conn: sqlite3.Connection, node_id: str) -> dict[str, Any] | None:
+    normalized_id = _norm_concept(node_id)
+    cache = StatsCacheRepo(conn)
+    cached = cache.get("graph:node_details")
+    registry = cached if isinstance(cached, dict) else None
+    if registry is None:
+        registry = _build_graph_node_detail_registry(conn)
+        cache.set("graph:node_details", registry)
+    payload = registry.get(normalized_id)
+    return payload if isinstance(payload, dict) else None
+
+
 def _process_community_submission(submission_id: int, url: str) -> None:
     """
     Best-effort post-submit processing.
@@ -360,41 +538,12 @@ def api_graph(
 # API — graph metrics
 # ---------------------------------------------------------------------------
 
-@app.get("/api/graph/node/{node_id:path}")
-def api_graph_node_detail(node_id: str) -> JSONResponse:
-    """Return research context for one concept node in the graph."""
-    import networkx as nx  # type: ignore[import-untyped]
-
-    from siamquantum.pipeline.graph_metrics import build_concept_graph, compute_metrics
-
-    normalized_id = _norm_concept(node_id)
+def _api_graph_node_detail(node_id: str) -> JSONResponse:
     db = _db()
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
-            metrics_cache = StatsCacheRepo(conn).get("graph:metrics")
-            rows = conn.execute(
-                """
-                SELECT
-                    t.source_id,
-                    t.subject,
-                    t.relation,
-                    t.object,
-                    t.confidence,
-                    s.title,
-                    s.url,
-                    s.platform,
-                    s.published_year,
-                    s.quantum_domain,
-                    e.production_type,
-                    e.media_format,
-                    e.user_intent
-                FROM triplets t
-                JOIN sources s ON s.id = t.source_id
-                LEFT JOIN entities e ON e.source_id = s.id
-                ORDER BY s.published_year DESC, t.id DESC
-                """
-            ).fetchall()
+            payload = _graph_node_detail_payload(conn, node_id)
     except Exception as exc:
         return JSONResponse(
             {
@@ -406,8 +555,7 @@ def api_graph_node_detail(node_id: str) -> JSONResponse:
             status_code=500,
         )
 
-    graph, label_map = build_concept_graph(db)
-    if normalized_id not in graph:
+    if payload is None:
         return JSONResponse(
             {
                 "ok": False,
@@ -418,150 +566,19 @@ def api_graph_node_detail(node_id: str) -> JSONResponse:
             status_code=404,
         )
 
-    metrics = metrics_cache if isinstance(metrics_cache, dict) else compute_metrics(db)
-    undirected = graph.to_undirected()
-    connected_components = sorted(nx.connected_components(undirected), key=len, reverse=True)
-    component_rank = next(
-        (index + 1 for index, component in enumerate(connected_components) if normalized_id in component),
-        None,
-    )
-    component_size = next(
-        (len(component) for component in connected_components if normalized_id in component),
-        1,
-    )
+    return JSONResponse({"ok": True, "data": payload, "relevance": relevance, "error": None})
 
-    degree_value = int(undirected.degree(normalized_id))
-    degree_centrality = float(nx.degree_centrality(undirected).get(normalized_id, 0.0))
-    largest_component_nodes = connected_components[0] if connected_components else set()
-    betweenness = (
-        float(
-            nx.betweenness_centrality(
-                undirected.subgraph(largest_component_nodes),
-                normalized=True,
-                endpoints=False,
-            ).get(normalized_id, 0.0)
-        )
-        if normalized_id in largest_component_nodes and largest_component_nodes
-        else 0.0
-    )
 
-    neighbors = list(undirected.neighbors(normalized_id))
-    neighbor_counts: Counter[str] = Counter()
-    relation_counts: Counter[str] = Counter()
-    taxonomy_counts: Counter[str] = Counter()
-    domain_counts: Counter[str] = Counter()
-    supporting_sources: list[dict[str, Any]] = []
-    seen_source_ids: set[int] = set()
+@app.get("/api/graph/node")
+def api_graph_node_detail_query(node_id: str = Query(..., min_length=1)) -> JSONResponse:
+    """Query-string variant for concept ids that are awkward in path segments."""
+    return _api_graph_node_detail(node_id)
 
-    for row in rows:
-        subject = (row["subject"] or "").strip()
-        relation = (row["relation"] or "").strip()
-        obj = (row["object"] or "").strip()
-        subject_id = _norm_concept(subject)
-        object_id = _norm_concept(obj)
 
-        if normalized_id == subject_id:
-            other_label = obj
-        elif normalized_id == object_id:
-            other_label = subject
-        else:
-            continue
-
-        if other_label:
-            neighbor_counts[other_label] += 1
-        if relation:
-            relation_counts[relation] += 1
-
-        taxonomy_parts = [row["media_format"], row["user_intent"], row["production_type"]]
-        taxonomy_summary = " · ".join(str(part) for part in taxonomy_parts if part)
-        if taxonomy_summary:
-            taxonomy_counts[taxonomy_summary] += 1
-        if row["quantum_domain"]:
-            domain_counts[str(row["quantum_domain"])] += 1
-
-        source_id = int(row["source_id"])
-        if source_id in seen_source_ids:
-            continue
-        seen_source_ids.add(source_id)
-        supporting_sources.append(
-            {
-                "source_id": source_id,
-                "title": row["title"] or row["url"],
-                "url": row["url"],
-                "platform": row["platform"],
-                "published_year": row["published_year"],
-                "quantum_domain": row["quantum_domain"],
-            }
-        )
-
-    top_degree_rows = metrics.get("top_degree", []) if isinstance(metrics, dict) else []
-    top_bet_rows = metrics.get("top_betweenness", []) if isinstance(metrics, dict) else []
-    degree_rank = next(
-        (index + 1 for index, item in enumerate(top_degree_rows) if item.get("id") == normalized_id),
-        None,
-    )
-    betweenness_rank = next(
-        (index + 1 for index, item in enumerate(top_bet_rows) if item.get("id") == normalized_id),
-        None,
-    )
-
-    label = label_map.get(normalized_id, normalized_id)
-    neighbor_rows = [
-        {
-            "id": neighbor_id,
-            "label": label_map.get(neighbor_id, neighbor_id),
-            "degree": int(undirected.degree(neighbor_id)),
-            "shared_links": neighbor_counts.get(label_map.get(neighbor_id, neighbor_id), 0),
-        }
-        for neighbor_id in sorted(
-            neighbors,
-            key=lambda item: (-int(undirected.degree(item)), label_map.get(item, item)),
-        )[:8]
-    ]
-
-    return JSONResponse(
-        {
-            "ok": True,
-            "data": {
-                "id": normalized_id,
-                "label": label,
-                "summary": {
-                    "what_it_is": "A concept extracted from the corpus triplets and merged by normalized text.",
-                    "why_it_matters": (
-                        "Higher degree means the concept appears in more relations; higher betweenness means it bridges otherwise separate topic areas."
-                    ),
-                    "hub_role": _hub_role(label),
-                },
-                "metrics": {
-                    "degree": degree_value,
-                    "degree_centrality": round(degree_centrality, 6),
-                    "betweenness_centrality": round(betweenness, 6),
-                    "component_rank": component_rank,
-                    "component_size": component_size,
-                    "degree_rank": degree_rank,
-                    "betweenness_rank": betweenness_rank,
-                },
-                "neighbors": neighbor_rows,
-                "top_relations": [
-                    {"label": rel, "count": count}
-                    for rel, count in relation_counts.most_common(6)
-                ],
-                "supporting_sources_count": len(supporting_sources),
-                "supporting_sources": supporting_sources[:5],
-                "taxonomy_context": [
-                    {"label": tax, "count": count}
-                    for tax, count in taxonomy_counts.most_common(4)
-                ],
-                "domain_context": [
-                    {"label": domain, "count": count}
-                    for domain, count in domain_counts.most_common(4)
-                ],
-                "nearby_concepts": [row["label"] for row in neighbor_rows[:5]],
-            },
-            "relevance": relevance,
-            "error": None,
-        }
-    )
+@app.get("/api/graph/node/{node_id:path}")
+def api_graph_node_detail(node_id: str) -> JSONResponse:
+    """Path variant retained for compatibility."""
+    return _api_graph_node_detail(node_id)
 
 
 @app.get("/api/graph/metrics")

@@ -186,7 +186,7 @@ def test_graph_links_have_label(client: TestClient) -> None:
 
 
 def test_graph_node_detail_schema(client: TestClient) -> None:
-    resp = client.get("/api/graph/node/quantum%20computing")
+    resp = client.get("/api/graph/node", params={"node_id": "quantum computing"})
     assert resp.status_code == 200
     payload = resp.json()
     assert payload["ok"] is True
@@ -200,11 +200,17 @@ def test_graph_node_detail_schema(client: TestClient) -> None:
 
 
 def test_graph_node_detail_missing_returns_404(client: TestClient) -> None:
-    resp = client.get("/api/graph/node/not-a-real-concept")
+    resp = client.get("/api/graph/node", params={"node_id": "not-a-real-concept"})
     assert resp.status_code == 404
     payload = resp.json()
     assert payload["ok"] is False
     assert payload["error"]["code"] == "graph_node_not_found"
+
+
+def test_graph_node_detail_path_variant_still_works(client: TestClient) -> None:
+    resp = client.get("/api/graph/node/quantum%20computing")
+    assert resp.status_code == 200
+    assert resp.json()["ok"] is True
 
 
 # ---------------------------------------------------------------------------

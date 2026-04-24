@@ -41,6 +41,13 @@
     margin-bottom: 1.25rem;
   }
 
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.95fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
   .eyebrow {
     color: var(--accent);
     font-size: 0.8rem;
@@ -65,6 +72,33 @@
   .panel-card {
     padding: 1.25rem;
     margin-bottom: 1.25rem;
+  }
+
+  .side-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+    padding: 1.25rem;
+  }
+
+  .side-card h2 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .side-card p,
+  .side-card li {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+
+  .side-list {
+    margin: 0.55rem 0 0;
+    padding-left: 1rem;
   }
 
   .panel-card h2 {
@@ -304,6 +338,10 @@
     .database-shell {
       padding: 1rem;
     }
+
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 640px) {
@@ -322,7 +360,8 @@
 
 {% block body %}
 <section class="database-shell">
-  <div class="hero-card">
+  <div class="hero-grid">
+  <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Source Database View</div>
     <h1>ฐานข้อมูลแหล่งข้อมูลควอนตัมไทย<br>Thai Quantum Source Database</h1>
     <p>
@@ -332,6 +371,17 @@
     <p style="margin-top:0.85rem;font-size:0.9rem;">
       Scope note: current relevance flags are operational corpus defaults for Thai-quantum coverage. They are not yet a completed per-row relevance backfill.
     </p>
+  </div>
+  <div class="side-card">
+    <h2>Filter strategy</h2>
+    <p>Use this page as a review workspace, not just a raw dump. Start broad, then narrow by taxonomy tags to see how specific discourse segments differ in platform mix and source quality.</p>
+    <ul class="side-list">
+      <li>Year and platform for acquisition slices</li>
+      <li>Content type for editorial mode</li>
+      <li>Format, intent, and domain for taxonomy inspection</li>
+      <li>XLSX export mirrors the active filter state</li>
+    </ul>
+  </div>
   </div>
 
   <div class="panel-card">

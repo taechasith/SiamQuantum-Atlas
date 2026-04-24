@@ -44,6 +44,7 @@
 
   .hero {
     display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
     gap: 1.25rem;
     margin-bottom: 1.25rem;
   }
@@ -123,6 +124,57 @@
     font-size: 1.65rem;
     font-weight: 700;
     margin-top: 0.35rem;
+  }
+
+  .hero-side {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .brief-title {
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin-bottom: 0.45rem;
+  }
+
+  .brief-copy,
+  .brief-list li {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+
+  .brief-list {
+    margin: 0.55rem 0 0;
+    padding-left: 1rem;
+  }
+
+  .brief-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .brief-stat {
+    border-radius: 16px;
+    padding: 0.85rem 0.95rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .brief-stat-label {
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .brief-stat-value {
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
   }
 
   .map-card {
@@ -299,6 +351,10 @@
       padding: 1rem;
     }
 
+    .hero {
+      grid-template-columns: 1fr;
+    }
+
     .map-toolbar,
     .panel-footer {
       flex-direction: column;
@@ -355,6 +411,38 @@
         <div class="stat-card">
           <div class="stat-label">Geo Points</div>
           <div class="stat-value" id="stat-geo">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="hero-card" style="padding:1.25rem;">
+        <div class="brief-title">How to read the map</div>
+        <p class="brief-copy">Use this page as a provenance lens, not a popularity chart. Origin rows are shown first because they are more interpretable than CDN-resolved locations for source tracing.</p>
+        <ul class="brief-list">
+          <li>Cluster density shows where source infrastructure concentrates.</li>
+          <li>Popup ISP labels help separate institutional hosting from generic delivery layers.</li>
+          <li>CDN rows are intentionally hidden by default for cleaner trust signals.</li>
+        </ul>
+      </div>
+      <div class="hero-card" style="padding:1.25rem;">
+        <div class="brief-title">Operator snapshot</div>
+        <div class="brief-grid">
+          <div class="brief-stat">
+            <div class="brief-stat-label">Default mode</div>
+            <div class="brief-stat-value">Origin-first</div>
+          </div>
+          <div class="brief-stat">
+            <div class="brief-stat-label">Map stack</div>
+            <div class="brief-stat-value">Leaflet</div>
+          </div>
+          <div class="brief-stat">
+            <div class="brief-stat-label">Popup context</div>
+            <div class="brief-stat-value">ISP + source</div>
+          </div>
+          <div class="brief-stat">
+            <div class="brief-stat-label">Primary task</div>
+            <div class="brief-stat-value">Trace origin</div>
+          </div>
         </div>
       </div>
     </div>

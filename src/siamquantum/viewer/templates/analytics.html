@@ -42,6 +42,13 @@
     margin-bottom: 1.25rem;
   }
 
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
   .eyebrow {
     color: var(--accent);
     font-size: 0.8rem;
@@ -89,6 +96,38 @@
     font-size: 1.65rem;
     font-weight: 700;
     margin-top: 0.35rem;
+  }
+
+  .side-stack {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .brief-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(14px);
+    padding: 1.25rem;
+  }
+
+  .brief-card h3 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .brief-card p,
+  .brief-card li {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+
+  .brief-list {
+    margin: 0.55rem 0 0;
+    padding-left: 1rem;
   }
 
   .status-pill {
@@ -389,6 +428,10 @@
       padding: 1rem;
     }
 
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
     .charts-grid {
       grid-template-columns: 1fr;
     }
@@ -413,7 +456,8 @@
     Coverage: 0.4% academic/gov sources (3 of 768). Method: bootstrap geometric mean on log&#8321;&#8346;(view_count), 10,000 resamples, 90% CI.
   </div>
 
-  <div class="hero-card">
+  <div class="hero-grid">
+  <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Yearly Statistical View</div>
     <h1>สถิติรายปีของข้อมูลควอนตัมไทย<br>Thai Quantum Yearly Analytics</h1>
     <p>
@@ -435,6 +479,22 @@
       </div>
     </div>
     <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading analytics</div>
+  </div>
+  <div class="side-stack">
+    <div class="brief-card">
+      <h3>Method brief</h3>
+      <p>Read the charts as distribution-sensitive summaries, not as raw-view popularity claims. This page prioritizes log handling, bootstrap intervals, and nonparametric comparisons.</p>
+      <ul class="brief-list">
+        <li>Trend panel for year-level movement</li>
+        <li>Pairwise ratios for directional comparison</li>
+        <li>Taxonomy block for subgroup concentration</li>
+      </ul>
+    </div>
+    <div class="brief-card">
+      <h3>Analyst use</h3>
+      <p>Start with yearly movement, then move down to format-intent cells and subgroup signals to separate volume shifts from composition shifts.</p>
+    </div>
+  </div>
   </div>
 
   <div class="insight-strip">
