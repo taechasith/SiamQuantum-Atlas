@@ -10,11 +10,12 @@ from siamquantum.config import settings
 _SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
 
-def _configure(conn: sqlite3.Connection) -> None:
-    try:
-        conn.execute("PRAGMA journal_mode=WAL")
-    except sqlite3.OperationalError:
-        pass
+def _configure(conn: sqlite3.Connection, *, read_only: bool = False) -> None:
+    if not read_only:
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError:
+            pass
     conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
 
@@ -27,7 +28,7 @@ def get_connection(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
     else:
         conn = sqlite3.connect(str(db_path))
     try:
-        _configure(conn)
+        _configure(conn, read_only=settings.database_read_only)
         yield conn
     finally:
         conn.close()
