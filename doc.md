@@ -68,13 +68,17 @@ The app uses SQLite as the source of truth for the current local/demo workflow.
 
 ## Current pages
 
+### `/` (home)
+
+Landing page presenting the project purpose, live corpus stats (sources, triplets, geo coverage, year range), and navigation cards to all major sections. Fetches `/api/stats/summary` asynchronously — the page renders instantly without waiting for data. No heavy JavaScript or libraries are loaded on this page.
+
 ### `/dashboard`
 
 Dashboard for source geography and coverage framing. It is intended for quick orientation, not deep record review.
 
 ### `/network`
 
-Three.js-style 3D concept network using `3d-force-graph`. The page now supports:
+Three.js-style 3D concept network using `3d-force-graph`. The page supports:
 
 - graph-level framing and help text
 - leaf-node suppression for readability
@@ -82,7 +86,9 @@ Three.js-style 3D concept network using `3d-force-graph`. The page now supports:
 - graph metrics panel
 - click-through node detail
 
-The node detail panel is lightweight but useful. It exposes:
+**Performance:** The 3D scene is lazy-loaded behind a "Launch 3D Graph" button. Three.js and 3d-force-graph scripts (~1 MB combined) are deferred and the WebGL render loop does not start until the user explicitly launches the scene.
+
+The node detail panel exposes:
 
 - concept label
 - hub role and centrality context
@@ -139,6 +145,14 @@ The UI is a working research interface, not a full productized front-end platfor
 - better network understandability
 - clearer database filtering
 - more honest workflow feedback
+- a home/landing page at `/` (added 2026-04-24)
+
+Performance improvements applied (2026-04-24):
+
+- `GZipMiddleware` added to FastAPI app — all API responses compressed (~70% smaller)
+- `backdrop-filter: blur()` reduced from 14–18px to 4px across all templates (GPU cost)
+- 3D force graph is lazy-loaded — scripts deferred, WebGL init only on user click
+- Nav brand link routes to `/` (home) instead of `/dashboard`
 
 This is still the current research-tool version. The next-version UI under development is intended to go further on interaction design and polish, then be refined from user feedback rather than imposed as an architecture rewrite.
 
@@ -160,6 +174,8 @@ The current app can be prepared for Vercel only as a constrained demo deployment
 - Write paths must be disabled or clearly gated.
 - Durable ingest, queue processing, and corpus updates should remain in a stateful runtime.
 - Recommended deploy flags are `SIAMQUANTUM_DEPLOYMENT_MODE=vercel_demo` and `SIAMQUANTUM_DATABASE_READ_ONLY=true`.
+
+**Vercel SQLite fix (2026-04-24):** Vercel's `/var/task` is a read-only filesystem. SQLite requires write access to create `.db-shm`/`.db-wal` temp files even for read-only queries on a WAL-mode database. Fix: `api/index.py` copies the database to `/tmp` on cold start before importing the app. The WAL was also checkpointed and switched to DELETE journal mode before the commit.
 
 That constraint is architectural reality, not a bug to hide.
 

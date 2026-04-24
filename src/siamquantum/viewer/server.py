@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
@@ -24,6 +25,7 @@ from siamquantum.db.session import db_path_from_url, get_connection
 from siamquantum.models import CommunitySubmissionCreate
 
 app = FastAPI(title="SiamQuantum Atlas", version="0.1.0")
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
@@ -328,8 +330,8 @@ def _process_community_submission(submission_id: int, url: str) -> None:
 # ---------------------------------------------------------------------------
 
 @app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    return RedirectResponse(url="/dashboard")
+def root(request: Request) -> Any:
+    return templates.TemplateResponse(request, "home.html", {"active": "home"})
 
 
 # ---------------------------------------------------------------------------
@@ -1230,3 +1232,49 @@ def api_community_submit(
         },
         status_code=201,
     )
+
+
+# ---------------------------------------------------------------------------
+# API — home page summary
+# ---------------------------------------------------------------------------
+
+@app.get("/api/stats/summary")
+def api_stats_summary() -> JSONResponse:
+    """Key corpus stats for the home page."""
+    db = _db()
+    try:
+        with get_connection(db) as conn:
+            total_sources = int(conn.execute(
+                "SELECT COUNT(*) FROM sources WHERE is_quantum_tech = 1 AND is_thailand_related = 1"
+            ).fetchone()[0])
+            total_triplets = int(conn.execute("SELECT COUNT(*) FROM triplets").fetchone()[0])
+            year_row = conn.execute(
+                "SELECT MIN(published_year), MAX(published_year) FROM sources "
+                "WHERE is_quantum_tech = 1 AND is_thailand_related = 1"
+            ).fetchone()
+            geo_count = int(conn.execute(
+                "SELECT COUNT(DISTINCT g.source_id) FROM geo g "
+                "JOIN sources s ON g.source_id = s.id "
+                "WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+            ).fetchone()[0])
+            platform_rows = conn.execute(
+                "SELECT platform, COUNT(*) AS n FROM sources "
+                "WHERE is_quantum_tech = 1 AND is_thailand_related = 1 "
+                "GROUP BY platform ORDER BY n DESC LIMIT 6"
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "summary_failed", "message": str(exc)}},
+            status_code=500,
+        )
+    return JSONResponse({
+        "ok": True,
+        "data": {
+            "total_sources": total_sources,
+            "total_triplets": total_triplets,
+            "year_range": [year_row[0], year_row[1]],
+            "geo_count": geo_count,
+            "platforms": [{"platform": r[0], "count": r[1]} for r in platform_rows],
+        },
+        "error": None,
+    })

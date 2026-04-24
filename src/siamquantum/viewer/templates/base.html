@@ -46,9 +46,10 @@
     }
 
     nav {
-      background: rgba(6, 14, 28, 0.84);
+      background: rgba(6, 14, 28, 0.92);
       border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(18px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       padding: 0.85rem 1rem;
       display: flex;
       align-items: center;
@@ -149,7 +150,7 @@
 </head>
 <body>
   <nav>
-    <a class="brand" href="/dashboard">
+    <a class="brand" href="/">
       <span class="brand-mark">SQ</span>
       <span class="brand-copy">
         <span class="brand-title">SiamQuantum Atlas</span>
@@ -157,6 +158,7 @@
       </span>
     </a>
     <div class="nav-links">
+      <a href="/" {% if active == 'home' %}class="active"{% endif %}>หน้าหลัก / Home</a>
       <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>แผนที่ / Map</a>
       <a href="/network" {% if active == 'network' %}class="active"{% endif %}>เครือข่าย / Network</a>
       <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>สถิติ / Analytics</a>
