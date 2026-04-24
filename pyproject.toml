@@ -26,6 +26,7 @@ dependencies = [
     "pythainlp>=5.0",
     "dnspython>=2.6",
     "pymannkendall>=1.4",
+    "beautifulsoup4>=4.12",
 ]
 
 [project.optional-dependencies]
