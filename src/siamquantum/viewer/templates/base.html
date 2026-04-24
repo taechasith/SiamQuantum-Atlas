@@ -415,77 +415,125 @@
       white-space: nowrap;
     }
 
-    .cat-guide {
+    .live-placeholder {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      min-height: 84px;
+    }
+
+    .live-placeholder::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+      animation: live-shimmer 1.35s ease-in-out infinite;
+    }
+
+    .live-placeholder.line {
+      min-height: 58px;
+    }
+
+    .desktop-modal {
       position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 120;
-      display: grid;
-      gap: 0.55rem;
-      justify-items: end;
+      inset: 0;
+      z-index: 140;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(2, 4, 10, 0.68);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
-    .cat-panel {
-      width: min(320px, calc(100vw - 1.5rem));
-      padding: 0.95rem 1rem;
-      border-radius: 18px;
+    .desktop-modal.is-open {
+      display: flex;
+    }
+
+    .desktop-modal-card {
+      width: min(520px, 100%);
+      padding: 1.15rem 1.15rem 1rem;
+      border-radius: 24px;
       border: 1px solid var(--border);
-      background: rgba(6, 12, 22, 0.92);
-      color: var(--muted);
+      background: rgba(6, 12, 22, 0.96);
       box-shadow: var(--shadow);
-      transform: translateY(12px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s ease, transform .22s ease;
     }
 
-    .cat-panel.is-open {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .cat-panel-title {
+    .desktop-modal-title {
       color: var(--text);
       font-family: var(--font-heading);
-      font-size: 0.94rem;
-      margin-bottom: 0.3rem;
+      font-size: 1.08rem;
       font-weight: 600;
+      margin-bottom: 0.45rem;
     }
 
-    .cat-panel-copy {
-      font-size: 0.84rem;
-      line-height: 1.55;
+    .desktop-modal-copy {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.9rem;
     }
 
-    .cat-trigger {
-      width: 52px;
-      height: 52px;
+    .desktop-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .desktop-modal-btn {
+      min-height: 40px;
+      padding: 0.45rem 0.9rem;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: linear-gradient(135deg, rgba(132, 207, 255, 0.18), rgba(108, 137, 255, 0.16));
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text);
-      display: grid;
-      place-items: center;
-      box-shadow: var(--shadow);
       cursor: pointer;
-      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
     }
 
-    .cat-trigger:hover {
-      transform: translateY(-2px);
+    .desktop-modal-btn:hover {
+      background: rgba(132, 207, 255, 0.1);
       border-color: var(--border-strong);
-      background: linear-gradient(135deg, rgba(132, 207, 255, 0.24), rgba(108, 137, 255, 0.22));
+      transform: translateY(-1px);
     }
 
-    .cat-trigger svg {
-      width: 24px;
-      height: 24px;
+    .cat-apparition {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 120px;
+      height: 120px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+      transform: translate3d(0, 0, 0) scale(0.92);
+      transition: opacity 1.1s ease, transform 1.1s ease, filter 1.1s ease;
+      filter: blur(2px) drop-shadow(0 0 18px rgba(132, 207, 255, 0.24));
+    }
+
+    .cat-apparition.is-visible {
+      opacity: 0.26;
+      transform: translate3d(0, 0, 0) scale(1);
+      filter: blur(0) drop-shadow(0 0 24px rgba(132, 207, 255, 0.34));
+    }
+
+    .cat-apparition svg {
+      width: 100%;
+      height: 100%;
       fill: none;
-      stroke: currentColor;
-      stroke-width: 1.8;
+      stroke: rgba(180, 222, 255, 0.95);
+      stroke-width: 1.6;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+
+    @keyframes live-shimmer {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
     }
 
     html[data-lang="en"] .th-text { display: none !important; }
@@ -595,30 +643,51 @@
           </div>
           <div class="global-live-actions">
             <div class="global-live-status" id="global-live-status">Loading</div>
-            <button class="global-live-toggle" id="global-live-toggle" type="button" aria-expanded="true">Hide</button>
+            <button class="global-live-toggle" id="global-live-toggle" type="button" aria-expanded="true">x</button>
           </div>
         </div>
-        <div class="global-live-metrics" id="global-live-metrics"></div>
-        <div class="global-live-feed" id="global-live-feed"></div>
+        <div class="global-live-metrics" id="global-live-metrics">
+          <div class="live-placeholder" aria-hidden="true"></div>
+          <div class="live-placeholder" aria-hidden="true"></div>
+          <div class="live-placeholder" aria-hidden="true"></div>
+          <div class="live-placeholder" aria-hidden="true"></div>
+        </div>
+        <div class="global-live-feed" id="global-live-feed">
+          <div class="live-placeholder line" aria-hidden="true"></div>
+          <div class="live-placeholder line" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </nav>
 
   {% block body %}{% endblock %}
 
-  <div class="cat-guide" aria-live="polite">
-    <div class="cat-panel" id="cat-panel">
-      <div class="cat-panel-title" id="cat-panel-title">Atlas guide</div>
-      <div class="cat-panel-copy" id="cat-panel-copy">A small guide for reading this page will appear here.</div>
+  <div class="desktop-modal" id="desktop-modal" role="dialog" aria-modal="true" aria-labelledby="desktop-modal-title">
+    <div class="desktop-modal-card">
+      <div class="desktop-modal-title" id="desktop-modal-title">
+        <span class="th-text">แนะนำให้เปิดบนคอมพิวเตอร์</span>
+        <span class="en-text">Best Viewed On Desktop</span>
+      </div>
+      <div class="desktop-modal-copy">
+        <span class="th-text">เว็บนี้ออกแบบมาให้เห็นเครือข่าย แผนที่ และแผงวิเคราะห์ได้ชัดที่สุดบนคอมพิวเตอร์หรือหน้าจอขนาดใหญ่</span>
+        <span class="en-text">This site is recommended on a computer or larger screen for the clearest map, network, and analysis experience.</span>
+      </div>
+      <div class="desktop-modal-actions">
+        <button class="desktop-modal-btn" id="desktop-modal-close" type="button">
+          <span class="th-text">เข้าเว็บต่อ</span>
+          <span class="en-text">Continue</span>
+        </button>
+      </div>
     </div>
-    <button class="cat-trigger" id="cat-trigger" type="button" aria-expanded="false" aria-controls="cat-panel" aria-label="Open page guide and live panel">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6.5 9.5 8.5 4l3.2 3h.6L15.5 4l2 5.5"></path>
-        <path d="M5.5 14.2c0-3.7 2.9-6.7 6.5-6.7s6.5 3 6.5 6.7c0 2.6-1.4 4.8-3.4 6.1l.2 2.2-2.2-1.2c-.4.1-.7.2-1.1.2s-.7-.1-1.1-.2l-2.2 1.2.2-2.2c-2-1.3-3.4-3.5-3.4-6.1Z"></path>
-        <path d="M9.2 14.5h.01M14.8 14.5h.01"></path>
-        <path d="M10.3 17.3c1 .6 2.4.6 3.4 0"></path>
-      </svg>
-    </button>
+  </div>
+
+  <div class="cat-apparition" id="cat-apparition" aria-hidden="true">
+    <svg viewBox="0 0 120 120">
+      <path d="M34 43 42 20l17 13h2l17-13 8 23"></path>
+      <path d="M29 63c0-18 14-32 31-32s31 14 31 32c0 13-7 24-17 31l1 11-10-6c-2 1-4 1-5 1s-3 0-5-1l-10 6 1-11c-10-7-17-18-17-31Z"></path>
+      <path d="M48 64h.01M72 64h.01"></path>
+      <path d="M53 77c5 4 9 5 14 0"></path>
+    </svg>
   </div>
 
   <script>
@@ -693,15 +762,14 @@
         metrics: document.getElementById("global-live-metrics"),
         feed: document.getElementById("global-live-feed"),
         liveToggle: document.getElementById("global-live-toggle"),
-        catPanel: document.getElementById("cat-panel"),
-        catPanelTitle: document.getElementById("cat-panel-title"),
-        catPanelCopy: document.getElementById("cat-panel-copy"),
-        catTrigger: document.getElementById("cat-trigger")
+        desktopModal: document.getElementById("desktop-modal"),
+        desktopModalClose: document.getElementById("desktop-modal-close"),
+        apparition: document.getElementById("cat-apparition")
       };
 
       function liveToggleLabel() {
         var collapsed = els.liveShell && els.liveShell.classList.contains("is-collapsed");
-        return collapsed ? L("เปิด live data", "Show live data") : L("ซ่อน live data", "Hide live data");
+        return collapsed ? "+" : "x";
       }
 
       function applyLivePanelState() {
@@ -719,32 +787,47 @@
         applyLivePanelState();
       }
 
-      var catGuides = {
-        "/": {
-          title: () => L("แมวไกด์: หน้าแรก", "Cat guide: Home"),
-          copy: () => L("เริ่มจาก live panel ด้านบนเพื่อดูว่าคอร์ปัสกำลังเคลื่อนไหวตรงไหน จากนั้นค่อยกระโดดไปยังแผนที่ เครือข่าย หรือสถิติตามคำถามวิจัยของคุณ", "Start with the live panel above to see where the corpus is moving, then jump to the map, network, or analytics view based on your research question.")
-        },
-        "/dashboard": {
-          title: () => L("แมวไกด์: แผนที่", "Cat guide: Map"),
-          copy: () => L("มอง cluster เป็นสัญญาณโครงสร้างพื้นฐาน ไม่ใช่ความนิยม ตรวจ popup ของแต่ละจุดเพื่อแยก origin hosting ออกจาก delivery layer", "Read clusters as infrastructure signals rather than popularity. Open each point to separate origin hosting from delivery layers.")
-        },
-        "/network": {
-          title: () => L("แมวไกด์: เครือข่าย", "Cat guide: Network"),
-          copy: () => L("โหนดใหญ่ไม่ได้แปลว่าสำคัญเชิงวิทยาศาสตร์เสมอไป แต่มักหมายถึงการถูกเชื่อมโยงหรือถูกกล่าวถึงบ่อย เริ่มจากฮับหลักแล้วค่อยดู detail drawer", "Large nodes do not automatically mean scientific importance. They usually indicate repeated linkage or repeated mention. Start with the main hubs, then read the detail drawer.")
-        },
-        "/analytics": {
-          title: () => L("แมวไกด์: สถิติ", "Cat guide: Analytics"),
-          copy: () => L("อ่านค่าความน่าจะเป็นและแนวโน้มก่อน แล้วค่อยลงรายละเอียดใน taxonomy เพื่อดูว่าการเปลี่ยนแปลงมาจากปริมาณหรือจากองค์ประกอบของคอร์ปัส", "Read probabilities and trend direction first, then move into taxonomy to see whether the change comes from volume or composition.")
-        },
-        "/database": {
-          title: () => L("แมวไกด์: ฐานข้อมูล", "Cat guide: Database"),
-          copy: () => L("ใช้ตัวกรองเป็น workflow ตรวจสอบคอร์ปัส เริ่มกว้างแล้วค่อยลดขอบเขตตาม platform ปี และ taxonomy เพื่อหาชุดข้อมูลที่คุณต้องการตรวจด้วยมือ", "Use filters as a corpus review workflow. Start broad, then narrow by platform, year, and taxonomy to reach the slice you want to inspect manually.")
-        },
-        "/community": {
-          title: () => L("แมวไกด์: ชุมชน", "Cat guide: Community"),
-          copy: () => L("หน้านี้เป็น intake queue จริง ถ้าสถานะยังอยู่ที่ queued หรือ queued_no_text นั่นคือสัญญาณ workflow ไม่ได้หมายความว่ารายการหายไป", "This page is a real intake queue. If an item remains queued or queued_no_text, it is a workflow signal rather than a missing submission.")
-        }
-      };
+      function setLoadingPanel() {
+        if (!els.metrics || !els.feed || !els.status) return;
+        els.status.textContent = L("กำลังโหลด", "Loading");
+        els.metrics.innerHTML = new Array(4).fill('<div class="live-placeholder" aria-hidden="true"></div>').join("");
+        els.feed.innerHTML = new Array(2).fill('<div class="live-placeholder line" aria-hidden="true"></div>').join("");
+      }
+
+      function closeDesktopModal() {
+        if (!els.desktopModal) return;
+        els.desktopModal.classList.remove("is-open");
+        sessionStorage.setItem("sq-desktop-hint-seen", "true");
+      }
+
+      function maybeOpenDesktopModal() {
+        if (!els.desktopModal) return;
+        if (sessionStorage.getItem("sq-desktop-hint-seen") === "true") return;
+        els.desktopModal.classList.add("is-open");
+      }
+
+      function triggerCatApparition() {
+        if (!els.apparition || reducedMotion()) return;
+        var x = 48 + Math.round(Math.random() * Math.max(window.innerWidth - 180, 40));
+        var y = 96 + Math.round(Math.random() * Math.max(window.innerHeight - 220, 40));
+        var scale = (0.82 + Math.random() * 0.55).toFixed(2);
+        els.apparition.style.left = x + "px";
+        els.apparition.style.top = y + "px";
+        els.apparition.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+        els.apparition.classList.add("is-visible");
+        window.setTimeout(function () {
+          els.apparition.classList.remove("is-visible");
+          els.apparition.style.transform = "translate(-50%, -50%) scale(0.92)";
+        }, 3400);
+      }
+
+      function scheduleCatApparition() {
+        if (!els.apparition || reducedMotion()) return;
+        window.setTimeout(function show() {
+          triggerCatApparition();
+          window.setTimeout(show, 8000 + Math.round(Math.random() * 9000));
+        }, 2200);
+      }
 
       function setPanel(data) {
         els.title.textContent = data.title;
@@ -913,13 +996,8 @@
         };
       }
 
-      function applyCatGuide() {
-        var guide = catGuides[window.location.pathname] || catGuides["/"];
-        els.catPanelTitle.textContent = guide.title();
-        els.catPanelCopy.textContent = guide.copy();
-      }
-
       async function refreshLivePanel() {
+        setLoadingPanel();
         try {
           setPanel(await loadPageLive());
         } catch (error) {
@@ -935,34 +1013,30 @@
         }
       }
 
-      function toggleCatGuide() {
-        var collapsed = els.liveShell && els.liveShell.classList.contains("is-collapsed");
-        if (collapsed) {
-          localStorage.setItem("sq-live-collapsed", "false");
-          applyLivePanelState();
-          els.catPanel.classList.add("is-open");
-          els.catTrigger.setAttribute("aria-expanded", "true");
-          return;
-        }
-        var isOpen = els.catPanel.classList.toggle("is-open");
-        els.catTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      }
-
       if (els.liveToggle) {
         els.liveToggle.addEventListener("click", toggleLivePanel);
       }
-      els.catTrigger.addEventListener("click", toggleCatGuide);
+      if (els.desktopModalClose) {
+        els.desktopModalClose.addEventListener("click", closeDesktopModal);
+      }
+      if (els.desktopModal) {
+        els.desktopModal.addEventListener("click", function (event) {
+          if (event.target === els.desktopModal) {
+            closeDesktopModal();
+          }
+        });
+      }
 
       window.__sq_apply_language = function () {
         applyLivePanelState();
-        applyCatGuide();
         refreshLivePanel();
       };
 
       applyLivePanelState();
-      applyCatGuide();
+      maybeOpenDesktopModal();
       refreshLivePanel();
       setInterval(refreshLivePanel, 15000);
+      scheduleCatApparition();
 
       if (!reducedMotion()) {
         window.addEventListener("load", function () {
