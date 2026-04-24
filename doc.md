@@ -1,59 +1,104 @@
-# SiamQuantum Atlas: current architecture and research-tool spec
+# SiamQuantum Atlas: Developer Architecture Notes
 
-## Status
+## Overview
 
-This document describes the current research-tool version of SiamQuantum Atlas. It does not describe a speculative future stack. The live baseline in this repository is a Python + FastAPI + SQLite + Jinja2/CDN JavaScript system with a working analyst UI.
+We maintain SiamQuantum Atlas as a Python-first research platform for collecting, enriching, analyzing, and presenting Thai-relevant quantum discourse. We keep the implementation grounded in the existing stack instead of treating the repo like a speculative front-end rewrite target.
 
-A richer next-version UI is being developed, but it does not replace the current implementation yet. That future UI should be refined through real user feedback from this working research-tool baseline.
+At the moment, we use:
 
-## System purpose
+- FastAPI for the application and API layer
+- Jinja2 templates for the viewer pages
+- SQLite as the default local and demo data store
+- plain JavaScript plus CDN-delivered libraries for interactive UI behavior
+- Typer for the CLI and operator workflow
 
-SiamQuantum Atlas tracks and interprets Thai-relevant quantum discourse across a mixed source corpus. The system is built to support:
+The current product direction is a more polished research-platform UI, but we are still intentionally building on the same backend, template, and database architecture.
 
-- source collection and expansion
-- corpus review
-- NLP extraction of entities and triplets
-- discourse/network inspection
-- taxonomy-aware engagement analysis
-- local operator workflows for curation and community intake
+## How We Structure The System
 
-## Actual architecture
+We divide the repo into four practical layers:
 
-### Application layer
+1. ingestion and analysis workflows
+2. persistence and schema management
+3. viewer/API delivery
+4. deployment shims and environment-specific behavior
 
-- FastAPI application in `src/siamquantum/viewer/server.py`
-- Jinja2 templates under `src/siamquantum/viewer/templates/`
-- CDN JavaScript for maps, charts, and the 3D network scene
-- Typer CLI in `src/siamquantum/cli.py`
+This lets us keep the local research workflow, the public/demo viewer, and the analysis pipeline aligned without introducing a second application stack.
 
-### Data layer
+## Runtime Stack
 
-- SQLite database at the configured `SIAMQUANTUM_DATABASE_URL`
-- schema and migrations in `src/siamquantum/db/`
-- repo classes for sources, geo rows, entities, triplets, cache entries, and community submissions
+### Backend
 
-### Analysis layer
+We use FastAPI as the runtime web server and API surface. The main viewer app lives in:
 
-- NLP pipeline for entity/triplet extraction and abstention handling
-- bootstrap/nonparametric engagement analysis
-- taxonomy-aware summaries
-- graph metrics using NetworkX
+- `src/siamquantum/viewer/server.py`
 
-## Current corpus and source coverage
+That module handles:
 
-The current corpus is assembled from a practical mix of:
+- HTML page routes
+- JSON API routes
+- response envelopes and error handling
+- demo/read-only gating
+- template rendering
+- viewer-specific aggregation queries
 
-- GDELT pulls
-- YouTube ingest
-- RSS ingest
-- curated seed lists
-- selected manual or source-specific expansion paths
+### Templates
 
-The corpus boundary is operationally Thai-quantum focused. Current relevance flags should be interpreted as corpus-scope operational defaults unless explicit row-level checking has been run.
+We render the UI with Jinja2 templates stored in:
 
-## Current database objects
+- `src/siamquantum/viewer/templates/`
 
-Core persisted tables include:
+The current viewer follows a shared shell pattern:
+
+- `base.html` defines the global design system, navigation, live page panel, ambient visual layer, bilingual toggle behavior, and floating cat guide interaction
+- page templates extend `base.html` and add page-specific layout, CSS, and JavaScript
+
+This means we do not need React, Vue, or Tailwind to ship the current UI. We keep interaction logic close to the page that owns it and reuse the shared shell where it improves consistency.
+
+### Frontend Libraries
+
+We intentionally keep frontend dependencies narrow and page-specific:
+
+- Leaflet and MarkerCluster on `/dashboard`
+- `3d-force-graph` and Three.js on `/network`
+- Chart.js on `/analytics`
+- plain JavaScript for filtering, polling, drawers, forms, and bilingual UI state
+
+We currently load these libraries from CDNs inside the template files. That keeps the app simple to run in local research environments and avoids adding a separate frontend build step.
+
+### CLI
+
+We use Typer-based CLI commands to run ingestion and analysis workflows. The entrypoints live under:
+
+- `src/siamquantum/cli.py`
+
+We use the CLI for:
+
+- seed ingestion
+- RSS / GDELT / YouTube ingestion paths
+- NLP analysis
+- taxonomy and statistical analysis
+- graph metric refresh
+- serving the viewer locally
+
+## Data Layer
+
+### Primary Database
+
+We use SQLite as the source of truth for local development, local research use, and read-only demo deployment. The configured database URL is resolved through the project settings layer and typically points at the processed project database.
+
+SQLite is the right tradeoff for the current phase because:
+
+- the platform is primarily operator-driven
+- the analysis workflow is batch-oriented
+- the demo deployment is read-heavy
+- the repo benefits from minimal infrastructure overhead
+
+SQLite is not positioned here as a multi-writer production database.
+
+### Core Tables
+
+We currently rely on these key tables:
 
 - `sources`
 - `geo`
@@ -64,128 +109,247 @@ Core persisted tables include:
 - `nlp_abstentions`
 - `denstream_state`
 
-The app uses SQLite as the source of truth for the current local/demo workflow.
+In practice:
 
-## Current pages
+- `sources` stores the base corpus rows
+- `geo` stores geolocation or hosting-origin rows
+- `entities` stores classification and taxonomy-level enrichment
+- `triplets` stores extracted relation triples used by the graph view
+- `stats_cache` stores expensive or reusable analysis outputs
+- `community_submissions` stores the local intake queue
+- `nlp_abstentions` tracks skipped or unresolved NLP cases
+- `denstream_state` stores streaming or clustering state where applicable
 
-### `/` (home)
+### Schema And DB Utilities
 
-Landing page presenting the project purpose, live corpus stats (sources, triplets, geo coverage, year range), page entry cards, and a real pipeline-status section backed by `/api/stats/summary` and `/api/pipeline/live`. The current UI direction is a premium dark research-platform shell, but the stack remains the same FastAPI + Jinja2 implementation.
+We keep schema and connection utilities in:
 
-### `/dashboard`
+- `src/siamquantum/db/`
 
-Dashboard for source geography and coverage framing. It is intended for quick orientation, not deep record review.
+That area owns:
 
-### `/network`
+- initialization
+- migrations
+- connection helpers
+- DB-facing repository logic used by the viewer and pipeline
 
-3D concept network using `3d-force-graph`. The page supports:
+## Analysis Layer
 
-- graph-level framing and help text
-- leaf-node suppression for readability
-- smoother camera focus
-- graph metrics panel
-- click-through node detail
-- richer plain-language interpretation for selected nodes
-- jump-through navigation from neighbor items inside the detail drawer
+We treat analysis as a separate concern from viewer delivery. The viewer reads from analysis outputs, but the viewer is not responsible for recomputing the entire research pipeline on every request.
 
-**Performance:** The 3D scene is lazy-loaded behind a "Launch 3D Graph" button. Three.js and 3d-force-graph scripts (~1 MB combined) are deferred and the WebGL render loop does not start until the user explicitly launches the scene.
+### NLP And Extraction
 
-The node detail panel exposes:
+We use the pipeline modules under:
 
-- concept label
-- hub role and centrality context
-- component size and rank
-- nearby concepts
-- dominant relation labels
-- supporting source examples
-- derived taxonomy/domain context
+- `src/siamquantum/pipeline/`
 
-### `/analytics`
+These modules handle:
 
-Analytics view for yearly and taxonomy-aware engagement interpretation. The current system favors valid transforms and nonparametric/bootstrap methods over naive raw-view significance claims.
+- source text preparation
+- entity extraction
+- triplet extraction
+- abstention tracking
+- downstream enrichment steps
 
-### `/database`
+### Statistical Outputs
 
-Source browser for filtered inspection across platform, content type, taxonomy fields, and corpus-scope metadata.
+We use the stats modules under:
 
-### `/community`
+- `src/siamquantum/stats/`
 
-Local submission queue workflow. The page persists submissions to SQLite and surfaces recent queue state. It is intentionally honest about automation limits.
+The current approach is intentionally conservative. We favor:
 
-## Current statistical approach
+- log-oriented handling of heavy-tailed engagement metrics
+- bootstrap-based geometric summaries where appropriate
+- nonparametric comparison methods
+- taxonomy-aware subgroup interpretation
 
-The current statistical posture is deliberately conservative:
+We explicitly avoid overstating raw-view comparisons as if they were automatically trustworthy scientific conclusions.
 
-- log-oriented handling of heavy-tailed engagement values
-- bootstrap geometric summaries where appropriate
-- nonparametric group comparison methods
-- taxonomy-aware subgroup inspection
-- cached graph and analytics outputs for viewer performance
+### Graph Analytics
 
-The system explicitly avoids presenting raw-view parametric tests as a trustworthy default.
+The network experience depends on:
 
-## Current graph and taxonomy analytics
+- extracted triplets from the corpus
+- graph assembly for `/api/graph`
+- cached graph metrics for `/api/graph/metrics`
+- per-node detail interpretation for `/api/graph/node`
 
-Implemented analytics now include:
+We use these outputs to support:
 
 - connected component summaries
-- largest-component community summaries
-- degree-hub and broker-hub interpretation
 - top degree and betweenness rankings
-- taxonomy summary distributions
-- strongest engagement cells across format-intent combinations
-- subgroup trend framing where supported by the cached analysis layer
+- hub interpretation
+- community summaries
+- node-level contextual explanation
 
-These are interpretive aids over the observed corpus, not claims about the full Thai quantum public sphere.
+## Viewer And Route Architecture
 
-## Current UI state
+### Pages
 
-The UI is a working research interface, not a full productized front-end platform. It has been upgraded for:
+We currently serve six primary pages:
 
-- stronger hierarchy
-- cleaner scanability
-- better network understandability
-- clearer database filtering
-- more honest workflow feedback
-- a home/landing page at `/` (added 2026-04-24)
+- `/`
+- `/dashboard`
+- `/network`
+- `/analytics`
+- `/database`
+- `/community`
 
-Performance improvements applied (2026-04-24):
+### Home
 
-- `GZipMiddleware` added to FastAPI app — all API responses compressed (~70% smaller)
-- `backdrop-filter: blur()` reduced from 14–18px to 4px across all templates (GPU cost)
-- 3D force graph is lazy-loaded — scripts deferred, WebGL init only on user click
-- Nav brand link routes to `/` (home) instead of `/dashboard`
+We use `/` as the landing page for the research platform. It combines:
 
-This is still the current research-platform version. The next-version UI under development is intended to go further on interaction design and polish, then be refined from user feedback rather than imposed as an architecture rewrite.
+- project framing
+- live corpus overview
+- real pipeline status
+- entry points into each major workflow page
 
-## Known limitations
+The home page reads real data from:
 
-- SQLite limits multi-user write scalability.
-- Some source enrichment remains best-effort and environment-dependent.
-- Relevance semantics are operationally explicit but not universally classifier-verified per row.
-- Graph structure reflects extracted discourse relations, not formal knowledge-graph truth.
-- Community workflow is real locally, but not appropriate to present as fully automated.
-- Vercel is suitable only for a read-only or demo-safe deployment mode unless the storage model changes.
+- `/api/stats/summary`
+- `/api/pipeline/live`
 
-## Deployment reality
+### Shared Live Page Panel
 
-The current app can be prepared for Vercel only as a constrained demo deployment:
+We now use a shared live-data panel in `base.html` across the viewer. That panel is route-aware and reads different real APIs depending on the current page.
 
-- FastAPI remains the backend entrypoint.
-- SQLite should be treated as read-only in deployment mode.
-- Write paths must be disabled or clearly gated.
-- Durable ingest, queue processing, and corpus updates should remain in a stateful runtime.
-- Recommended deploy flags are `SIAMQUANTUM_DEPLOYMENT_MODE=vercel_demo` and `SIAMQUANTUM_DATABASE_READ_ONLY=true`.
+Examples:
 
-**Vercel SQLite fix (2026-04-24):** Vercel's `/var/task` is a read-only filesystem. SQLite requires write access to create `.db-shm`/`.db-wal` temp files even for read-only queries on a WAL-mode database. Fix: `api/index.py` copies the database to `/tmp` on cold start before importing the app. The WAL was also checkpointed and switched to DELETE journal mode before the commit.
+- `/dashboard` reads from `/api/geo/list` and `/api/pipeline/live`
+- `/network` reads from `/api/graph` and `/api/graph/metrics`
+- `/analytics` reads from `/api/stats/yearly` and `/api/taxonomy/stats`
+- `/database` reads from `/api/sources` and `/api/taxonomy/summary`
+- `/community` reads from `/api/community/submissions`
 
-That constraint is architectural reality, not a bug to hide.
+We also let the user collapse and reopen this panel. The state is stored in `localStorage`, and the floating cat button can reopen it when hidden.
 
-## Recommended interpretation
+### Dashboard
 
-Treat SiamQuantum Atlas as a practical discourse research instrument:
+The map page remains Leaflet-based and uses real geo rows from `/api/geo/list`. We bias the UI toward origin and provenance interpretation instead of presenting the map like a popularity surface.
 
-- strong enough for demos, review, and iterative research use
-- honest about the limits of the current corpus and infrastructure
-- ready for continued UI refinement and operator feedback loops
-- not a full production data platform yet
+### Network
+
+The network page remains based on `3d-force-graph`. We have upgraded the UX without changing the stack:
+
+- lazy graph launch
+- clearer graph framing
+- detail drawer with richer explanation
+- neighbor jump-through interactions
+- graph metrics panel
+- shared-shell live panel above the page
+
+We describe the page as a 3D concept network, not as a “Three.js-style” demo.
+
+### Analytics
+
+The analytics page continues to render data from:
+
+- `/api/stats/yearly`
+- `/api/taxonomy/stats`
+
+We keep the scientific wording cautious and preserve the meaning of the statistical outputs while improving readability and hierarchy.
+
+### Database
+
+The database page remains a filtered browser over `/api/sources`, with taxonomy metadata loaded from `/api/taxonomy/summary`. We currently support:
+
+- year filtering
+- platform filtering
+- content-type filtering
+- taxonomy filters
+- XLSX export
+
+### Community
+
+The community page is a real local intake queue, not a mocked form. It writes to `community_submissions` in local mode and exposes queue state through:
+
+- `POST /api/community/submit`
+- `GET /api/community/submissions`
+
+In demo mode we clearly disable writes.
+
+## UI System Notes
+
+We are deliberately evolving the viewer into a more polished research product without replacing the architecture.
+
+Current UI characteristics:
+
+- shared premium dark shell
+- Thai-friendly unified typography
+- ambient lightweight Three.js background particles
+- shared live data panel
+- floating cat guide interaction
+- bilingual Thai/English toggle
+- page-specific interaction layers built with plain JavaScript
+
+We currently preserve the server-rendered structure and keep enhancement incremental.
+
+## Settings And Environment Behavior
+
+The app behavior depends on runtime settings, especially for:
+
+- database URL resolution
+- deployment mode
+- read-only demo mode
+
+In particular, demo-safe behavior is important for Vercel and similar environments where SQLite should not be treated as a writable production store.
+
+## Deployment Notes
+
+### Local
+
+We normally run the app locally with editable install plus the built-in serve command:
+
+```bash
+python -m pip install -e .[dev]
+python -m siamquantum serve
+```
+
+### Vercel Demo
+
+We keep Vercel support constrained to a read-only demo model.
+
+Current deployment pieces:
+
+- `api/index.py` as the Vercel entry shim
+- `vercel.json` routing all requests to that entrypoint
+- a committed demo database bundle
+- read-only or demo-mode guards for write-sensitive features
+
+Important constraints:
+
+- Vercel is not the place for durable SQLite writes
+- community submission must be disabled or clearly gated in demo mode
+- ingestion and analysis should run in a stateful environment, not in the Vercel request lifecycle
+
+## How We Think About This Repo
+
+We treat this repository as the working research-platform baseline, not as a throwaway prototype.
+
+That means:
+
+- we preserve the current stack
+- we improve UX incrementally rather than rewriting the app
+- we keep scientific wording accurate
+- we keep route and data behavior honest
+- we document current reality rather than aspirational features
+
+## Current Limitations
+
+We should keep these constraints explicit:
+
+- SQLite does not give us high-concurrency write behavior
+- some NLP and enrichment steps remain best-effort
+- relevance semantics are still corpus-operational defaults in some areas
+- graph structure is interpretive, not ontological truth
+- demo deployment is read-only by design
+
+## Next Development Direction
+
+Our next stage is not a stack rewrite. Our next stage is continued UI refinement based on real usage and user feedback while preserving:
+
+- the FastAPI backend
+- the Jinja template structure
+- the current route model
+- the existing research and analytics pipeline

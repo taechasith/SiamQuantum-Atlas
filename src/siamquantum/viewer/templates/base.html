@@ -6,7 +6,7 @@
   <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #02040a;
@@ -27,9 +27,9 @@
       --danger: #ff7f96;
       --shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
       --ring: rgba(132, 207, 255, 0.42);
-      --font-body: "Sarabun", "Noto Sans Thai", system-ui, sans-serif;
-      --font-heading: "Sarabun", "Noto Sans Thai", system-ui, sans-serif;
-      --font-mono: "JetBrains Mono", monospace;
+      --font-body: "Sarabun", system-ui, sans-serif;
+      --font-heading: "Sarabun", system-ui, sans-serif;
+      --font-mono: "Sarabun", system-ui, sans-serif;
       --content-max: 1240px;
     }
 
@@ -278,6 +278,14 @@
       align-items: flex-start;
     }
 
+    .global-live-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .global-live-title {
       color: var(--text);
       font-family: var(--font-heading);
@@ -314,6 +322,34 @@
       border-radius: 999px;
       background: currentColor;
       box-shadow: 0 0 14px currentColor;
+    }
+
+    .global-live-toggle {
+      min-height: 34px;
+      padding: 0.3rem 0.78rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted-strong);
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease, transform .18s ease, border-color .18s ease;
+    }
+
+    .global-live-toggle:hover {
+      color: var(--text);
+      background: rgba(132, 207, 255, 0.1);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .global-live.is-collapsed .global-live-copy,
+    .global-live.is-collapsed .global-live-metrics,
+    .global-live.is-collapsed .global-live-feed {
+      display: none;
+    }
+
+    .global-live.is-collapsed .global-live-card {
+      padding-bottom: 1rem;
     }
 
     .global-live-metrics {
@@ -557,7 +593,10 @@
             <div class="global-live-title" id="global-live-title">Live page data</div>
             <div class="global-live-copy" id="global-live-copy">Reading the real backend state for this page.</div>
           </div>
-          <div class="global-live-status" id="global-live-status">Loading</div>
+          <div class="global-live-actions">
+            <div class="global-live-status" id="global-live-status">Loading</div>
+            <button class="global-live-toggle" id="global-live-toggle" type="button" aria-expanded="true">Hide</button>
+          </div>
         </div>
         <div class="global-live-metrics" id="global-live-metrics"></div>
         <div class="global-live-feed" id="global-live-feed"></div>
@@ -572,7 +611,7 @@
       <div class="cat-panel-title" id="cat-panel-title">Atlas guide</div>
       <div class="cat-panel-copy" id="cat-panel-copy">A small guide for reading this page will appear here.</div>
     </div>
-    <button class="cat-trigger" id="cat-trigger" type="button" aria-expanded="false" aria-controls="cat-panel" aria-label="Open page guide">
+    <button class="cat-trigger" id="cat-trigger" type="button" aria-expanded="false" aria-controls="cat-panel" aria-label="Open page guide and live panel">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6.5 9.5 8.5 4l3.2 3h.6L15.5 4l2 5.5"></path>
         <path d="M5.5 14.2c0-3.7 2.9-6.7 6.5-6.7s6.5 3 6.5 6.7c0 2.6-1.4 4.8-3.4 6.1l.2 2.2-2.2-1.2c-.4.1-.7.2-1.1.2s-.7-.1-1.1-.2l-2.2 1.2.2-2.2c-2-1.3-3.4-3.5-3.4-6.1Z"></path>
@@ -647,16 +686,38 @@
       }
 
       var els = {
+        liveShell: document.querySelector(".global-live"),
         title: document.getElementById("global-live-title"),
         copy: document.getElementById("global-live-copy"),
         status: document.getElementById("global-live-status"),
         metrics: document.getElementById("global-live-metrics"),
         feed: document.getElementById("global-live-feed"),
+        liveToggle: document.getElementById("global-live-toggle"),
         catPanel: document.getElementById("cat-panel"),
         catPanelTitle: document.getElementById("cat-panel-title"),
         catPanelCopy: document.getElementById("cat-panel-copy"),
         catTrigger: document.getElementById("cat-trigger")
       };
+
+      function liveToggleLabel() {
+        var collapsed = els.liveShell && els.liveShell.classList.contains("is-collapsed");
+        return collapsed ? L("เปิด live data", "Show live data") : L("ซ่อน live data", "Hide live data");
+      }
+
+      function applyLivePanelState() {
+        if (!els.liveShell || !els.liveToggle) return;
+        var collapsed = localStorage.getItem("sq-live-collapsed") === "true";
+        els.liveShell.classList.toggle("is-collapsed", collapsed);
+        els.liveToggle.textContent = liveToggleLabel();
+        els.liveToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      }
+
+      function toggleLivePanel() {
+        if (!els.liveShell) return;
+        var collapsed = !els.liveShell.classList.contains("is-collapsed");
+        localStorage.setItem("sq-live-collapsed", collapsed ? "true" : "false");
+        applyLivePanelState();
+      }
 
       var catGuides = {
         "/": {
@@ -875,17 +936,30 @@
       }
 
       function toggleCatGuide() {
+        var collapsed = els.liveShell && els.liveShell.classList.contains("is-collapsed");
+        if (collapsed) {
+          localStorage.setItem("sq-live-collapsed", "false");
+          applyLivePanelState();
+          els.catPanel.classList.add("is-open");
+          els.catTrigger.setAttribute("aria-expanded", "true");
+          return;
+        }
         var isOpen = els.catPanel.classList.toggle("is-open");
         els.catTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
       }
 
+      if (els.liveToggle) {
+        els.liveToggle.addEventListener("click", toggleLivePanel);
+      }
       els.catTrigger.addEventListener("click", toggleCatGuide);
 
       window.__sq_apply_language = function () {
+        applyLivePanelState();
         applyCatGuide();
         refreshLivePanel();
       };
 
+      applyLivePanelState();
       applyCatGuide();
       refreshLivePanel();
       setInterval(refreshLivePanel, 15000);
