@@ -461,26 +461,32 @@
   <div class="hero-grid">
   <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Yearly Statistical View</div>
-    <h1>สถิติรายปีของข้อมูลควอนตัมไทย<br>Thai Quantum Yearly Analytics</h1>
+    <h1>
+      <span class="th-text">สถิติรายปีของข้อมูลควอนตัมไทย</span>
+      <span class="en-text">Thai Quantum Yearly Analytics</span>
+    </h1>
     <p>
-      หน้านี้สรุปแนวโน้มรายปีจากฐานข้อมูล โดยผสานจำนวนแหล่งข้อมูลกับสัญญาณ engagement ระดับสูง
-      และแสดงผลการทดสอบนัยสำคัญทางสถิติเมื่อมีข้อมูลใน cache พร้อมใช้งาน.
+      <span class="th-text">หน้านี้สรุปแนวโน้มรายปีจากฐานข้อมูล โดยผสานจำนวนแหล่งข้อมูลกับสัญญาณ engagement ระดับสูง
+      และแสดงผลการทดสอบนัยสำคัญทางสถิติเมื่อมีข้อมูลใน cache พร้อมใช้งาน.</span>
+      <span class="en-text">This page summarises yearly trends from the corpus, combining source counts with high-engagement signals and statistical test results when cached analysis is available.</span>
     </p>
     <div class="stats">
       <div class="stat-card">
-        <div class="stat-label">ปีที่มีข้อมูล / Years</div>
+        <div class="stat-label"><span class="th-text">ปีที่มีข้อมูล</span><span class="en-text">Years</span></div>
         <div class="stat-value" id="stat-years">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">แหล่งข้อมูลรวม / Sources</div>
+        <div class="stat-label"><span class="th-text">แหล่งข้อมูลรวม</span><span class="en-text">Sources</span></div>
         <div class="stat-value" id="stat-sources">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ผลทดสอบ / Significance</div>
+        <div class="stat-label"><span class="th-text">ผลทดสอบ</span><span class="en-text">Significance</span></div>
         <div class="stat-value" id="stat-significance">0</div>
       </div>
     </div>
-    <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading analytics</div>
+    <div class="status-pill" id="status-pill">
+      <span class="th-text">กำลังโหลดข้อมูล</span><span class="en-text">Loading analytics</span>
+    </div>
   </div>
   <div class="side-stack">
     <div class="brief-card">
@@ -516,32 +522,38 @@
 
   <div class="empty-state" id="empty-state">
     <div>
-      <div class="state-title">ยังไม่มีสถิติรายปี / No yearly stats available</div>
+      <div class="state-title">
+        <span class="th-text">ยังไม่มีสถิติรายปี</span><span class="en-text">No yearly stats available</span>
+      </div>
       <div class="state-copy">
-        หน้า analytics ยังเปิดได้ตามปกติ แต่ฐานข้อมูลยังไม่มีข้อมูลรายปีเพียงพอสำหรับเรนเดอร์กราฟในตอนนี้.
+        <span class="th-text">หน้า analytics ยังเปิดได้ตามปกติ แต่ฐานข้อมูลยังไม่มีข้อมูลรายปีเพียงพอสำหรับเรนเดอร์กราฟในตอนนี้.</span>
+        <span class="en-text">Analytics is operational, but the database does not yet have enough yearly data to render charts.</span>
       </div>
     </div>
   </div>
 
   <div class="error-state" id="error-state">
     <div>
-      <div class="state-title">โหลดข้อมูลสถิติไม่สำเร็จ / Yearly stats API error</div>
+      <div class="state-title">
+        <span class="th-text">โหลดข้อมูลสถิติไม่สำเร็จ</span><span class="en-text">Yearly stats API error</span>
+      </div>
       <div class="state-copy" id="error-message">
-        ไม่สามารถโหลดข้อมูลจาก `/api/stats/yearly` ได้ในขณะนี้.
+        <span class="th-text">ไม่สามารถโหลดข้อมูลจาก /api/stats/yearly ได้ในขณะนี้.</span>
+        <span class="en-text">Could not load data from /api/stats/yearly.</span>
       </div>
     </div>
   </div>
 
   <div class="charts-grid" id="charts-grid">
     <div class="card wide-card">
-      <h3>แนวโน้มรายปี / Annual Trend + Engagement Comparison</h3>
-      <p>Bar + line composite chart แสดงจำนวนแหล่งข้อมูลทั้งหมดเทียบกับจำนวน high-engagement ต่อปี</p>
+      <h3><span class="th-text">แนวโน้มรายปี</span><span class="en-text">Annual Trend + Engagement Comparison</span></h3>
+      <p><span class="th-text">Bar + line composite chart แสดงจำนวนแหล่งข้อมูลทั้งหมดเทียบกับจำนวน high-engagement ต่อปี</span><span class="en-text">Bar + line composite chart: total sources vs. high-engagement count per year.</span></p>
       <canvas id="trend-chart"></canvas>
     </div>
 
     <div class="card">
-      <h3>แยกตามแพลตฟอร์ม / Platform Breakdown</h3>
-      <p>จำนวนแหล่งข้อมูลจากแต่ละแพลตฟอร์มในแต่ละปี</p>
+      <h3><span class="th-text">แยกตามแพลตฟอร์ม</span><span class="en-text">Platform Breakdown</span></h3>
+      <p><span class="th-text">จำนวนแหล่งข้อมูลจากแต่ละแพลตฟอร์มในแต่ละปี</span><span class="en-text">Source count per platform per year.</span></p>
       <canvas id="platform-chart"></canvas>
     </div>
 
@@ -605,6 +617,8 @@
     significanceList: document.getElementById("significance-list")
   };
 
+  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+
   function setStatus(text) {
     elements.status.textContent = text;
   }
@@ -614,7 +628,7 @@
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
     elements.charts.style.display = "none";
-    setStatus("ไม่มีข้อมูล / No yearly stats");
+    setStatus(L("ไม่มีข้อมูล", "No yearly stats"));
   }
 
   function showError(message) {
@@ -622,7 +636,7 @@
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
     elements.charts.style.display = "none";
-    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+    setStatus(L("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
@@ -714,7 +728,7 @@
       const trend = data.trend || {};
 
       if (!years.length) {
-        showEmpty("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล.");
+        showEmpty(L("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล.", "No yearly data in the database yet to render trendline charts."));
         return;
       }
 
@@ -782,9 +796,9 @@
 
       renderPairwise(pairwise);
       renderTrend(trend);
-      setStatus(`โหลดแล้ว ${years.length} ปี / ${pairwise.length} bootstrap pairs`);
+      setStatus(L(`โหลดแล้ว ${years.length} ปี / ${pairwise.length} bootstrap pairs`, `Loaded ${years.length} years · ${pairwise.length} bootstrap pairs`));
     } catch (error) {
-      showError(`ไม่สามารถโหลดข้อมูลสถิติรายปีได้: ${error.message}`);
+      showError(L(`ไม่สามารถโหลดข้อมูลสถิติรายปีได้: ${error.message}`, `Could not load yearly stats: ${error.message}`));
     }
   }
 

@@ -248,10 +248,14 @@
   <div class="hero-grid">
   <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Community Submission</div>
-    <h1>ส่งลิงก์จากชุมชนเข้าสู่ระบบ<br>Thai Quantum Community Submission</h1>
+    <h1>
+      <span class="th-text">ส่งลิงก์จากชุมชนเข้าสู่ระบบ</span>
+      <span class="en-text">Thai Quantum Community Submission</span>
+    </h1>
     <p>
-      หากคุณพบบทความ ข่าว หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เชื่อมกับประเทศไทย
-      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกลงฐานข้อมูลท้องถิ่นและจัดคิว best-effort processing ได้จากหน้านี้.
+      <span class="th-text">หากคุณพบบทความ ข่าว หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เชื่อมกับประเทศไทย
+      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกลงฐานข้อมูลท้องถิ่นและจัดคิว best-effort processing ได้จากหน้านี้.</span>
+      <span class="en-text">If you find an article, news item, or video about quantum technology linked to Thailand, submit the URL here to have it stored in the local database and queued for best-effort processing.</span>
     </p>
     <div style="margin-top:1rem;padding:0.75rem 1rem;border-radius:12px;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.28);color:#ffb347;font-size:0.85rem;display:flex;gap:0.6rem;align-items:flex-start;">
       <span><b>Local workflow:</b> submissions persist immediately in SQLite, then move through a local queue. Automation is best-effort only and does not pretend to be fully hands-free.</span>
@@ -271,8 +275,8 @@
 
   <div class="community-grid">
     <div class="form-card">
-      <h2>ฟอร์มส่งลิงก์ / Submission form</h2>
-      <p>กรอก `url` และ `handle` ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
+      <h2><span class="th-text">ฟอร์มส่งลิงก์</span><span class="en-text">Submission form</span></h2>
+      <p><span class="th-text">กรอก url และ handle ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</span><span class="en-text">Fill in the URL and optional handle. The system stores the row first, then processes it in the background where the environment allows.</span></p>
 
       {% if demo_mode %}
       <div class="status-box status-warning is-visible">
@@ -287,12 +291,12 @@
         </div>
 
         <div class="field">
-          <label for="handle">ชื่อผู้ส่ง / Handle</label>
+          <label for="handle"><span class="th-text">ชื่อผู้ส่ง</span><span class="en-text">Handle</span></label>
           <input id="handle" name="handle" type="text" placeholder="@username">
         </div>
 
         <div class="actions">
-          <button class="submit-btn" type="submit">ส่งข้อมูล / Submit</button>
+          <button class="submit-btn" type="submit"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit</span></button>
         </div>
       </form>
 
@@ -300,13 +304,16 @@
     </div>
 
     <div class="note-card">
-      <h2>สถานะหลังส่ง / What happens next</h2>
-      <p>เมื่อรับ submission แล้ว ระบบจะบันทึกแถวใน `community_submissions` และจัดคิวทำงานเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</p>
+      <h2><span class="th-text">สถานะหลังส่ง</span><span class="en-text">What happens next</span></h2>
+      <p>
+        <span class="th-text">เมื่อรับ submission แล้ว ระบบจะบันทึกแถวใน community_submissions และจัดคิวทำงานเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</span>
+        <span class="en-text">On receipt, the system saves a row in community_submissions and queues background work where the environment allows.</span>
+      </p>
       <ul class="note-list">
-        <li>รับค่า `handle` และ `url` แล้วตั้งสถานะเริ่มต้นเป็น queued</li>
-        <li>พยายามเรียก `claude.extract_triplets` หากมี source text พร้อมใช้งาน</li>
-        <li>รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต stat state เท่าที่ทำได้</li>
-        <li>ล้างเฉพาะ cache กลุ่ม `ttest:` โดยไม่กระทบ cache อื่น</li>
+        <li><span class="th-text">รับค่า handle และ url แล้วตั้งสถานะเริ่มต้นเป็น queued</span><span class="en-text">Stores handle + URL, initial status = queued</span></li>
+        <li><span class="th-text">พยายามเรียก claude.extract_triplets หากมี source text พร้อมใช้งาน</span><span class="en-text">Attempts claude.extract_triplets if source text is available</span></li>
+        <li><span class="th-text">รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต stat state เท่าที่ทำได้</span><span class="en-text">Refreshes existing analysis paths to update stat state where possible</span></li>
+        <li><span class="th-text">ล้างเฉพาะ cache กลุ่ม ttest: โดยไม่กระทบ cache อื่น</span><span class="en-text">Invalidates only the ttest: cache group, leaving others intact</span></li>
       </ul>
     </div>
   </div>
@@ -326,6 +333,8 @@
   const statusBox = document.getElementById("status-box");
   const submitButton = form.querySelector("button[type='submit']");
   const queueList = document.getElementById("queue-list");
+
+  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
 
   function showStatus(text, kind) {
     statusBox.textContent = text;
@@ -374,13 +383,13 @@
     const handle = document.getElementById("handle").value.trim();
 
     if (!url) {
-      showStatus("กรุณาระบุ URL / URL is required.", "status-error");
+      showStatus(L("กรุณาระบุ URL", "URL is required."), "status-error");
       return;
     }
 
     try {
       submitButton.disabled = true;
-      submitButton.textContent = "กำลังส่ง / Submitting...";
+      submitButton.textContent = L("กำลังส่ง…", "Submitting…");
       const response = await fetch("/api/community/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -390,22 +399,22 @@
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
         const message = payload && payload.error ? payload.error.message : "Submission failed";
-        showStatus(`ส่งข้อมูลไม่สำเร็จ / ${message}`, "status-error");
+        showStatus(L(`ส่งข้อมูลไม่สำเร็จ: ${message}`, `Submission failed: ${message}`), "status-error");
         return;
       }
 
       const data = payload.data || {};
       showStatus(
-        `รับรายการแล้ว ID=${data.id} สถานะ=${data.status} / Submission accepted with ID=${data.id}, status=${data.status}.`,
+        L(`รับรายการแล้ว ID=${data.id} สถานะ=${data.status}`, `Submission accepted · ID=${data.id}, status=${data.status}`),
         "status-success"
       );
       form.reset();
       await loadQueue();
     } catch (error) {
-      showStatus(`ระบบส่งข้อมูลล้มเหลว / ${error.message}`, "status-error");
+      showStatus(L(`ระบบส่งข้อมูลล้มเหลว: ${error.message}`, `Submit failed: ${error.message}`), "status-error");
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "ส่งข้อมูล / Submit";
+      submitButton.textContent = L("ส่งข้อมูล", "Submit");
     }
   });
 

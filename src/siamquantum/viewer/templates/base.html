@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -100,6 +100,14 @@
       color: var(--muted);
     }
 
+    .nav-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.45rem;
+    }
+
     .nav-links {
       display: flex;
       flex-wrap: wrap;
@@ -134,14 +142,54 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
     }
 
+    /* ── Language toggle ── */
+    .lang-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .lang-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      min-height: 36px;
+      padding: 0 0.8rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .lang-btn.active {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--accent);
+    }
+
+    .lang-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    /* ── i18n visibility ── */
+    html[data-lang="en"] .th-text { display: none !important; }
+    html[data-lang="th"] .en-text { display: none !important; }
+
     @media (max-width: 820px) {
       nav {
         align-items: flex-start;
         flex-direction: column;
       }
 
-      .nav-links {
+      .nav-right {
         width: 100%;
+        justify-content: flex-start;
+      }
+
+      .nav-links {
         justify-content: flex-start;
       }
     }
@@ -154,18 +202,53 @@
       <span class="brand-mark">SQ</span>
       <span class="brand-copy">
         <span class="brand-title">SiamQuantum Atlas</span>
-        <span class="brand-subtitle">Thai Quantum Signals Workspace</span>
+        <span class="brand-subtitle">
+          <span class="th-text">พื้นที่วิจัยสัญญาณควอนตัมไทย</span>
+          <span class="en-text">Thai Quantum Signals Workspace</span>
+        </span>
       </span>
     </a>
-    <div class="nav-links">
-      <a href="/" {% if active == 'home' %}class="active"{% endif %}>หน้าหลัก / Home</a>
-      <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>แผนที่ / Map</a>
-      <a href="/network" {% if active == 'network' %}class="active"{% endif %}>เครือข่าย / Network</a>
-      <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>สถิติ / Analytics</a>
-      <a href="/database" {% if active == 'database' %}class="active"{% endif %}>ฐานข้อมูล / Database</a>
-      <a href="/community" {% if active == 'community' %}class="active"{% endif %}>ชุมชน / Community</a>
+    <div class="nav-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button class="lang-btn" id="btn-th" type="button" aria-pressed="true" onclick="setLang('th')">TH</button>
+        <button class="lang-btn" id="btn-en" type="button" aria-pressed="false" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="nav-links">
+        <a href="/" {% if active == 'home' %}class="active"{% endif %}>
+          <span class="th-text">หน้าหลัก</span><span class="en-text">Home</span>
+        </a>
+        <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>
+          <span class="th-text">แผนที่</span><span class="en-text">Map</span>
+        </a>
+        <a href="/network" {% if active == 'network' %}class="active"{% endif %}>
+          <span class="th-text">เครือข่าย</span><span class="en-text">Network</span>
+        </a>
+        <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>
+          <span class="th-text">สถิติ</span><span class="en-text">Analytics</span>
+        </a>
+        <a href="/database" {% if active == 'database' %}class="active"{% endif %}>
+          <span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span>
+        </a>
+        <a href="/community" {% if active == 'community' %}class="active"{% endif %}>
+          <span class="th-text">ชุมชน</span><span class="en-text">Community</span>
+        </a>
+      </div>
     </div>
   </nav>
   {% block body %}{% endblock %}
+  <script>
+    function setLang(lang) {
+      document.documentElement.dataset.lang = lang;
+      document.documentElement.lang = lang;
+      localStorage.setItem('sq-lang', lang);
+      document.getElementById('btn-th').classList.toggle('active', lang === 'th');
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      if (typeof onLangChange === 'function') onLangChange(lang);
+    }
+    (function () {
+      var saved = localStorage.getItem('sq-lang') || 'th';
+      setLang(saved);
+    })();
+  </script>
 </body>
 </html>

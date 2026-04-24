@@ -374,10 +374,14 @@
   <div class="hero">
     <div class="hero-card">
       <div class="eyebrow">Thailand Quantum Signals</div>
-      <h1>แผนที่แหล่งข้อมูลควอนตัมไทย<br>Thai Quantum Geo Dashboard</h1>
+      <h1>
+        <span class="th-text">แผนที่แหล่งข้อมูลควอนตัมไทย</span>
+        <span class="en-text">Thai Quantum Geo Dashboard</span>
+      </h1>
       <p>
-        แดชบอร์ดนี้แสดงตำแหน่งต้นทางของแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทย โดยเน้นจุดที่มีพิกัดจริงจากฐานข้อมูล
-        และจัดกลุ่ม marker เมื่อพื้นที่หนาแน่นเพื่ออ่านภาพรวมได้เร็วขึ้น.
+        <span class="th-text">แดชบอร์ดนี้แสดงตำแหน่งต้นทางของแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทย โดยเน้นจุดที่มีพิกัดจริงจากฐานข้อมูล
+        และจัดกลุ่ม marker เมื่อพื้นที่หนาแน่นเพื่ออ่านภาพรวมได้เร็วขึ้น.</span>
+        <span class="en-text">This dashboard shows origin locations of Thai-linked quantum discourse sources. Origin IPs are prioritised; markers cluster in dense areas for faster overview.</span>
       </p>
       <p style="margin-top:0.85rem;font-size:0.9rem;">
         Corpus scope note: the current `is_quantum_tech` and `is_thailand_related` flags are operational corpus-boundary defaults,
@@ -390,7 +394,7 @@
       </div>
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-label">แหล่งข้อมูล / Sources</div>
+          <div class="stat-label"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></div>
           <div class="stat-value" id="stat-count">768</div>
         </div>
         <div class="stat-card">
@@ -406,7 +410,7 @@
           <div class="stat-value">2,001</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">ปีที่ศึกษา / Years</div>
+          <div class="stat-label"><span class="th-text">ปีที่ศึกษา</span><span class="en-text">Years</span></div>
           <div class="stat-value">2016–2026</div>
         </div>
         <div class="stat-card">
@@ -452,31 +456,36 @@
   <div class="map-card">
     <div class="map-toolbar">
       <div class="toolbar-copy">
-        <div class="map-title">แผนที่ประเทศไทย / Thailand Focus</div>
+        <div class="map-title"><span class="th-text">แผนที่ประเทศไทย</span><span class="en-text">Thailand Focus</span></div>
         <div class="map-subtitle">Leaflet + marker clustering, backed by `/api/geo/list`, with origin-first framing for cleaner trust signals</div>
         <div class="map-badges">
           <span class="meta-pill">88 origin points in current baseline</span>
           <span class="meta-pill">Use popup ISP labels for provenance</span>
         </div>
       </div>
-      <div class="status-pill" id="status-pill">กำลังโหลดข้อมูล / Loading data</div>
+      <div class="status-pill" id="status-pill"><span class="th-text">กำลังโหลดข้อมูล</span><span class="en-text">Loading data</span></div>
     </div>
     <div class="map-stack">
       <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
       <div class="empty-state" id="empty-state">
         <div>
-          <div class="state-title">ยังไม่มีข้อมูลพิกัด / No geo rows available</div>
+          <div class="state-title">
+            <span class="th-text">ยังไม่มีข้อมูลพิกัด</span><span class="en-text">No geo rows available</span>
+          </div>
           <div class="state-copy">
-            หน้าแดชบอร์ดยังทำงานได้ตามปกติ แต่ฐานข้อมูลยังไม่มีแถว `geo` ที่มี `lat` และ `lng`
-            สำหรับการแสดงผลบนแผนที่ในตอนนี้.
+            <span class="th-text">หน้าแดชบอร์ดยังทำงานได้ตามปกติ แต่ฐานข้อมูลยังไม่มีแถว geo ที่มี lat และ lng สำหรับการแสดงผลบนแผนที่ในตอนนี้.</span>
+            <span class="en-text">The dashboard is operational, but no geo rows with lat/lng are currently available to render on the map.</span>
           </div>
         </div>
       </div>
       <div class="error-state" id="error-state">
         <div>
-          <div class="state-title">โหลดข้อมูลแผนที่ไม่สำเร็จ / Geo API error</div>
+          <div class="state-title">
+            <span class="th-text">โหลดข้อมูลแผนที่ไม่สำเร็จ</span><span class="en-text">Geo API error</span>
+          </div>
           <div class="state-copy" id="error-copy">
-            ไม่สามารถอ่านข้อมูลพิกัดจาก `/api/geo/list` ได้ในขณะนี้.
+            <span class="th-text">ไม่สามารถอ่านข้อมูลพิกัดจาก /api/geo/list ได้ในขณะนี้.</span>
+            <span class="en-text">Could not load geo data from /api/geo/list.</span>
           </div>
         </div>
       </div>
@@ -541,6 +550,8 @@
     youtube: "marker-youtube"
   };
 
+  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+
   function setStatus(text) {
     elements.status.textContent = text;
   }
@@ -548,14 +559,14 @@
   function showEmpty() {
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
-    setStatus("ไม่มีข้อมูลพิกัด / No geo rows");
+    setStatus(L("ไม่มีข้อมูลพิกัด", "No geo rows"));
   }
 
   function showError(message) {
     elements.errorCopy.textContent = message;
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
-    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+    setStatus(L("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
@@ -577,7 +588,7 @@
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
       <span class="popup-meta">${item.isp || "Unknown ISP"}</span><br>
-      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">เปิดลิงก์ / Open source</a>
+      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดลิงก์", "Open source")}</a>
     `;
   }
 
@@ -595,7 +606,7 @@
       const platformSet = new Set(rows.map((row) => row.platform || "other"));
 
       document.getElementById("stat-geo").textContent = String(payload.count || rows.length);
-      elements.footer.textContent = "ค่าเริ่มต้นไม่รวม CDN-resolved rows";
+      elements.footer.textContent = L("ค่าเริ่มต้นไม่รวม CDN-resolved rows", "CDN-resolved rows excluded by default");
 
       if (!rows.length) {
         showEmpty();
@@ -620,8 +631,8 @@
       map.fitBounds(clusters.getBounds(), { padding: [28, 28], maxZoom: 9 });
       setStatus(`${rows.length} origin points mapped`);
     } catch (error) {
-      showError(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`);
-      elements.footer.textContent = "ตรวจสอบสถานะ `/api/geo/list` และข้อมูลฐานข้อมูล";
+      showError(L(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`, `Failed to load map data: ${error.message}`));
+      elements.footer.textContent = L("ตรวจสอบสถานะ /api/geo/list และข้อมูลฐานข้อมูล", "Check /api/geo/list status and database");
     }
   }
 

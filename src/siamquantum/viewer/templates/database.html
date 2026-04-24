@@ -365,10 +365,14 @@
   <div class="hero-grid">
   <div class="hero-card" style="margin-bottom:0;">
     <div class="eyebrow">Source Database View</div>
-    <h1>ฐานข้อมูลแหล่งข้อมูลควอนตัมไทย<br>Thai Quantum Source Database</h1>
+    <h1>
+      <span class="th-text">ฐานข้อมูลแหล่งข้อมูลควอนตัมไทย</span>
+      <span class="en-text">Thai Quantum Source Database</span>
+    </h1>
     <p>
-      หน้านี้ใช้สำหรับไล่ดูแหล่งข้อมูลที่อยู่ในฐานข้อมูลแบบรวดเร็ว พร้อมตัวกรองตามปี แพลตฟอร์ม และ content type
-      และสามารถส่งออกผลลัพธ์ที่กรองแล้วเป็นไฟล์ `.xlsx` ได้โดยตรง.
+      <span class="th-text">หน้านี้ใช้สำหรับไล่ดูแหล่งข้อมูลที่อยู่ในฐานข้อมูลแบบรวดเร็ว พร้อมตัวกรองตามปี แพลตฟอร์ม และ content type
+      และสามารถส่งออกผลลัพธ์ที่กรองแล้วเป็นไฟล์ .xlsx ได้โดยตรง.</span>
+      <span class="en-text">Browse corpus sources quickly with filters by year, platform, and content type. Export filtered results to .xlsx directly.</span>
     </p>
     <p style="margin-top:0.85rem;font-size:0.9rem;">
       Scope note: current relevance flags are operational corpus defaults for Thai-quantum coverage. They are not yet a completed per-row relevance backfill.
@@ -391,23 +395,23 @@
     <p class="panel-lead">Use the filters to narrow the corpus by year, platform, entity type, and taxonomy tags. Export respects the same active filters.</p>
     <div class="filters">
       <div class="field">
-        <label for="filter-year">ปี / Year</label>
+        <label for="filter-year"><span class="th-text">ปี</span><span class="en-text">Year</span></label>
         <select id="filter-year">
-          <option value="">ทุกปี / All years</option>
+          <option value=""><span class="th-text">ทุกปี</span><span class="en-text">All years</span></option>
         </select>
       </div>
       <div class="field">
-        <label for="filter-platform">แพลตฟอร์ม / Platform</label>
+        <label for="filter-platform"><span class="th-text">แพลตฟอร์ม</span><span class="en-text">Platform</span></label>
         <select id="filter-platform">
-          <option value="">ทั้งหมด / All platforms</option>
+          <option value=""><span class="th-text">ทั้งหมด</span><span class="en-text">All platforms</span></option>
           <option value="gdelt">GDELT</option>
           <option value="youtube">YouTube</option>
         </select>
       </div>
       <div class="field">
-        <label for="filter-content-type">ประเภทเนื้อหา / Content Type</label>
+        <label for="filter-content-type"><span class="th-text">ประเภทเนื้อหา</span><span class="en-text">Content Type</span></label>
         <select id="filter-content-type">
-          <option value="">ทั้งหมด / All types</option>
+          <option value=""><span class="th-text">ทั้งหมด</span><span class="en-text">All types</span></option>
           <option value="academic">Academic</option>
           <option value="news">News</option>
           <option value="educational">Educational</option>
@@ -434,30 +438,32 @@
       </div>
     </div>
     <div class="filter-actions">
-      <button class="btn btn-primary" id="apply-filters" type="button">ค้นหา / Apply</button>
-      <button class="btn btn-secondary" id="export-xlsx" type="button">ส่งออก XLSX / Export</button>
+      <button class="btn btn-primary" id="apply-filters" type="button"><span class="th-text">ค้นหา</span><span class="en-text">Apply</span></button>
+      <button class="btn btn-secondary" id="export-xlsx" type="button"><span class="th-text">ส่งออก XLSX</span><span class="en-text">Export XLSX</span></button>
     </div>
   </div>
 
   <div class="toolbar">
-    <div class="status-copy" id="status-copy">กำลังโหลดข้อมูล / Loading sources</div>
-    <div class="page-copy" id="total-copy">0 รายการ / 0 items</div>
+    <div class="status-copy" id="status-copy"><span class="th-text">กำลังโหลดข้อมูล</span><span class="en-text">Loading sources</span></div>
+    <div class="page-copy" id="total-copy"><span class="th-text">0 รายการ</span><span class="en-text">0 items</span></div>
   </div>
 
   <div class="empty-state" id="empty-state">
     <div>
-      <div class="state-title">ไม่พบข้อมูลตามตัวกรอง / No matching sources</div>
+      <div class="state-title"><span class="th-text">ไม่พบข้อมูลตามตัวกรอง</span><span class="en-text">No matching sources</span></div>
       <div class="state-copy">
-        หน้า database ยังทำงานได้ตามปกติ แต่ยังไม่มีแถวที่ตรงกับตัวกรองที่เลือกไว้ในตอนนี้.
+        <span class="th-text">หน้า database ยังทำงานได้ตามปกติ แต่ยังไม่มีแถวที่ตรงกับตัวกรองที่เลือกไว้ในตอนนี้.</span>
+        <span class="en-text">Database is operational, but no rows match the current filters.</span>
       </div>
     </div>
   </div>
 
   <div class="error-state" id="error-state">
     <div>
-      <div class="state-title">โหลดข้อมูลฐานข้อมูลไม่สำเร็จ / Sources API error</div>
+      <div class="state-title"><span class="th-text">โหลดข้อมูลฐานข้อมูลไม่สำเร็จ</span><span class="en-text">Sources API error</span></div>
       <div class="state-copy" id="error-message">
-        ไม่สามารถโหลดข้อมูลจาก `/api/sources` ได้ในขณะนี้.
+        <span class="th-text">ไม่สามารถโหลดข้อมูลจาก /api/sources ได้ในขณะนี้.</span>
+        <span class="en-text">Could not load data from /api/sources.</span>
       </div>
     </div>
   </div>
@@ -465,10 +471,10 @@
   <div class="source-grid" id="source-grid"></div>
 
   <div class="pagination">
-    <div class="page-copy" id="page-copy">หน้า 1 / 1</div>
+    <div class="page-copy" id="page-copy"><span class="th-text">หน้า 1 / 1</span><span class="en-text">Page 1 / 1</span></div>
     <div class="page-actions">
-      <button class="btn btn-primary" id="prev-page" type="button">ก่อนหน้า / Prev</button>
-      <button class="btn btn-primary" id="next-page" type="button">ถัดไป / Next</button>
+      <button class="btn btn-primary" id="prev-page" type="button"><span class="th-text">ก่อนหน้า</span><span class="en-text">Prev</span></button>
+      <button class="btn btn-primary" id="next-page" type="button"><span class="th-text">ถัดไป</span><span class="en-text">Next</span></button>
     </div>
   </div>
 </section>
@@ -500,6 +506,8 @@
     errorMessage: document.getElementById("error-message")
   };
 
+  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+
   function setStatus(text) {
     elements.status.textContent = text;
   }
@@ -529,7 +537,7 @@
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
     elements.grid.innerHTML = "";
-    setStatus("ไม่พบข้อมูล / No matching rows");
+    setStatus(L("ไม่พบข้อมูล", "No matching rows"));
   }
 
   function showError(message) {
@@ -537,7 +545,7 @@
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
     elements.grid.innerHTML = "";
-    setStatus("โหลดข้อมูลไม่สำเร็จ / Request failed");
+    setStatus(L("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function renderCard(item) {
@@ -570,7 +578,7 @@
           ${taxChips.join("")}
         </div>
         <div class="source-url">${item.url || "No URL available"}</div>
-        <a class="source-link" href="${item.url}" target="_blank" rel="noopener">เปิดต้นฉบับ / Open source</a>
+        <a class="source-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดต้นฉบับ", "Open source")}</a>
       </article>
     `;
   }
@@ -612,23 +620,23 @@
       state.pageSize = pageSize;
       state.totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-      elements.total.textContent = `${total} รายการ / ${total} items`;
-      elements.page.textContent = `หน้า ${currentPage} / ${state.totalPages}`;
+      elements.total.textContent = L(`${total} รายการ`, `${total} items`);
+      elements.page.textContent = L(`หน้า ${currentPage} / ${state.totalPages}`, `Page ${currentPage} / ${state.totalPages}`);
       elements.prev.disabled = currentPage <= 1;
       elements.next.disabled = currentPage >= state.totalPages;
 
       if (!items.length) {
-        showEmpty("ยังไม่มีข้อมูลที่ตรงกับ year, platform หรือ content type ที่เลือกไว้.");
+        showEmpty(L("ยังไม่มีข้อมูลที่ตรงกับตัวกรองที่เลือกไว้.", "No rows match the active filters."));
         return;
       }
 
       hideStates();
       elements.grid.innerHTML = items.map(renderCard).join("");
-      setStatus(`โหลดแล้ว ${items.length} รายการ / page ${currentPage}`);
+      setStatus(L(`โหลดแล้ว ${items.length} รายการ`, `Loaded ${items.length} items · page ${currentPage}`));
     } catch (error) {
-      showError(`ไม่สามารถโหลดข้อมูลแหล่งข้อมูลได้: ${error.message}`);
-      elements.total.textContent = "0 รายการ / 0 items";
-      elements.page.textContent = "หน้า 1 / 1";
+      showError(L(`ไม่สามารถโหลดข้อมูลแหล่งข้อมูลได้: ${error.message}`, `Could not load sources: ${error.message}`));
+      elements.total.textContent = L("0 รายการ", "0 items");
+      elements.page.textContent = L("หน้า 1 / 1", "Page 1 / 1");
     }
   }
 
