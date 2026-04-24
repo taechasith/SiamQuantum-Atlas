@@ -1,6 +1,8 @@
 .env
 .clude/
 .codex/
+.codex-serve-stderr.log
+.codex-serve-stdout.log
 .claude/
 doc.md
 
