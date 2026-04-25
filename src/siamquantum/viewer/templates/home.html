@@ -57,46 +57,46 @@
     letter-spacing: -0.02em;
   }
 
-  .hero-title .hl-blue {
+  .hero-title .hl-blue  { color: var(--accent); }
+  .hero-title .hl-amber { color: var(--accent-2); }
+  .hero-title .hl-atlas { color: var(--accent-3); }
+
+  .hero-title .char {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  .hero-title .char-blue {
     color: var(--accent);
-    text-shadow:
-      0 0 4px rgba(96, 165, 250, 1),
-      0 0 14px rgba(96, 165, 250, 0.85),
-      0 0 32px rgba(96, 165, 250, 0.55),
-      0 0 64px rgba(96, 165, 250, 0.28);
+    text-shadow: 0 0 4px rgba(96,165,250,1), 0 0 14px rgba(96,165,250,.85), 0 0 32px rgba(96,165,250,.55), 0 0 64px rgba(96,165,250,.28);
     animation: neon-blue 3.2s ease-in-out infinite;
   }
 
-  .hero-title .hl-amber {
+  .hero-title .char-amber {
     color: var(--accent-2);
-    text-shadow:
-      0 0 4px rgba(139, 130, 255, 1),
-      0 0 14px rgba(139, 130, 255, 0.85),
-      0 0 32px rgba(139, 130, 255, 0.55),
-      0 0 64px rgba(139, 130, 255, 0.28);
+    text-shadow: 0 0 4px rgba(139,130,255,1), 0 0 14px rgba(139,130,255,.85), 0 0 32px rgba(139,130,255,.55), 0 0 64px rgba(139,130,255,.28);
     animation: neon-amber 3.2s ease-in-out infinite;
-    animation-delay: 0.4s;
   }
 
-  .hero-title .hl-atlas {
+  .hero-title .char-atlas {
     color: var(--accent-3);
-    text-shadow:
-      0 0 4px rgba(79, 215, 255, 1),
-      0 0 14px rgba(79, 215, 255, 0.8),
-      0 0 32px rgba(79, 215, 255, 0.5),
-      0 0 64px rgba(79, 215, 255, 0.25);
-    animation: neon-blue 3.2s ease-in-out infinite;
-    animation-delay: 0.8s;
+    text-shadow: 0 0 4px rgba(79,215,255,1), 0 0 14px rgba(79,215,255,.8), 0 0 32px rgba(79,215,255,.5), 0 0 64px rgba(79,215,255,.25);
+    animation: neon-atlas 3.2s ease-in-out infinite;
   }
 
   @keyframes neon-blue {
-    0%, 100% { text-shadow: 0 0 4px rgba(96, 165, 250, 1), 0 0 14px rgba(96, 165, 250, 0.85), 0 0 32px rgba(96, 165, 250, 0.55), 0 0 64px rgba(96, 165, 250, 0.28); }
-    50% { text-shadow: 0 0 6px rgba(96, 165, 250, 1), 0 0 22px rgba(96, 165, 250, 1), 0 0 48px rgba(96, 165, 250, 0.75), 0 0 96px rgba(96, 165, 250, 0.42); }
+    0%,100% { text-shadow: 0 0 4px rgba(96,165,250,1), 0 0 14px rgba(96,165,250,.85), 0 0 32px rgba(96,165,250,.55), 0 0 64px rgba(96,165,250,.28); }
+    50%     { text-shadow: 0 0 6px rgba(96,165,250,1), 0 0 22px rgba(96,165,250,1),   0 0 48px rgba(96,165,250,.75), 0 0 96px rgba(96,165,250,.42); }
   }
 
   @keyframes neon-amber {
-    0%, 100% { text-shadow: 0 0 4px rgba(139, 130, 255, 1), 0 0 14px rgba(139, 130, 255, 0.85), 0 0 32px rgba(139, 130, 255, 0.55), 0 0 64px rgba(139, 130, 255, 0.28); }
-    50% { text-shadow: 0 0 6px rgba(139, 130, 255, 1), 0 0 22px rgba(139, 130, 255, 1), 0 0 48px rgba(139, 130, 255, 0.75), 0 0 96px rgba(139, 130, 255, 0.42); }
+    0%,100% { text-shadow: 0 0 4px rgba(139,130,255,1), 0 0 14px rgba(139,130,255,.85), 0 0 32px rgba(139,130,255,.55), 0 0 64px rgba(139,130,255,.28); }
+    50%     { text-shadow: 0 0 6px rgba(139,130,255,1), 0 0 22px rgba(139,130,255,1),   0 0 48px rgba(139,130,255,.75), 0 0 96px rgba(139,130,255,.42); }
+  }
+
+  @keyframes neon-atlas {
+    0%,100% { text-shadow: 0 0 4px rgba(79,215,255,1), 0 0 14px rgba(79,215,255,.8),  0 0 32px rgba(79,215,255,.5),  0 0 64px rgba(79,215,255,.25); }
+    50%     { text-shadow: 0 0 6px rgba(79,215,255,1), 0 0 22px rgba(79,215,255,1),   0 0 48px rgba(79,215,255,.72), 0 0 96px rgba(79,215,255,.38); }
   }
 
   .hero-sub {
@@ -908,6 +908,143 @@
 
   loadPipeline();
   setInterval(loadPipeline, 15000);
+})();
+</script>
+
+<script>
+(function () {
+  var heroTitle = document.querySelector('.hero-title');
+  if (!heroTitle) return;
+
+  /* ── 1. Split each colored span into per-character spans ── */
+  heroTitle.querySelectorAll('.hl-blue, .hl-amber, .hl-atlas').forEach(function (span) {
+    var cls = span.classList.contains('hl-blue') ? 'char-blue'
+            : span.classList.contains('hl-amber') ? 'char-amber'
+            : 'char-atlas';
+    var letters = span.textContent.split('');
+    span.textContent = '';
+    letters.forEach(function (ch, i) {
+      var s = document.createElement('span');
+      s.className = 'char ' + cls;
+      s.textContent = ch;
+      s.style.animationDelay = (i * 0.065) + 's';
+      span.appendChild(s);
+    });
+  });
+
+  /* ── 2. Sparkle canvas (fixed, pointer-events none) ── */
+  var cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9;';
+  document.body.appendChild(cvs);
+  var ctx = cvs.getContext('2d');
+
+  function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ── 3. Particle pool ── */
+  var particles = [];
+  function spawn(x, y, color) {
+    var a = Math.random() * Math.PI * 2;
+    var spd = 0.7 + Math.random() * 2.4;
+    particles.push({
+      x: x, y: y,
+      vx: Math.cos(a) * spd,
+      vy: Math.sin(a) * spd - 1.4,
+      color: color,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.022,
+      r: 1.4 + Math.random() * 2.6
+    });
+  }
+
+  /* ── 4. Mouse tracking ── */
+  var mx = -9999, my = -9999;
+  document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
+
+  /* ── 5. Cached char positions (refreshed every 500 ms) ── */
+  var cache = [];
+  var cacheTs = 0;
+  var COLOR_MAP = { 'char-blue': 'rgba(96,165,250,1)', 'char-amber': 'rgba(139,130,255,1)', 'char-atlas': 'rgba(79,215,255,1)' };
+
+  function refreshCache() {
+    cache = [];
+    heroTitle.querySelectorAll('.char').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      var colorKey = el.classList.contains('char-blue') ? 'char-blue'
+                   : el.classList.contains('char-amber') ? 'char-amber' : 'char-atlas';
+      cache.push({ el: el, cx: r.left + r.width * 0.5, cy: r.top + r.height * 0.5, color: COLOR_MAP[colorKey] });
+    });
+  }
+
+  /* ── 6. Per-char lerp state ── */
+  var states = new Map();
+  function getState(el) {
+    if (!states.has(el)) states.set(el, { tx: 0, ty: 0, sc: 1, br: 1 });
+    return states.get(el);
+  }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  var RADIUS = 230;
+  var lastSparkleTs = 0;
+
+  /* ── 7. RAF loop ── */
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    /* particles */
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.055;
+      p.life -= p.decay;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.globalAlpha = p.life * 0.88;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * p.life, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    /* refresh cache */
+    if (ts - cacheTs > 500) { refreshCache(); cacheTs = ts; }
+
+    /* char repulsion + glow */
+    var anyNear = false;
+    cache.forEach(function (info) {
+      var dx = mx - info.cx, dy = my - info.cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var st = getState(info.el);
+      var tTx = 0, tTy = 0, tSc = 1, tBr = 1;
+      if (dist < RADIUS) {
+        anyNear = true;
+        var s = Math.pow(1 - dist / RADIUS, 1.9);
+        tTx = -dx * s * 0.24;
+        tTy = -dy * s * 0.24;
+        tSc = 1 + s * 0.38;
+        tBr = 1 + s * 1.6;
+      }
+      var L = 0.09;
+      st.tx = lerp(st.tx, tTx, L); st.ty = lerp(st.ty, tTy, L);
+      st.sc = lerp(st.sc, tSc, L); st.br = lerp(st.br, tBr, L);
+      info.el.style.transform = 'translate(' + st.tx.toFixed(2) + 'px,' + st.ty.toFixed(2) + 'px) scale(' + st.sc.toFixed(3) + ')';
+      info.el.style.filter = 'brightness(' + st.br.toFixed(3) + ')';
+    });
+
+    /* spawn sparkles */
+    if (anyNear && particles.length < 90 && ts - lastSparkleTs > 50) {
+      lastSparkleTs = ts;
+      cache.forEach(function (info) {
+        var dx = mx - info.cx, dy = my - info.cy;
+        if (Math.sqrt(dx * dx + dy * dy) < RADIUS * 0.6 && Math.random() < 0.38) {
+          spawn(info.cx + (Math.random() - 0.5) * 18, info.cy + (Math.random() - 0.5) * 10, info.color);
+        }
+      });
+    }
+  }
+
+  requestAnimationFrame(frame);
 })();
 </script>
 {% endblock %}
