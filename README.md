@@ -1,6 +1,6 @@
 # SiamQuantum Atlas
 
-SiamQuantum Atlas is the current research-tool version of a Thai quantum discourse mapping system. It ingests a mixed corpus of Thai-relevant quantum sources, stores them in SQLite, enriches them with NLP-derived entities and triplets, and serves a working analyst UI through FastAPI + Jinja2.
+SiamQuantum Atlas is the current web based research-tool version of a Thai quantum discourse mapping system. It ingests a mixed corpus of Thai-relevant quantum sources, stores them in SQLite, enriches them with NLP-derived entities and triplets, and serves a working analyst UI through FastAPI + Jinja2.
 
 This repository is not a speculative product shell. It is the live baseline used for corpus review, graph inspection, taxonomy-aware analytics, and operator-led source expansion. A richer next-version UI is in development and will be refined from user feedback, but this repo represents the honest current state.
 
