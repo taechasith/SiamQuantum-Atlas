@@ -571,13 +571,27 @@
     return count;
   }
 
+  async function parseApiResponse(response, fallbackMessage) {
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    if (contentType.includes("application/json")) {
+      return response.json();
+    }
+
+    const text = (await response.text()).trim();
+    const compact = text.replace(/\s+/g, " ").slice(0, 180);
+    throw new Error(compact || fallbackMessage);
+  }
+
   async function loadAnalytics() {
     try {
       const [yearlyResp, taxonomyResp] = await Promise.all([
         fetch("/api/stats/yearly"),
         fetch("/api/analytics/yearly_taxonomy")
       ]);
-      const [yearlyPayload, taxonomyPayload] = await Promise.all([yearlyResp.json(), taxonomyResp.json()]);
+      const [yearlyPayload, taxonomyPayload] = await Promise.all([
+        parseApiResponse(yearlyResp, "Could not load /api/stats/yearly"),
+        parseApiResponse(taxonomyResp, "Could not load /api/analytics/yearly_taxonomy")
+      ]);
 
       if (!yearlyResp.ok || !yearlyPayload.ok) {
         throw new Error((yearlyPayload.error || {}).message || "Could not load /api/stats/yearly");

@@ -363,8 +363,22 @@
   }
 
   .card-icon {
-    font-size: 1.7rem;
-    line-height: 1;
+    width: 1.7rem;
+    height: 1.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+  }
+
+  .card-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .card-title {
@@ -558,35 +572,68 @@
   <p class="section-label">Explore the research workspace</p>
   <div class="feature-grid">
     <a class="feature-card" href="/dashboard">
-      <span class="card-icon">[Map]</span>
+      <span class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20Z"/>
+          <path d="M9 4v13.5"/>
+          <path d="M15 6.5V20"/>
+        </svg>
+      </span>
       <div class="card-title">Geographic Map</div>
       <p class="card-desc">Leaflet map of geolocated quantum-discourse sources across Thailand and the wider network footprint.</p>
       <span class="card-arrow">Map -></span>
     </a>
 
     <a class="feature-card" href="/network">
-      <span class="card-icon">[Net]</span>
+      <span class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <circle cx="6" cy="7" r="2.25"/>
+          <circle cx="18" cy="6" r="2.25"/>
+          <circle cx="12" cy="17" r="2.25"/>
+          <path d="M8 8.25 10.5 15"/>
+          <path d="M16 7.25 13.5 15"/>
+          <path d="M8.25 7h7.5"/>
+        </svg>
+      </span>
       <div class="card-title">Concept Network</div>
       <p class="card-desc">3D concept graph built from extracted triplets with clickable node detail and graph metrics.</p>
       <span class="card-arrow">Network -></span>
     </a>
 
     <a class="feature-card" href="/analytics">
-      <span class="card-icon">[Ana]</span>
+      <span class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M4 19.5h16"/>
+          <path d="M7 16V10.5"/>
+          <path d="M12 16V7.5"/>
+          <path d="M17 16V5"/>
+        </svg>
+      </span>
       <div class="card-title">Engagement Analytics</div>
       <p class="card-desc">Yearly trend analysis with bootstrap geometric means, Mann-Kendall tests, and taxonomy-aware comparisons.</p>
       <span class="card-arrow">Analytics -></span>
     </a>
 
     <a class="feature-card" href="/database">
-      <span class="card-icon">[DB]</span>
+      <span class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <ellipse cx="12" cy="6.5" rx="6.5" ry="2.75"/>
+          <path d="M5.5 6.5v5c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-5"/>
+          <path d="M5.5 11.5v5c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-5"/>
+        </svg>
+      </span>
       <div class="card-title">Source Database</div>
       <p class="card-desc">Paginated browser of corpus sources with platform, year, taxonomy, and domain filters.</p>
       <span class="card-arrow">Database -></span>
     </a>
 
     <a class="feature-card" href="/community">
-      <span class="card-icon">[Q]</span>
+      <span class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M7 15.5h3.5c3.75 0 6.5-2.75 6.5-6S14.25 3 10.5 3 4 5.75 4 9.5c0 1.75.7 3.35 1.85 4.55L5 20l4.1-2.6c.45.07.92.1 1.4.1"/>
+          <path d="M14.5 13.5 20 19"/>
+        </svg>
+      </span>
       <div class="card-title">Community Queue</div>
       <p class="card-desc">Submit URLs for intake and monitor best-effort downstream processing in the queue log.</p>
       <span class="card-arrow">Community -></span>

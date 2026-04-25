@@ -980,7 +980,22 @@ def api_analytics_yearly_taxonomy(
             status_code=500,
         )
 
-    payload = build_yearly_taxonomy_analytics([dict(row) for row in rows])
+    try:
+        payload = build_yearly_taxonomy_analytics([dict(row) for row in rows])
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": {
+                    "topics": {"labels": [], "years": [], "series": [], "tests": {}, "graph": {"nodes": [], "links": [], "community_summaries": []}},
+                    "productions": {"labels": [], "years": [], "series": [], "tests": {}, "graph": {"nodes": [], "links": [], "community_summaries": []}},
+                    "method_note": "",
+                },
+                "relevance": relevance,
+                "error": {"code": "yearly_taxonomy_failed", "message": str(exc)},
+            },
+            status_code=500,
+        )
     return JSONResponse(
         {
             "ok": True,
