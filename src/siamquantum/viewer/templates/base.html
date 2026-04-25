@@ -83,7 +83,7 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      opacity: 0.56;
+      opacity: 0.72;
       z-index: -2;
     }
 
@@ -133,8 +133,8 @@
 
     .brand-logo {
       display: block;
-      width: min(34vw, 19rem);
-      min-width: 12rem;
+      width: min(11vw, 6.5rem);
+      min-width: 4rem;
     }
 
     .brand-logo img {
@@ -220,138 +220,187 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
-    .global-live {
-      margin-top: 0.95rem;
+    /* ── FAB floating live panel ─────────────────────────────────────────── */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.38; transform: scale(0.68); }
     }
 
-    .global-live-card {
-      border-radius: 24px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(7, 13, 24, 0.88), rgba(7, 13, 24, 0.74));
-      box-shadow: var(--shadow);
-      padding: 1rem 1.15rem 1.15rem;
-      display: grid;
-      gap: 0.95rem;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .global-live-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 12% 12%, rgba(132, 207, 255, 0.10), transparent 22%),
-        radial-gradient(circle at 88% 26%, rgba(141, 125, 255, 0.10), transparent 18%);
+    .live-fab {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.75rem;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.65rem;
       pointer-events: none;
     }
 
-    .global-live-head,
-    .global-live-row {
-      position: relative;
-      z-index: 1;
+    .live-fab-panel,
+    .live-fab-btn {
+      pointer-events: auto;
     }
 
-    .global-live-head {
+    .live-fab-panel {
+      width: min(370px, calc(100vw - 3rem));
+      max-height: 72vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      background: rgba(4, 8, 18, 0.97);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.68),
+        0 0 0 1px rgba(132, 207, 255, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      padding: 1.1rem;
+      display: grid;
+      gap: 0.85rem;
+      transform-origin: bottom right;
+      transform: scale(0.86) translateY(12px);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.2s ease,
+        visibility 0s linear 0.2s;
+    }
+
+    .live-fab.is-open .live-fab-panel {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      visibility: visible;
+      transition:
+        transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.2s ease,
+        visibility 0s linear 0s;
+    }
+
+    .live-fab-panel-head {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .live-fab-panel-top {
       display: flex;
       justify-content: space-between;
-      gap: 1rem;
       align-items: flex-start;
+      gap: 0.75rem;
     }
 
-    .global-live-actions {
+    .live-fab-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.55rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 0.52rem;
+      height: 46px;
+      padding: 0 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: rgba(4, 8, 18, 0.95);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.48),
+        0 0 28px rgba(132, 207, 255, 0.08);
+      cursor: pointer;
+      color: var(--accent);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .live-fab-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 14px 44px rgba(0, 0, 0, 0.56),
+        0 0 40px rgba(132, 207, 255, 0.16);
+      background: rgba(6, 12, 26, 0.98);
+    }
+
+    .live-fab-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent), 0 0 22px rgba(132, 207, 255, 0.45);
+      animation: pulse-dot 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    .live-fab-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      color: var(--accent);
+    }
+
+    .live-fab-chevron {
+      font-size: 0.6rem;
+      color: var(--muted);
+      transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1;
+    }
+
+    .live-fab.is-open .live-fab-chevron {
+      transform: rotate(180deg);
     }
 
     .global-live-title {
       color: var(--text);
       font-family: var(--font-heading);
-      font-size: 1rem;
+      font-size: 0.94rem;
       font-weight: 600;
-      margin-bottom: 0.22rem;
+      line-height: 1.3;
     }
 
     .global-live-copy {
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.81rem;
       line-height: 1.55;
-      max-width: 72ch;
     }
 
     .global-live-status {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      min-height: 34px;
-      padding: 0.3rem 0.72rem;
+      gap: 0.4rem;
+      padding: 0.28rem 0.68rem;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(132, 207, 255, 0.08);
+      background: rgba(132, 207, 255, 0.07);
       color: var(--accent);
       white-space: nowrap;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
+      flex-shrink: 0;
     }
 
     .global-live-status::before {
       content: "";
-      width: 0.5rem;
-      height: 0.5rem;
+      width: 0.44rem;
+      height: 0.44rem;
       border-radius: 999px;
       background: currentColor;
-      box-shadow: 0 0 14px currentColor;
-    }
-
-    .global-live-toggle {
-      min-height: 34px;
-      padding: 0.3rem 0.78rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--muted-strong);
-      cursor: pointer;
-      transition: background .18s ease, color .18s ease, transform .18s ease, border-color .18s ease;
-    }
-
-    .global-live-toggle:hover {
-      color: var(--text);
-      background: rgba(132, 207, 255, 0.1);
-      border-color: var(--border-strong);
-      transform: translateY(-1px);
-    }
-
-    .global-live.is-collapsed .global-live-copy,
-    .global-live.is-collapsed .global-live-metrics,
-    .global-live.is-collapsed .global-live-feed {
-      display: none;
-    }
-
-    .global-live.is-collapsed .global-live-card {
-      padding-bottom: 1rem;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse-dot 2s ease-in-out infinite;
     }
 
     .global-live-metrics {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.75rem;
-      position: relative;
-      z-index: 1;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.55rem;
     }
 
     .global-live-metric {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 18px;
-      padding: 0.82rem 0.92rem;
-      min-height: 88px;
+      border-radius: 14px;
+      padding: 0.72rem 0.8rem;
     }
 
     .global-live-metric-label {
       color: var(--muted);
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -359,41 +408,42 @@
     .global-live-metric-value {
       color: var(--text);
       font-family: var(--font-heading);
-      font-size: 1.18rem;
+      font-size: 1.08rem;
       font-weight: 600;
-      margin-top: 0.34rem;
+      margin-top: 0.28rem;
       line-height: 1.2;
       word-break: break-word;
     }
 
     .global-live-feed {
       display: grid;
-      gap: 0.6rem;
-      position: relative;
-      z-index: 1;
+      gap: 0.48rem;
     }
 
     .global-live-row {
       display: flex;
       justify-content: space-between;
-      gap: 0.8rem;
-      align-items: center;
-      padding: 0.8rem 0.9rem;
-      border-radius: 16px;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.7rem 0.8rem;
+      border-radius: 13px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .global-live-row-copy {
       color: var(--text);
-      font-size: 0.86rem;
+      font-size: 0.82rem;
       line-height: 1.45;
+      word-break: break-word;
+      flex: 1;
     }
 
     .global-live-row-meta {
       color: var(--muted);
-      font-size: 0.77rem;
+      font-size: 0.72rem;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .live-placeholder {
@@ -502,16 +552,6 @@
         width: 100%;
         justify-content: flex-start;
       }
-
-      .global-live-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .global-live-head,
-      .global-live-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
     }
 
     @media (max-width: 640px) {
@@ -525,8 +565,13 @@
         padding-right: 0.75rem;
       }
 
-      .global-live-metrics {
-        grid-template-columns: 1fr;
+      .live-fab {
+        bottom: 1rem;
+        right: 1rem;
+      }
+
+      .live-fab-panel {
+        max-height: 65vh;
       }
     }
 
@@ -588,33 +633,37 @@
         </div>
       </div>
     </div>
-    <div class="page-shell global-live" aria-label="Live page data">
-      <div class="global-live-card">
-        <div class="global-live-head">
-          <div>
-            <div class="global-live-title" id="global-live-title">Live page data</div>
-            <div class="global-live-copy" id="global-live-copy">Reading the real backend state for this page.</div>
-          </div>
-          <div class="global-live-actions">
-            <div class="global-live-status" id="global-live-status">Loading</div>
-            <button class="global-live-toggle" id="global-live-toggle" type="button" aria-expanded="true">x</button>
-          </div>
-        </div>
-        <div class="global-live-metrics" id="global-live-metrics">
-          <div class="live-placeholder" aria-hidden="true"></div>
-          <div class="live-placeholder" aria-hidden="true"></div>
-          <div class="live-placeholder" aria-hidden="true"></div>
-          <div class="live-placeholder" aria-hidden="true"></div>
-        </div>
-        <div class="global-live-feed" id="global-live-feed">
-          <div class="live-placeholder line" aria-hidden="true"></div>
-          <div class="live-placeholder line" aria-hidden="true"></div>
-        </div>
-      </div>
-    </div>
   </nav>
 
   {% block body %}{% endblock %}
+
+  <!-- Floating live-data panel ──────────────────────────────────────────── -->
+  <div class="live-fab" id="live-fab">
+    <div class="live-fab-panel" id="live-fab-panel" role="region" aria-label="Live page data" aria-hidden="true">
+      <div class="live-fab-panel-head">
+        <div class="live-fab-panel-top">
+          <div class="global-live-title" id="global-live-title">Live page data</div>
+          <div class="global-live-status" id="global-live-status">Loading</div>
+        </div>
+        <div class="global-live-copy" id="global-live-copy">Reading the real backend state for this page.</div>
+      </div>
+      <div class="global-live-metrics" id="global-live-metrics">
+        <div class="live-placeholder" aria-hidden="true"></div>
+        <div class="live-placeholder" aria-hidden="true"></div>
+        <div class="live-placeholder" aria-hidden="true"></div>
+        <div class="live-placeholder" aria-hidden="true"></div>
+      </div>
+      <div class="global-live-feed" id="global-live-feed">
+        <div class="live-placeholder line" aria-hidden="true"></div>
+        <div class="live-placeholder line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <button class="live-fab-btn" id="global-live-toggle" type="button" aria-expanded="false" aria-controls="live-fab-panel" aria-label="Toggle live data panel">
+      <span class="live-fab-dot"></span>
+      <span class="live-fab-label">LIVE</span>
+      <span class="live-fab-chevron">▲</span>
+    </button>
+  </div>
 
   <div class="desktop-modal" id="desktop-modal" role="dialog" aria-modal="true" aria-labelledby="desktop-modal-title">
     <div class="desktop-modal-card">
@@ -700,7 +749,7 @@
       }
 
       var els = {
-        liveShell: document.querySelector(".global-live"),
+        liveShell: document.querySelector(".live-fab"),
         title: document.getElementById("global-live-title"),
         copy: document.getElementById("global-live-copy"),
         status: document.getElementById("global-live-status"),
@@ -711,24 +760,21 @@
         desktopModalClose: document.getElementById("desktop-modal-close")
       };
 
-      function liveToggleLabel() {
-        var collapsed = els.liveShell && els.liveShell.classList.contains("is-collapsed");
-        return collapsed ? "+" : "x";
-      }
-
       function applyLivePanelState() {
         if (!els.liveShell || !els.liveToggle) return;
-        var collapsed = localStorage.getItem("sq-live-collapsed") === "true";
-        els.liveShell.classList.toggle("is-collapsed", collapsed);
-        els.liveToggle.textContent = liveToggleLabel();
-        els.liveToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        var open = localStorage.getItem("sq-live-open") === "true";
+        els.liveShell.classList.toggle("is-open", open);
+        els.liveToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        var panel = document.getElementById("live-fab-panel");
+        if (panel) panel.setAttribute("aria-hidden", open ? "false" : "true");
       }
 
       function toggleLivePanel() {
         if (!els.liveShell) return;
-        var collapsed = !els.liveShell.classList.contains("is-collapsed");
-        localStorage.setItem("sq-live-collapsed", collapsed ? "true" : "false");
+        var open = !els.liveShell.classList.contains("is-open");
+        localStorage.setItem("sq-live-open", open ? "true" : "false");
         applyLivePanelState();
+        if (open) refreshLivePanel();
       }
 
       function setLoadingPanel() {
@@ -966,61 +1012,195 @@
           var renderer = new window.THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
           var scene = new window.THREE.Scene();
           var camera = new window.THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-          camera.position.z = 100;
+          camera.position.set(0, 0, 100);
 
-          var pointsCount = 88;
-          var positions = new Float32Array(pointsCount * 3);
-          var velocities = new Float32Array(pointsCount * 3);
+          var TOTAL = 130;
+          var HUB_COUNT = 18;
+          var CONNECT_DIST = 68;
+          var MAX_LINES = 380;
+          var REPEL_DIST = 52;
+          var REPEL_FORCE = 0.22;
 
-          for (var i = 0; i < pointsCount; i += 1) {
+          // Color palette: cyan/blue/violet
+          var palette = [
+            [0.52, 0.81, 1.00],
+            [0.42, 0.54, 1.00],
+            [0.55, 0.49, 1.00],
+            [0.30, 0.91, 1.00],
+            [0.86, 0.92, 1.00]
+          ];
+
+          var positions = new Float32Array(TOTAL * 3);
+          var velocities = new Float32Array(TOTAL * 3);
+          var pColors = new Float32Array(TOTAL * 3);
+
+          for (var i = 0; i < TOTAL; i++) {
             var ix = i * 3;
-            positions[ix] = (Math.random() - 0.5) * 240;
-            positions[ix + 1] = (Math.random() - 0.5) * 150;
-            positions[ix + 2] = (Math.random() - 0.5) * 120;
-            velocities[ix] = (Math.random() - 0.5) * 0.02;
-            velocities[ix + 1] = (Math.random() - 0.5) * 0.02;
-            velocities[ix + 2] = (Math.random() - 0.5) * 0.008;
+            var isHub = i < HUB_COUNT;
+            positions[ix]     = (Math.random() - 0.5) * 210;
+            positions[ix + 1] = (Math.random() - 0.5) * 130;
+            positions[ix + 2] = (Math.random() - 0.5) * 70;
+            var spd = isHub ? 0.032 : 0.014;
+            velocities[ix]     = (Math.random() - 0.5) * spd;
+            velocities[ix + 1] = (Math.random() - 0.5) * spd;
+            velocities[ix + 2] = (Math.random() - 0.5) * 0.006;
+            var col = palette[Math.floor(Math.random() * palette.length)];
+            pColors[ix]     = col[0];
+            pColors[ix + 1] = col[1];
+            pColors[ix + 2] = col[2];
           }
 
-          var geometry = new window.THREE.BufferGeometry();
-          geometry.setAttribute("position", new window.THREE.BufferAttribute(positions, 3));
-          var material = new window.THREE.PointsMaterial({
-            color: 0x84cfff,
-            size: 1.6,
-            transparent: true,
-            opacity: 0.68,
-            depthWrite: false
+          var geo = new window.THREE.BufferGeometry();
+          geo.setAttribute("position", new window.THREE.BufferAttribute(positions, 3));
+          geo.setAttribute("color",    new window.THREE.BufferAttribute(pColors, 3));
+
+          // Hub particles (larger)
+          var hubPositions = new Float32Array(HUB_COUNT * 3);
+          var hubColors    = new Float32Array(HUB_COUNT * 3);
+          for (var i = 0; i < HUB_COUNT; i++) {
+            hubPositions[i * 3]     = positions[i * 3];
+            hubPositions[i * 3 + 1] = positions[i * 3 + 1];
+            hubPositions[i * 3 + 2] = positions[i * 3 + 2];
+            hubColors[i * 3]     = pColors[i * 3];
+            hubColors[i * 3 + 1] = pColors[i * 3 + 1];
+            hubColors[i * 3 + 2] = pColors[i * 3 + 2];
+          }
+          var hubGeo = new window.THREE.BufferGeometry();
+          hubGeo.setAttribute("position", new window.THREE.BufferAttribute(hubPositions, 3));
+          hubGeo.setAttribute("color",    new window.THREE.BufferAttribute(hubColors, 3));
+
+          var dotMat = new window.THREE.PointsMaterial({
+            vertexColors: true, size: 1.5, transparent: true,
+            opacity: 0.60, depthWrite: false, sizeAttenuation: false
+          });
+          var hubMat = new window.THREE.PointsMaterial({
+            vertexColors: true, size: 3.2, transparent: true,
+            opacity: 0.85, depthWrite: false, sizeAttenuation: false
           });
 
-          var particles = new window.THREE.Points(geometry, material);
-          scene.add(particles);
+          var dots = new window.THREE.Points(geo, dotMat);
+          var hubs = new window.THREE.Points(hubGeo, hubMat);
+          scene.add(dots);
+          scene.add(hubs);
 
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+          // Pre-allocated line geometry
+          var linePos = new Float32Array(MAX_LINES * 6);
+          var lineCol = new Float32Array(MAX_LINES * 6);
+          var lineGeo = new window.THREE.BufferGeometry();
+          lineGeo.setAttribute("position", new window.THREE.BufferAttribute(linePos, 3));
+          lineGeo.setAttribute("color",    new window.THREE.BufferAttribute(lineCol, 3));
+          lineGeo.setDrawRange(0, 0);
+          var lines = new window.THREE.LineSegments(lineGeo, new window.THREE.LineBasicMaterial({
+            vertexColors: true, transparent: true, opacity: 0.32, depthWrite: false
+          }));
+          scene.add(lines);
+
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
 
           function resize() {
             renderer.setSize(window.innerWidth, window.innerHeight, false);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
           }
-
           resize();
           window.addEventListener("resize", resize);
 
-          function animate() {
-            var array = geometry.attributes.position.array;
-            for (var i = 0; i < pointsCount; i += 1) {
-              var ix = i * 3;
-              array[ix] += velocities[ix];
-              array[ix + 1] += velocities[ix + 1];
-              array[ix + 2] += velocities[ix + 2];
+          // Mouse tracking
+          var mViewX = 0, mViewY = 0, mWorldX = 0, mWorldY = 0;
+          window.addEventListener("mousemove", function (e) {
+            mViewX = e.clientX;
+            mViewY = e.clientY;
+            mWorldX = (e.clientX / window.innerWidth  - 0.5) * 210;
+            mWorldY = -(e.clientY / window.innerHeight - 0.5) * 130;
+          });
 
-              if (array[ix] > 120 || array[ix] < -120) velocities[ix] *= -1;
-              if (array[ix + 1] > 75 || array[ix + 1] < -75) velocities[ix + 1] *= -1;
-              if (array[ix + 2] > 60 || array[ix + 2] < -60) velocities[ix + 2] *= -1;
+          function animate() {
+            var arr = geo.attributes.position.array;
+
+            // Update particle physics
+            for (var i = 0; i < TOTAL; i++) {
+              var ix = i * 3;
+
+              // Mouse repulsion
+              var mdx = arr[ix]     - mWorldX;
+              var mdy = arr[ix + 1] - mWorldY;
+              var md2 = mdx * mdx + mdy * mdy;
+              if (md2 < REPEL_DIST * REPEL_DIST && md2 > 0.01) {
+                var md = Math.sqrt(md2);
+                var f  = REPEL_FORCE * (1 - md / REPEL_DIST);
+                velocities[ix]     += (mdx / md) * f;
+                velocities[ix + 1] += (mdy / md) * f;
+              }
+
+              // Damping
+              velocities[ix]     *= 0.982;
+              velocities[ix + 1] *= 0.982;
+              velocities[ix + 2] *= 0.990;
+
+              // Integrate
+              arr[ix]     += velocities[ix];
+              arr[ix + 1] += velocities[ix + 1];
+              arr[ix + 2] += velocities[ix + 2];
+
+              // Bounce
+              if (arr[ix]     >  108) { arr[ix]     =  108; velocities[ix]     *= -1; }
+              if (arr[ix]     < -108) { arr[ix]     = -108; velocities[ix]     *= -1; }
+              if (arr[ix + 1] >   68) { arr[ix + 1] =   68; velocities[ix + 1] *= -1; }
+              if (arr[ix + 1] <  -68) { arr[ix + 1] =  -68; velocities[ix + 1] *= -1; }
+              if (arr[ix + 2] >   38) { arr[ix + 2] =   38; velocities[ix + 2] *= -1; }
+              if (arr[ix + 2] <  -38) { arr[ix + 2] =  -38; velocities[ix + 2] *= -1; }
+
+              // Sync hub positions
+              if (i < HUB_COUNT) {
+                hubGeo.attributes.position.array[ix]     = arr[ix];
+                hubGeo.attributes.position.array[ix + 1] = arr[ix + 1];
+                hubGeo.attributes.position.array[ix + 2] = arr[ix + 2];
+              }
             }
-            geometry.attributes.position.needsUpdate = true;
-            particles.rotation.y += 0.0008;
-            particles.rotation.x += 0.0002;
+
+            // Build connection lines
+            var lineCount = 0;
+            var done = false;
+            for (var i = 0; i < TOTAL - 1 && !done; i++) {
+              var ix = i * 3;
+              for (var j = i + 1; j < TOTAL && !done; j++) {
+                var jx = j * 3;
+                var dx = arr[ix] - arr[jx];
+                var dy = arr[ix + 1] - arr[jx + 1];
+                var dz = arr[ix + 2] - arr[jx + 2];
+                var d2 = dx * dx + dy * dy + dz * dz;
+                if (d2 < CONNECT_DIST * CONNECT_DIST) {
+                  var d   = Math.sqrt(d2);
+                  var alp = (1 - d / CONNECT_DIST) * 0.62;
+                  var li  = lineCount * 6;
+                  linePos[li]     = arr[ix];     linePos[li + 1] = arr[ix + 1]; linePos[li + 2] = arr[ix + 2];
+                  linePos[li + 3] = arr[jx];     linePos[li + 4] = arr[jx + 1]; linePos[li + 5] = arr[jx + 2];
+                  lineCol[li]     = 0.52 * alp;  lineCol[li + 1] = 0.81 * alp;  lineCol[li + 2] = 1.0 * alp;
+                  lineCol[li + 3] = 0.42 * alp;  lineCol[li + 4] = 0.54 * alp;  lineCol[li + 5] = 1.0 * alp;
+                  lineCount++;
+                  if (lineCount >= MAX_LINES) done = true;
+                }
+              }
+            }
+
+            lineGeo.setDrawRange(0, lineCount * 2);
+            lineGeo.attributes.position.needsUpdate = true;
+            lineGeo.attributes.color.needsUpdate    = true;
+            geo.attributes.position.needsUpdate     = true;
+            hubGeo.attributes.position.needsUpdate  = true;
+
+            // Camera parallax following mouse
+            camera.position.x += ((mViewX / window.innerWidth  - 0.5) * 10 - camera.position.x) * 0.035;
+            camera.position.y += (-(mViewY / window.innerHeight - 0.5) * 7  - camera.position.y) * 0.035;
+
+            // Slow field rotation
+            dots.rotation.y += 0.00045;
+            dots.rotation.x += 0.00015;
+            hubs.rotation.y = dots.rotation.y;
+            hubs.rotation.x = dots.rotation.x;
+            lines.rotation.y = dots.rotation.y;
+            lines.rotation.x = dots.rotation.x;
+
             renderer.render(scene, camera);
             window.requestAnimationFrame(animate);
           }
