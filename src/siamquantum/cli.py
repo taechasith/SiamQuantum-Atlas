@@ -86,6 +86,36 @@ def db_audit(
 # ingest commands
 # ---------------------------------------------------------------------------
 
+@ingest_app.command("today")
+def ingest_today(
+    gdelt: bool = typer.Option(True, "--gdelt/--no-gdelt", help="Fetch today's GDELT articles"),
+    youtube: bool = typer.Option(True, "--youtube/--no-youtube", help="Fetch today's YouTube videos"),
+) -> None:
+    """Fetch today's GDELT articles and YouTube videos."""
+    import datetime as _dt
+    from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
+
+    db_path = db_path_from_url(settings.database_url)
+    today = _dt.date.today()
+    typer.echo(f"Daily ingest for {today}")
+
+    if gdelt:
+        typer.echo("  Fetching GDELT…")
+        try:
+            fetched, inserted = asyncio.run(ingest_gdelt_daterange(today, today, db_path))
+            typer.echo(f"    fetched={fetched}  inserted={inserted}")
+        except RuntimeError as exc:
+            typer.echo(f"    ERROR: {exc}", err=True)
+
+    if youtube:
+        typer.echo("  Fetching YouTube…")
+        try:
+            fetched, inserted = asyncio.run(ingest_youtube_daterange(today, today, db_path))
+            typer.echo(f"    fetched={fetched}  inserted={inserted}")
+        except RuntimeError as exc:
+            typer.echo(f"    ERROR: {exc}", err=True)
+
+
 @ingest_app.command("gdelt")
 def ingest_gdelt(
     year: int = typer.Option(..., "--year", help="4-digit year to ingest"),

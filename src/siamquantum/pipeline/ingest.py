@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from siamquantum.db.repos import SourceRepo
@@ -49,13 +49,15 @@ def _insert_sources(records: list[dict], db_path: Path) -> int:
 
 
 async def ingest_gdelt_year(year: int, db_path: Path) -> tuple[int, int]:
-    """
-    Fetch GDELT for `year`, write to DB.
-    Returns (fetched_count, inserted_count).
-    """
+    """Fetch GDELT for `year`, write to DB. Returns (fetched, inserted)."""
+    return await ingest_gdelt_daterange(date(year, 1, 1), date(year, 12, 31), db_path)
+
+
+async def ingest_gdelt_daterange(start: date, end: date, db_path: Path) -> tuple[int, int]:
+    """Fetch GDELT for [start, end] inclusive, write to DB. Returns (fetched, inserted)."""
     from siamquantum.services import gdelt
 
-    result = await gdelt.fetch_yearly(year)
+    result = await gdelt.fetch_daterange(start, end)
     if not result.ok:
         raise RuntimeError(f"GDELT fetch failed: {result.error}")
 
@@ -65,13 +67,15 @@ async def ingest_gdelt_year(year: int, db_path: Path) -> tuple[int, int]:
 
 
 async def ingest_youtube_year(year: int, db_path: Path) -> tuple[int, int]:
-    """
-    Fetch YouTube for `year`, write to DB.
-    Returns (fetched_count, inserted_count).
-    """
+    """Fetch YouTube for `year`, write to DB. Returns (fetched, inserted)."""
+    return await ingest_youtube_daterange(date(year, 1, 1), date(year, 12, 31), db_path)
+
+
+async def ingest_youtube_daterange(start: date, end: date, db_path: Path) -> tuple[int, int]:
+    """Fetch YouTube for [start, end] inclusive, write to DB. Returns (fetched, inserted)."""
     from siamquantum.services import youtube
 
-    result = await youtube.fetch_yearly(year)
+    result = await youtube.fetch_daterange(start, end)
     if not result.ok:
         raise RuntimeError(f"YouTube fetch failed: {result.error}")
 

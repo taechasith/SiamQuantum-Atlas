@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import io
 import json
+import logging
 import sqlite3
+import time
 from collections import Counter
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +28,68 @@ from siamquantum.db.repos import (
 from siamquantum.db.session import db_path_from_url, get_connection
 from siamquantum.models import CommunitySubmissionCreate
 
-app = FastAPI(title="SiamQuantum Atlas", version="0.1.0")
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# In-memory node registry cache (avoids cold DB rebuild on every click)
+# ---------------------------------------------------------------------------
+_node_registry_mem: dict[str, Any] | None = None
+_node_registry_ts: float = 0.0
+_NODE_REGISTRY_TTL = 86400.0  # 24h, matches DB cache TTL
+
+
+def _invalidate_node_registry() -> None:
+    global _node_registry_mem, _node_registry_ts
+    _node_registry_mem = None
+    _node_registry_ts = 0.0
+
+
+# ---------------------------------------------------------------------------
+# Startup: pre-warm registry + daily ingest scheduler
+# ---------------------------------------------------------------------------
+
+def _prewarm_registry_sync() -> None:
+    try:
+        db = db_path_from_url(settings.database_url)
+        with get_connection(db) as conn:
+            _get_node_registry(conn)
+        logger.info("Node registry pre-warmed")
+    except Exception:
+        logger.exception("Node registry pre-warm failed")
+
+
+async def _daily_ingest_task() -> None:
+    """Run GDELT + YouTube today-range ingest once per day at ~00:05."""
+    from datetime import date, datetime, timedelta
+
+    while True:
+        now = datetime.now()
+        next_run = (now + timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+        await asyncio.sleep(max(60.0, (next_run - now).total_seconds()))
+        try:
+            from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
+            db = db_path_from_url(settings.database_url)
+            today = date.today()
+            g_fetched, g_inserted = await ingest_gdelt_daterange(today, today, db)
+            logger.info("Daily GDELT: fetched=%d inserted=%d", g_fetched, g_inserted)
+            y_fetched, y_inserted = await ingest_youtube_daterange(today, today, db)
+            logger.info("Daily YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
+            if g_inserted + y_inserted > 0:
+                _invalidate_node_registry()
+                with get_connection(db) as conn:
+                    StatsCacheRepo(conn).invalidate("graph:node_details")
+        except Exception:
+            logger.exception("Daily ingest failed")
+
+
+@asynccontextmanager
+async def lifespan(app_instance: FastAPI):  # type: ignore[type-arg]
+    asyncio.create_task(asyncio.to_thread(_prewarm_registry_sync))
+    asyncio.create_task(_daily_ingest_task())
+    yield
+
+
+app = FastAPI(title="SiamQuantum Atlas", version="0.1.0", lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -128,6 +193,7 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
         JOIN sources s ON s.id = t.source_id
         LEFT JOIN entities e ON e.source_id = s.id
         ORDER BY s.published_year DESC, t.id DESC
+        LIMIT 10000
         """
     ).fetchall()
 
@@ -240,7 +306,7 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
                 for label, count in relation_counts_by_node.get(node_id, Counter()).most_common(6)
             ],
             "supporting_sources_count": len(supporting_sources_by_node.get(node_id, [])),
-            "supporting_sources": supporting_sources_by_node.get(node_id, [])[:5],
+            "supporting_sources": supporting_sources_by_node.get(node_id, [])[:10],
             "taxonomy_context": [
                 {"label": label, "count": count}
                 for label, count in taxonomy_counts_by_node.get(node_id, Counter()).most_common(4)
@@ -255,15 +321,25 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
     return registry
 
 
-def _graph_node_detail_payload(conn: sqlite3.Connection, node_id: str) -> dict[str, Any] | None:
-    normalized_id = _norm_concept(node_id)
+def _get_node_registry(conn: sqlite3.Connection) -> dict[str, Any]:
+    global _node_registry_mem, _node_registry_ts
+    now = time.monotonic()
+    if _node_registry_mem is not None and (now - _node_registry_ts) < _NODE_REGISTRY_TTL:
+        return _node_registry_mem
+    # Fall back to DB cache, then full rebuild
     cache = StatsCacheRepo(conn)
     cached = cache.get("graph:node_details")
-    registry = cached if isinstance(cached, dict) else None
-    if registry is None:
-        registry = _build_graph_node_detail_registry(conn)
-        if not _is_vercel_demo_mode():
-            cache.set("graph:node_details", registry)
+    registry: dict[str, Any] = cached if isinstance(cached, dict) else _build_graph_node_detail_registry(conn)
+    if not isinstance(cached, dict) and not _is_vercel_demo_mode():
+        cache.set("graph:node_details", registry)
+    _node_registry_mem = registry
+    _node_registry_ts = now
+    return registry
+
+
+def _graph_node_detail_payload(conn: sqlite3.Connection, node_id: str) -> dict[str, Any] | None:
+    normalized_id = _norm_concept(node_id)
+    registry = _get_node_registry(conn)
     payload = registry.get(normalized_id)
     return payload if isinstance(payload, dict) else None
 
@@ -396,7 +472,8 @@ def api_geo_list(
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                     {relevance_clause}
-                    ORDER BY g.source_id
+                    ORDER BY s.published_year DESC, g.source_id DESC
+                    LIMIT 500
                 """).fetchall()
             else:
                 rows = conn.execute(f"""
@@ -408,7 +485,8 @@ def api_geo_list(
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                       AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
                     {relevance_clause}
-                    ORDER BY g.source_id
+                    ORDER BY s.published_year DESC, g.source_id DESC
+                    LIMIT 500
                 """).fetchall()
     except Exception as exc:
         return JSONResponse(
@@ -460,6 +538,7 @@ def api_graph(
                 JOIN sources s ON t.source_id = s.id
                 WHERE 1=1 {relevance_clause}
                 ORDER BY t.id
+                LIMIT 10000
             """).fetchall()
     except Exception as exc:
         return JSONResponse(
@@ -527,7 +606,7 @@ def api_graph(
         for (src, tgt), agg in edge_agg.items()
     ]
 
-    return JSONResponse(
+    resp = JSONResponse(
         {
             "ok": True,
             "data": {"nodes": nodes, "links": links},
@@ -535,6 +614,8 @@ def api_graph(
             "error": None,
         }
     )
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
 
 
 # ---------------------------------------------------------------------------
@@ -569,7 +650,9 @@ def _api_graph_node_detail(node_id: str) -> JSONResponse:
             status_code=404,
         )
 
-    return JSONResponse({"ok": True, "data": payload, "relevance": relevance, "error": None})
+    resp = JSONResponse({"ok": True, "data": payload, "relevance": relevance, "error": None})
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
 
 
 @app.get("/api/graph/node")
@@ -1282,6 +1365,42 @@ def api_stats_summary() -> JSONResponse:
         },
         "error": None,
     })
+
+
+@app.post("/api/ingest/today")
+async def api_ingest_today() -> JSONResponse:
+    """Trigger a manual fetch of today's GDELT + YouTube data."""
+    if _is_vercel_demo_mode():
+        return JSONResponse(
+            {"ok": False, "error": {"code": "demo_mode", "message": "Ingest disabled in demo mode"}},
+            status_code=403,
+        )
+    from datetime import date as _date
+    from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
+
+    db = _db()
+    today = _date.today()
+    results: dict[str, Any] = {}
+    try:
+        g_f, g_i = await ingest_gdelt_daterange(today, today, db)
+        results["gdelt"] = {"fetched": g_f, "inserted": g_i}
+    except Exception as exc:
+        results["gdelt"] = {"error": str(exc)}
+    try:
+        y_f, y_i = await ingest_youtube_daterange(today, today, db)
+        results["youtube"] = {"fetched": y_f, "inserted": y_i}
+    except Exception as exc:
+        results["youtube"] = {"error": str(exc)}
+
+    total_inserted = sum(
+        v.get("inserted", 0) for v in results.values() if isinstance(v, dict)
+    )
+    if total_inserted > 0:
+        _invalidate_node_registry()
+        with get_connection(db) as conn:
+            StatsCacheRepo(conn).invalidate("graph:node_details")
+
+    return JSONResponse({"ok": True, "date": today.isoformat(), "results": results, "error": None})
 
 
 @app.get("/api/pipeline/live")

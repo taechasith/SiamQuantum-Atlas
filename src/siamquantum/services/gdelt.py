@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, cast
 
 import httpx
@@ -83,19 +83,30 @@ async def fetch_yearly(year: int) -> ServiceResult:
     Fetch GDELT articles matching quantum from Thai sources for `year`.
     Returns ServiceResult with data=list[dict] (SourceRaw schema).
     """
+    return await fetch_daterange(
+        date(year, 1, 1),
+        date(year, 12, 31),
+    )
+
+
+async def fetch_daterange(start: date, end: date) -> ServiceResult:
+    """
+    Fetch GDELT articles for an arbitrary date range [start, end] inclusive.
+    Uses GDELT YYYYMMDDHHMMSS format: start at 000000, end at 235959.
+    """
     params: dict[str, str] = {
         "query": _QUERY,
         "format": "json",
         "mode": "ArtList",
-        "startdatetime": f"{year}0101000000",
-        "enddatetime": f"{year}1231235959",
+        "startdatetime": start.strftime("%Y%m%d000000"),
+        "enddatetime": end.strftime("%Y%m%d235959"),
         "maxrecords": str(_MAX_RECORDS),
         "sort": "DateDesc",
     }
     try:
         async with httpx.AsyncClient() as client:
             data = await _fetch(client, params)
-        records = _parse_response(data, year)
+        records = _parse_response(data, start.year)
         return ServiceResult(ok=True, data=[r.model_dump() for r in records])
     except Exception as exc:
         return ServiceResult(ok=False, error=str(exc))

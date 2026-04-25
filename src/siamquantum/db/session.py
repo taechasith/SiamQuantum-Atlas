@@ -66,6 +66,8 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
             reason     TEXT,
             updated_at TEXT
         )""",
+        # perf: cover graph rebuild query (subject + object lookup)
+        "CREATE INDEX IF NOT EXISTS idx_triplets_subj_obj ON triplets(subject, object)",
     ]
     for sql in _migrations:
         try:

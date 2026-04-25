@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, cast
 
 import httpx
@@ -48,7 +48,8 @@ async def _get(client: httpx.AsyncClient, url: str, params: dict[str, str]) -> d
 async def _search_page(
     client: httpx.AsyncClient,
     query: str,
-    year: int,
+    start: date,
+    end: date,
     page_token: str | None,
 ) -> tuple[list[dict[str, Any]], str | None]:
     params: dict[str, str] = {
@@ -58,8 +59,8 @@ async def _search_page(
         "regionCode": "TH",
         "relevanceLanguage": "th",
         "maxResults": str(_PAGE_SIZE),
-        "publishedAfter": f"{year}-01-01T00:00:00Z",
-        "publishedBefore": f"{year}-12-31T23:59:59Z",
+        "publishedAfter": f"{start.isoformat()}T00:00:00Z",
+        "publishedBefore": f"{end.isoformat()}T23:59:59Z",
         "key": settings.youtube_api_key,
     }
     if page_token:
@@ -180,13 +181,19 @@ def _build_source(
 
 
 async def fetch_yearly(year: int) -> ServiceResult:
+    """Fetch YouTube videos for `year`. Delegates to fetch_daterange."""
+    return await fetch_daterange(date(year, 1, 1), date(year, 12, 31))
+
+
+async def fetch_daterange(start: date, end: date) -> ServiceResult:
     """
-    Fetch YouTube videos about Thai quantum tech for `year`.
+    Fetch YouTube videos about Thai quantum tech for [start, end] inclusive.
 
     Two search passes (Q2 + Q3 Thai queries), deduped by video_id.
     Third pass: channels.list to verify Thai origin.
     Rejects videos where channel.country != TH AND defaultLanguage not in th/th-TH.
     """
+    pub_year = start.year
     try:
         async with httpx.AsyncClient() as client:
             all_items: list[dict[str, Any]] = []
@@ -195,7 +202,7 @@ async def fetch_yearly(year: int) -> ServiceResult:
             for query in _QUERIES:
                 page_token: str | None = None
                 for page_num in range(2):  # 2 pages × 50 = 100 per query
-                    items, page_token = await _search_page(client, query, year, page_token)
+                    items, page_token = await _search_page(client, query, start, end, page_token)
                     for item in items:
                         vid_id = (item.get("id") or {}).get("videoId") or ""
                         if vid_id and vid_id not in seen_ids:
@@ -248,14 +255,14 @@ async def fetch_yearly(year: int) -> ServiceResult:
                 rejected += 1
                 continue
             vid_id = (item.get("id") or {}).get("videoId") or ""
-            src = _build_source(item, stats_map.get(vid_id, {}), year, info)
+            src = _build_source(item, stats_map.get(vid_id, {}), pub_year, info)
             if src and src.url not in seen_urls:
                 seen_urls.add(src.url)
                 records.append(src)
 
         logger.info(
-            "YouTube fetch_yearly year=%d: %d accepted, %d rejected (non-TH channel)",
-            year, len(records), rejected,
+            "YouTube fetch_daterange %s..%s: %d accepted, %d rejected (non-TH channel)",
+            start, end, len(records), rejected,
         )
         return ServiceResult(
             ok=True,

@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS denstream_state (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_sources_year     ON sources(published_year);
-CREATE INDEX IF NOT EXISTS idx_sources_platform ON sources(platform);
-CREATE INDEX IF NOT EXISTS idx_triplets_source  ON triplets(source_id);
+CREATE INDEX IF NOT EXISTS idx_sources_year        ON sources(published_year);
+CREATE INDEX IF NOT EXISTS idx_sources_platform    ON sources(platform);
+CREATE INDEX IF NOT EXISTS idx_triplets_source     ON triplets(source_id);
+CREATE INDEX IF NOT EXISTS idx_triplets_subj_obj   ON triplets(subject, object);
