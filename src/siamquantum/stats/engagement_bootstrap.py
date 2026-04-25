@@ -115,8 +115,10 @@ def trend_test(
     if _MK_AVAILABLE and len(geo_means) >= 4:
         try:
             mk_result = mk.original_test(geo_means)
-            mk_tau = float(mk_result.Tau)
-            mk_p = float(mk_result.p)
+            _tau = float(mk_result.Tau)
+            _mkp = float(mk_result.p)
+            mk_tau = _tau if np.isfinite(_tau) else 0.0
+            mk_p = _mkp if np.isfinite(_mkp) else 1.0
             mk_trend = str(mk_result.trend).replace(" ", "_")
         except Exception:
             pass
@@ -132,8 +134,10 @@ def trend_test(
     sp_p = 1.0
     if len(all_years_flat) >= 3:
         sp_result = scipy_stats.spearmanr(all_years_flat, all_log_views_flat)
-        sp_rho = float(sp_result.statistic)
-        sp_p = float(sp_result.pvalue)
+        _rho = float(sp_result.statistic)
+        _p = float(sp_result.pvalue)
+        sp_rho = _rho if np.isfinite(_rho) else 0.0
+        sp_p = _p if np.isfinite(_p) else 1.0
 
     mk_human = (
         f"Mann-Kendall tau={mk_tau:.3f}, p={mk_p:.3f} ({mk_trend.replace('_', ' ')})"

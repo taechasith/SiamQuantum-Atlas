@@ -14,6 +14,7 @@ from typing import Any
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from siamquantum.config import settings
@@ -95,6 +96,9 @@ async def lifespan(app_instance: FastAPI):  # type: ignore[type-arg]
 
 app = FastAPI(title="SiamQuantum Atlas", version="0.1.0", lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+_STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
