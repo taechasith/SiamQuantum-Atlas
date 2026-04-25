@@ -556,7 +556,7 @@
     youtube: "marker-youtube"
   };
 
-  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+  function copyForLang(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
 
   function setStatus(text) {
     elements.status.textContent = text;
@@ -565,14 +565,14 @@
   function showEmpty() {
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
-    setStatus(L("ไม่มีข้อมูลพิกัด", "No geo rows"));
+    setStatus(copyForLang("ไม่มีข้อมูลพิกัด", "No geo rows"));
   }
 
   function showError(message) {
     elements.errorCopy.textContent = message;
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
-    setStatus(L("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
+    setStatus(copyForLang("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
@@ -594,7 +594,7 @@
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
       <span class="popup-meta">${item.isp || "Unknown ISP"}</span><br>
-      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดลิงก์", "Open source")}</a>
+      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open source")}</a>
     `;
   }
 
@@ -657,7 +657,7 @@
       const platformSet = new Set(rows.map((row) => row.platform || "other"));
 
       if (elements.statGeo) elements.statGeo.textContent = String(payload.count || rows.length);
-      elements.footer.textContent = L("ค่าเริ่มต้นไม่รวม CDN-resolved rows", "CDN-resolved rows excluded by default");
+      elements.footer.textContent = copyForLang("ค่าเริ่มต้นไม่รวม CDN-resolved rows", "CDN-resolved rows excluded by default");
 
       if (!rows.length) {
         showEmpty();
@@ -682,8 +682,8 @@
       map.fitBounds(clusters.getBounds(), { padding: [28, 28], maxZoom: 9 });
       setStatus(`${rows.length} origin points mapped`);
     } catch (error) {
-      showError(L(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`, `Failed to load map data: ${error.message}`));
-      elements.footer.textContent = L("ตรวจสอบสถานะ /api/geo/list และข้อมูลฐานข้อมูล", "Check /api/geo/list status and database");
+      showError(copyForLang(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`, `Failed to load map data: ${error.message}`));
+      elements.footer.textContent = copyForLang("ตรวจสอบสถานะ /api/geo/list และข้อมูลฐานข้อมูล", "Check /api/geo/list status and database");
     }
   }
 

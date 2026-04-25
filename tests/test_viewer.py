@@ -120,6 +120,14 @@ def test_pages_return_html(client: TestClient, path: str, expected: str) -> None
     assert expected in resp.text, f"{path} body missing {expected!r}"
 
 
+def test_dashboard_does_not_shadow_leaflet_global(client: TestClient) -> None:
+    resp = client.get("/dashboard")
+    assert resp.status_code == 200
+    assert "function L(" not in resp.text
+    assert "function copyForLang(" in resp.text
+    assert "const map = L.map(" in resp.text
+
+
 # ---------------------------------------------------------------------------
 # GET /api/geo/list  — envelope: {ok, data, count, error}
 # ---------------------------------------------------------------------------

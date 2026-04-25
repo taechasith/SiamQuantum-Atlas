@@ -676,7 +676,7 @@
         return document.documentElement.dataset.lang === "en" ? "en" : "th";
       }
 
-      function L(th, en) {
+      function copyForLang(th, en) {
         return lang() === "en" ? en : th;
       }
 
@@ -690,17 +690,17 @@
       }
 
       function relTime(value) {
-        if (!value) return L("ไม่พบเวลา", "No timestamp");
+        if (!value) return copyForLang("ไม่พบเวลา", "No timestamp");
         var ms = Date.now() - new Date(value).getTime();
         if (!isFinite(ms)) return value;
         var seconds = Math.max(Math.round(ms / 1000), 0);
-        if (seconds < 60) return L("เมื่อสักครู่", "just now");
+        if (seconds < 60) return copyForLang("เมื่อสักครู่", "just now");
         var minutes = Math.round(seconds / 60);
-        if (minutes < 60) return L(minutes + " นาทีที่แล้ว", minutes + " min ago");
+        if (minutes < 60) return copyForLang(minutes + " นาทีที่แล้ว", minutes + " min ago");
         var hours = Math.round(minutes / 60);
-        if (hours < 24) return L(hours + " ชั่วโมงที่แล้ว", hours + " hr ago");
+        if (hours < 24) return copyForLang(hours + " ชั่วโมงที่แล้ว", hours + " hr ago");
         var days = Math.round(hours / 24);
-        return L(days + " วันที่แล้ว", days + " day ago");
+        return copyForLang(days + " วันที่แล้ว", days + " day ago");
       }
 
       function fmt(n) {
@@ -749,7 +749,7 @@
 
       function setLoadingPanel() {
         if (!els.metrics || !els.feed || !els.status) return;
-        els.status.textContent = L("กำลังโหลด", "Loading");
+        els.status.textContent = copyForLang("กำลังโหลด", "Loading");
         els.metrics.innerHTML = new Array(4).fill('<div class="live-placeholder" aria-hidden="true"></div>').join("");
         els.feed.innerHTML = new Array(2).fill('<div class="live-placeholder line" aria-hidden="true"></div>').join("");
       }
@@ -784,7 +784,7 @@
               '</article>';
             }).join("")
           : '<article class="global-live-row"><div class="global-live-row-copy">' +
-              escapeHtml(L("ยังไม่มีสัญญาณข้อมูลสดสำหรับหน้านี้", "No live backend signal is available for this page yet.")) +
+              escapeHtml(copyForLang("ยังไม่มีสัญญาณข้อมูลสดสำหรับหน้านี้", "No live backend signal is available for this page yet.")) +
             '</div></article>';
       }
 
@@ -805,14 +805,14 @@
           var geo = await geoPayload.json();
           var pipeline = await fetchJson("/api/pipeline/live");
           return {
-            title: L("สถานะข้อมูลของหน้าแผนที่", "Live map data pull"),
-            copy: L("หน้านี้อ่านข้อมูลพิกัดจริงจาก /api/geo/list และเทียบกับ intake ล่าสุดในฐานข้อมูล", "This page reads real geolocation rows from /api/geo/list and compares them with the latest intake state."),
-            status: L("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+            title: copyForLang("สถานะข้อมูลของหน้าแผนที่", "Live map data pull"),
+            copy: copyForLang("หน้านี้อ่านข้อมูลพิกัดจริงจาก /api/geo/list และเทียบกับ intake ล่าสุดในฐานข้อมูล", "This page reads real geolocation rows from /api/geo/list and compares them with the latest intake state."),
+            status: copyForLang("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
             metrics: [
-              { label: L("พิกัดพร้อมใช้", "Geo rows"), value: fmt(geo.count || 0) },
-              { label: L("ดึงเข้าคอร์ปัส", "Fetched"), value: fmt(pipeline.overview.total_sources || 0) },
-              { label: L("ผูกพิกัดแล้ว", "Geocoded"), value: fmt(pipeline.overview.geocoded_sources || 0) },
-              { label: L("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+              { label: copyForLang("พิกัดพร้อมใช้", "Geo rows"), value: fmt(geo.count || 0) },
+              { label: copyForLang("ดึงเข้าคอร์ปัส", "Fetched"), value: fmt(pipeline.overview.total_sources || 0) },
+              { label: copyForLang("ผูกพิกัดแล้ว", "Geocoded"), value: fmt(pipeline.overview.geocoded_sources || 0) },
+              { label: copyForLang("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
             ],
             feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
               return {
@@ -828,19 +828,19 @@
           var metrics = await fetchJson("/api/graph/metrics");
           var pipelineNet = await fetchJson("/api/pipeline/live");
           return {
-            title: L("สถานะข้อมูลของหน้าเครือข่าย", "Live network data pull"),
-            copy: L("หน้าเครือข่ายดึงโหนดและความสัมพันธ์จริงจาก /api/graph พร้อมตัวชี้วัดจาก /api/graph/metrics", "The network page pulls real nodes and relations from /api/graph with graph metrics from /api/graph/metrics."),
-            status: L("อัปเดตกราฟ " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at), "Graph updated " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at)),
+            title: copyForLang("สถานะข้อมูลของหน้าเครือข่าย", "Live network data pull"),
+            copy: copyForLang("หน้าเครือข่ายดึงโหนดและความสัมพันธ์จริงจาก /api/graph พร้อมตัวชี้วัดจาก /api/graph/metrics", "The network page pulls real nodes and relations from /api/graph with graph metrics from /api/graph/metrics."),
+            status: copyForLang("อัปเดตกราฟ " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at), "Graph updated " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at)),
             metrics: [
-              { label: L("โหนด", "Nodes"), value: fmt(safeArray(graph.nodes).length) },
-              { label: L("เส้นเชื่อม", "Links"), value: fmt(safeArray(graph.links).length) },
-              { label: L("คอมโพเนนต์", "Components"), value: fmt(metrics.components || 0) },
-              { label: L("ฮับหลัก", "Top hub"), value: (metrics.hub_interpretation && metrics.hub_interpretation.degree_hub && metrics.hub_interpretation.degree_hub.label) || "-" }
+              { label: copyForLang("โหนด", "Nodes"), value: fmt(safeArray(graph.nodes).length) },
+              { label: copyForLang("เส้นเชื่อม", "Links"), value: fmt(safeArray(graph.links).length) },
+              { label: copyForLang("คอมโพเนนต์", "Components"), value: fmt(metrics.components || 0) },
+              { label: copyForLang("ฮับหลัก", "Top hub"), value: (metrics.hub_interpretation && metrics.hub_interpretation.degree_hub && metrics.hub_interpretation.degree_hub.label) || "-" }
             ],
             feed: safeArray(metrics.top_degree).slice(0, 3).map(function (item) {
               return {
                 copy: item.label || "-",
-                meta: L("degree centrality ", "degree centrality ") + fmt(item.score)
+                meta: copyForLang("degree centrality ", "degree centrality ") + fmt(item.score)
               };
             })
           };
@@ -850,13 +850,13 @@
           var yearly = await fetchJson("/api/stats/yearly");
           var tax = await fetchJson("/api/taxonomy/stats");
           return {
-            title: L("สถานะข้อมูลของหน้า analytics", "Live analytics data pull"),
-            copy: L("หน้านี้ใช้ผลวิเคราะห์รายปีจาก /api/stats/yearly และชั้น taxonomy จาก /api/taxonomy/stats", "This page uses yearly analysis from /api/stats/yearly and taxonomy detail from /api/taxonomy/stats."),
-            status: L("รีเฟรชข้อมูลวิเคราะห์แล้ว", "Analytics data refreshed"),
+            title: copyForLang("สถานะข้อมูลของหน้า analytics", "Live analytics data pull"),
+            copy: copyForLang("หน้านี้ใช้ผลวิเคราะห์รายปีจาก /api/stats/yearly และชั้น taxonomy จาก /api/taxonomy/stats", "This page uses yearly analysis from /api/stats/yearly and taxonomy detail from /api/taxonomy/stats."),
+            status: copyForLang("รีเฟรชข้อมูลวิเคราะห์แล้ว", "Analytics data refreshed"),
             metrics: [
-              { label: L("ปีที่มีข้อมูล", "Years"), value: fmt(safeArray(yearly.years).length) },
-              { label: L("คู่เปรียบเทียบ", "Pairwise"), value: fmt(safeArray(yearly.pairwise).length) },
-              { label: L("แนวโน้ม", "Trend"), value: (yearly.trend && yearly.trend.mannkendall_trend) || "-" },
+              { label: copyForLang("ปีที่มีข้อมูล", "Years"), value: fmt(safeArray(yearly.years).length) },
+              { label: copyForLang("คู่เปรียบเทียบ", "Pairwise"), value: fmt(safeArray(yearly.pairwise).length) },
+              { label: copyForLang("แนวโน้ม", "Trend"), value: (yearly.trend && yearly.trend.mannkendall_trend) || "-" },
               { label: "Taxonomy", value: tax["insight:strongest_trend"] ? "ready" : "partial" }
             ],
             feed: safeArray(yearly.pairwise).slice(0, 3).map(function (item) {
@@ -872,12 +872,12 @@
           var sources = await fetchJson("/api/sources?page=1&page_size=5");
           var taxonomy = await fetchJson("/api/taxonomy/summary");
           return {
-            title: L("สถานะข้อมูลของหน้าฐานข้อมูล", "Live database data pull"),
-            copy: L("หน้าฐานข้อมูลอ่านแถวจริงจาก /api/sources และตัวเลือกกรองจาก /api/taxonomy/summary", "The database page reads real rows from /api/sources and filter options from /api/taxonomy/summary."),
-            status: L("รีเฟรชรายการล่าสุดแล้ว", "Latest rows refreshed"),
+            title: copyForLang("สถานะข้อมูลของหน้าฐานข้อมูล", "Live database data pull"),
+            copy: copyForLang("หน้าฐานข้อมูลอ่านแถวจริงจาก /api/sources และตัวเลือกกรองจาก /api/taxonomy/summary", "The database page reads real rows from /api/sources and filter options from /api/taxonomy/summary."),
+            status: copyForLang("รีเฟรชรายการล่าสุดแล้ว", "Latest rows refreshed"),
             metrics: [
-              { label: L("แถวทั้งหมด", "Total rows"), value: fmt(sources.total || 0) },
-              { label: L("โหลดรอบนี้", "Loaded"), value: fmt(safeArray(sources.items).length) },
+              { label: copyForLang("แถวทั้งหมด", "Total rows"), value: fmt(sources.total || 0) },
+              { label: copyForLang("โหลดรอบนี้", "Loaded"), value: fmt(safeArray(sources.items).length) },
               { label: "Media formats", value: fmt(safeArray(taxonomy.media_format).length) },
               { label: "User intents", value: fmt(safeArray(taxonomy.user_intent).length) }
             ],
@@ -894,11 +894,11 @@
           var submissions = await fetchJson("/api/community/submissions");
           var queueItems = safeArray(submissions.items);
           return {
-            title: L("สถานะข้อมูลของหน้าชุมชน", "Live community queue pull"),
-            copy: L("หน้าชุมชนอ่านคิวจริงจาก /api/community/submissions และแสดงสถานะ intake ล่าสุด", "The community page reads the real queue from /api/community/submissions and shows the latest intake states."),
-            status: L("รีเฟรชคิวแล้ว", "Queue refreshed"),
+            title: copyForLang("สถานะข้อมูลของหน้าชุมชน", "Live community queue pull"),
+            copy: copyForLang("หน้าชุมชนอ่านคิวจริงจาก /api/community/submissions และแสดงสถานะ intake ล่าสุด", "The community page reads the real queue from /api/community/submissions and shows the latest intake states."),
+            status: copyForLang("รีเฟรชคิวแล้ว", "Queue refreshed"),
             metrics: [
-              { label: L("รายการล่าสุด", "Recent items"), value: fmt(queueItems.length) },
+              { label: copyForLang("รายการล่าสุด", "Recent items"), value: fmt(queueItems.length) },
               { label: "Queued", value: fmt(queueItems.filter(function (item) { return String(item.status).indexOf("queued") === 0 || item.status === "pending"; }).length) },
               { label: "Processed", value: fmt(queueItems.filter(function (item) { return item.status === "processed"; }).length) },
               { label: "Failed", value: fmt(queueItems.filter(function (item) { return item.status === "failed"; }).length) }
@@ -915,14 +915,14 @@
         var summary = await fetchJson("/api/stats/summary");
         var pipeline = await fetchJson("/api/pipeline/live");
         return {
-          title: L("สถานะข้อมูลของหน้าแรก", "Live home data pull"),
-          copy: L("หน้าแรกอ่านภาพรวมคอร์ปัสจาก /api/stats/summary และ intake ล่าสุดจาก /api/pipeline/live", "The home page reads the live corpus summary from /api/stats/summary and recent intake from /api/pipeline/live."),
-          status: L("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+          title: copyForLang("สถานะข้อมูลของหน้าแรก", "Live home data pull"),
+          copy: copyForLang("หน้าแรกอ่านภาพรวมคอร์ปัสจาก /api/stats/summary และ intake ล่าสุดจาก /api/pipeline/live", "The home page reads the live corpus summary from /api/stats/summary and recent intake from /api/pipeline/live."),
+          status: copyForLang("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
           metrics: [
-            { label: L("แหล่งข้อมูล", "Sources"), value: fmt(summary.total_sources || 0) },
+            { label: copyForLang("แหล่งข้อมูล", "Sources"), value: fmt(summary.total_sources || 0) },
             { label: "Triplets", value: fmt(summary.total_triplets || 0) },
             { label: "Geo", value: fmt(summary.geo_count || 0) },
-            { label: L("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+            { label: copyForLang("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
           ],
           feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
             return {
@@ -939,9 +939,9 @@
           setPanel(await loadPageLive());
         } catch (error) {
           setPanel({
-            title: L("สถานะข้อมูลสดของหน้านี้", "Live page data"),
-            copy: L("ระบบไม่สามารถอ่านสถานะข้อมูลจริงของหน้านี้ได้ในขณะนี้", "The app could not read the real backend state for this page right now."),
-            status: L("โหลดไม่สำเร็จ", "Unavailable"),
+            title: copyForLang("สถานะข้อมูลสดของหน้านี้", "Live page data"),
+            copy: copyForLang("ระบบไม่สามารถอ่านสถานะข้อมูลจริงของหน้านี้ได้ในขณะนี้", "The app could not read the real backend state for this page right now."),
+            status: copyForLang("โหลดไม่สำเร็จ", "Unavailable"),
             metrics: [
               { label: "error", value: error && error.message ? error.message : "request failed" }
             ],
