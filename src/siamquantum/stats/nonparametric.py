@@ -53,13 +53,27 @@ def chi2_independence(
     )
     if table.sum() == 0:
         return {"chi2": None, "p": None, "note": "empty_table"}
-    result = scipy_stats.chi2_contingency(table, correction=False)
-    n = table.sum()
-    cramers_v = float(np.sqrt(result.statistic / (n * (min(len(row_cats), len(col_cats)) - 1)))) if min(len(row_cats), len(col_cats)) > 1 else 0.0
+
+    row_mask = table.sum(axis=1) > 0
+    col_mask = table.sum(axis=0) > 0
+    filtered = table[np.ix_(row_mask, col_mask)]
+    if filtered.size == 0 or filtered.shape[0] < 2 or filtered.shape[1] < 2:
+        return {"chi2": None, "p": None, "note": "insufficient_nonzero_structure"}
+
+    try:
+        result = scipy_stats.chi2_contingency(filtered, correction=False)
+    except ValueError:
+        return {"chi2": None, "p": None, "note": "invalid_expected_frequencies"}
+
+    n = filtered.sum()
+    min_dim = min(filtered.shape[0], filtered.shape[1])
+    cramers_v = float(np.sqrt(result.statistic / (n * (min_dim - 1)))) if min_dim > 1 else 0.0
     return {
         "chi2": round(float(result.statistic), 4),
         "p": round(float(result.pvalue), 6),
         "dof": int(result.dof),
         "cramers_v": round(cramers_v, 4),
         "significant": bool(result.pvalue < 0.05),
+        "rows_tested": int(filtered.shape[0]),
+        "columns_tested": int(filtered.shape[1]),
     }

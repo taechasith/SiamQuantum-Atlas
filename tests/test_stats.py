@@ -15,6 +15,7 @@ from siamquantum.services.stats import (
     compute_ttest,
     engagement_score,
 )
+from siamquantum.stats.nonparametric import chi2_independence
 
 
 # ---------------------------------------------------------------------------
@@ -214,3 +215,24 @@ def test_run_stats_pipeline(tmp_path: Path) -> None:
     with get_connection(db_path) as conn:
         snap = conn.execute("SELECT snapshot FROM denstream_state WHERE id=1").fetchone()
     assert snap is not None
+
+
+def test_chi2_independence_ignores_zero_rows_and_columns() -> None:
+    result = chi2_independence(
+        {
+            ("2020", "article"): 12,
+            ("2020", "podcast"): 3,
+            ("2021", "article"): 0,
+            ("2021", "podcast"): 0,
+            ("2022", "article"): 7,
+            ("2022", "podcast"): 4,
+            ("2020", "unused"): 0,
+            ("2021", "unused"): 0,
+            ("2022", "unused"): 0,
+        },
+        ["2020", "2021", "2022"],
+        ["article", "podcast", "unused"],
+    )
+    assert result["chi2"] is not None
+    assert result["rows_tested"] == 2
+    assert result["columns_tested"] == 2
