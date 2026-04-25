@@ -76,8 +76,9 @@ async def _daily_ingest_task() -> None:
             logger.info("Daily YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
             if g_inserted + y_inserted > 0:
                 _invalidate_node_registry()
-                with get_connection(db) as conn:
-                    StatsCacheRepo(conn).invalidate("graph:node_details")
+                if not settings.database_read_only:
+                    with get_connection(db) as conn:
+                        StatsCacheRepo(conn).invalidate("graph:node_details")
         except Exception:
             logger.exception("Daily ingest failed")
 
@@ -273,15 +274,28 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
             graph.neighbors(node_id),
             key=lambda item: (-degrees.get(item, 0), labels.get(item, item)),
         )[:8]
+        _label = labels.get(node_id, node_id)
+        _role = _hub_role(_label)
+        _top_rels = [r for r, _ in relation_counts_by_node.get(node_id, Counter()).most_common(3)]
+        _top_neighbors = [labels.get(n, n) for n in neighbor_ids[:3]]
+        _top_domains = [d for d, _ in domain_counts_by_node.get(node_id, Counter()).most_common(2)]
+        _src_count = len(supporting_sources_by_node.get(node_id, []))
+        _what = (
+            f'"{_label}" is a {_role}-type concept appearing in {degree_value} relations '
+            f"across {_src_count} source{'s' if _src_count != 1 else ''} in the Thai quantum media corpus."
+        )
+        _why = (
+            (f"Connected via {', '.join(_top_rels[:2])} relations. " if _top_rels else "")
+            + (f"Co-occurs with: {', '.join(_top_neighbors)}. " if _top_neighbors else "")
+            + (f"Domains: {', '.join(_top_domains)}." if _top_domains else "")
+        ).strip() or "No additional context available."
         registry[node_id] = {
             "id": node_id,
-            "label": labels.get(node_id, node_id),
+            "label": _label,
             "summary": {
-                "what_it_is": "A concept extracted from corpus triplets and merged by normalized text.",
-                "why_it_matters": (
-                    "Higher degree means the concept appears in more relations; a broker rank appears when the graph-metrics cache identifies it as a bridge concept."
-                ),
-                "hub_role": _hub_role(labels.get(node_id, node_id)),
+                "what_it_is": _what,
+                "why_it_matters": _why,
+                "hub_role": _role,
             },
             "metrics": {
                 "degree": degree_value,
@@ -326,12 +340,22 @@ def _get_node_registry(conn: sqlite3.Connection) -> dict[str, Any]:
     now = time.monotonic()
     if _node_registry_mem is not None and (now - _node_registry_ts) < _NODE_REGISTRY_TTL:
         return _node_registry_mem
-    # Fall back to DB cache, then full rebuild
-    cache = StatsCacheRepo(conn)
-    cached = cache.get("graph:node_details")
-    registry: dict[str, Any] = cached if isinstance(cached, dict) else _build_graph_node_detail_registry(conn)
-    if not isinstance(cached, dict) and not _is_vercel_demo_mode():
-        cache.set("graph:node_details", registry)
+
+    read_only = bool(settings.database_read_only)
+
+    if read_only:
+        # Read-only connection: skip DB cache entirely, use in-memory only
+        registry = _build_graph_node_detail_registry(conn)
+    else:
+        cache = StatsCacheRepo(conn)
+        cached = cache.get("graph:node_details")
+        registry = cached if isinstance(cached, dict) else _build_graph_node_detail_registry(conn)
+        if not isinstance(cached, dict):
+            try:
+                cache.set("graph:node_details", registry)
+            except Exception:
+                pass  # Write failed (permissions, disk full) — in-memory cache still works
+
     _node_registry_mem = registry
     _node_registry_ts = now
     return registry
@@ -1397,8 +1421,9 @@ async def api_ingest_today() -> JSONResponse:
     )
     if total_inserted > 0:
         _invalidate_node_registry()
-        with get_connection(db) as conn:
-            StatsCacheRepo(conn).invalidate("graph:node_details")
+        if not settings.database_read_only:
+            with get_connection(db) as conn:
+                StatsCacheRepo(conn).invalidate("graph:node_details")
 
     return JSONResponse({"ok": True, "date": today.isoformat(), "results": results, "error": None})
 
