@@ -4,8 +4,6 @@
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script defer src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
-<script defer src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
 <style>
   :root {
     --panel: rgba(10, 16, 35, 0.84);
@@ -216,13 +214,62 @@
     line-height: 1.55;
   }
 
-  .network-canvas {
-    width: 100%;
-    height: 420px;
-    border-radius: 18px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: radial-gradient(circle at top, rgba(112, 225, 255, 0.08), rgba(5, 8, 22, 0.96));
+  .community-intro {
+    color: var(--muted);
+    font-size: 0.84rem;
+    margin-bottom: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .cluster-concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .concept-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(112, 225, 255, 0.08);
+    border: 1px solid rgba(112, 225, 255, 0.22);
+    border-radius: 999px;
+    color: var(--accent);
+    padding: 0.22rem 0.65rem;
+    font-size: 0.76rem;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .concept-tag:hover {
+    background: rgba(112, 225, 255, 0.16);
+    border-color: rgba(112, 225, 255, 0.45);
+  }
+
+  .cluster-size {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+  }
+
+  .network-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(199, 155, 255, 0.1);
+    border: 1px solid rgba(199, 155, 255, 0.28);
+    border-radius: 999px;
+    color: var(--accent-2);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .network-nav-btn:hover {
+    background: rgba(199, 155, 255, 0.18);
+    border-color: rgba(199, 155, 255, 0.48);
   }
 
   .empty-state,
@@ -290,8 +337,8 @@
         <span class="en-text">Yearly Engagement By Topic And Production Form</span>
       </h1>
       <p>
-        <span class="th-text">หน้านี้แยกการมีส่วนร่วมของคนไทยตามหัวข้อควอนตัมแบบละเอียดและตามรูปแบบการผลิตเนื้อหา พร้อมการทดสอบทางสถิติและกราฟคลัสเตอร์ 3 มิติที่สร้างจากข้อมูลจริงชุดเดียวกัน</span>
-        <span class="en-text">This page separates Thai engagement by fine-grained quantum topics and by content production forms, then validates those splits with statistical tests and matching 3D cluster graphs built from the same observed rows.</span>
+        <span class="th-text">หน้านี้แยกการมีส่วนร่วมของคนไทยตามหัวข้อควอนตัมแบบละเอียดและตามรูปแบบการผลิตเนื้อหา พร้อมการทดสอบทางสถิติ คลัสเตอร์ที่พบเชื่อมโยงกับกราฟ Concept Network ที่มีอยู่แล้ว</span>
+        <span class="en-text">This page separates Thai engagement by fine-grained quantum topics and by content production forms, then validates those splits with statistical tests. Community clusters link back to the Concept Network graph already built from the same corpus.</span>
       </p>
       <div class="stats">
         <div class="stat-card">
@@ -336,8 +383,8 @@
       <div class="insight-value">Each point is a bootstrap geometric mean on log1p view-count engagement, which is more robust than raw arithmetic means for skewed web data.</div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">3D graph logic</div>
-      <div class="insight-value">Each 3D graph links years to categories using observed counts, then colors communities from weighted graph structure instead of arbitrary styling.</div>
+      <div class="insight-label">Community clusters</div>
+      <div class="insight-value">Community labels below each chart are drawn from the same graph structure that powers the Concept Network page. Click any concept tag to explore it there.</div>
     </div>
   </div>
 
@@ -371,16 +418,14 @@
     </div>
 
     <div class="card wide-card">
-      <h3>3D Topic Cluster Graph</h3>
-      <p>Year nodes connect to topic nodes through observed category-year counts. Dense multi-year topic regions settle into visible communities.</p>
-      <div class="network-canvas" id="topic-network"></div>
+      <h3>Topic Community Clusters</h3>
+      <p>These clusters are derived from the same corpus that powers the Concept Network. Each concept tag links directly to the Network page where the full graph can be explored interactively.</p>
       <div class="community-strip" id="topic-communities"></div>
     </div>
 
     <div class="card wide-card">
-      <h3>3D Production Cluster Graph</h3>
-      <p>Year nodes connect to production-form nodes through the same source rows used in the chart above, making it easier to see where formats consolidate or fragment across years.</p>
-      <div class="network-canvas" id="production-network"></div>
+      <h3>Production Community Clusters</h3>
+      <p>Community structure drawn from the production-form graph within the same corpus. Explore co-occurrence patterns and format clusters in the Concept Network page.</p>
       <div class="community-strip" id="production-communities"></div>
     </div>
   </div>
@@ -405,9 +450,7 @@
     topicValidation: document.getElementById("topic-validation"),
     productionValidation: document.getElementById("production-validation"),
     topicCommunities: document.getElementById("topic-communities"),
-    productionCommunities: document.getElementById("production-communities"),
-    topicNetwork: document.getElementById("topic-network"),
-    productionNetwork: document.getElementById("production-network")
+    productionCommunities: document.getElementById("production-communities")
   };
 
   function copyForLang(th, en) {
@@ -523,43 +566,35 @@
     `;
   }
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   function renderCommunities(host, graphPayload, title) {
     const items = Array.isArray(graphPayload.community_summaries) ? graphPayload.community_summaries : [];
     if (!items.length) {
-      host.innerHTML = `<div class="community-card"><strong>${title}</strong><span>No stable community structure yet. The current graph is still sparse on this axis.</span></div>`;
+      host.innerHTML = `
+        <div class="community-card">
+          <strong>${escapeHtml(title)}</strong>
+          <span>No stable community structure yet. The current graph is still sparse on this axis.</span>
+          <div><a href="/network" class="network-nav-btn">Explore Concept Network →</a></div>
+        </div>`;
       return;
     }
-    host.innerHTML = items.map((item) => `
-      <div class="community-card">
-        <strong>Cluster ${item.community + 1}</strong>
-        <span>Size ${item.size}. Leading labels: ${(item.labels || []).join(", ") || "n/a"}.</span>
-      </div>
-    `).join("");
-  }
-
-  async function waitForForceGraph() {
-    for (let index = 0; index < 50; index += 1) {
-      if (window.ForceGraph3D && window.THREE) return true;
-      await new Promise((resolve) => setTimeout(resolve, 120));
-    }
-    return false;
-  }
-
-  async function renderNetwork(host, graphPayload) {
-    const ready = await waitForForceGraph();
-    if (!ready || !graphPayload || !Array.isArray(graphPayload.nodes) || !graphPayload.nodes.length) {
-      host.innerHTML = '<div style="padding:1rem;color:var(--muted)">3D graph unavailable for the current dataset.</div>';
-      return;
-    }
-    ForceGraph3D()(host)
-      .backgroundColor("#060811")
-      .graphData(graphPayload)
-      .nodeLabel((node) => `${node.label} · n=${node.count || node.value || 0}`)
-      .nodeColor((node) => palette(Number(node.community || 0)))
-      .nodeVal((node) => Math.max(2, Math.sqrt(Number(node.value || 1)) * 1.8))
-      .linkWidth((link) => Math.max(1, Math.log2(Number(link.weight || 1) + 1)))
-      .linkColor(() => "rgba(132, 207, 255, 0.35)")
-      .cooldownTicks(120);
+    const cards = items.map((item) => {
+      const labels = (item.labels || []);
+      const tags = labels.map((label) => `<a href="/network" class="concept-tag">${escapeHtml(label)}</a>`).join("");
+      return `
+        <div class="community-card">
+          <strong>Cluster ${item.community + 1}</strong>
+          <div class="cluster-size">${item.size} source${item.size !== 1 ? "s" : ""} in this community</div>
+          <div class="cluster-concepts">${tags || '<span style="color:var(--muted);font-size:0.8rem">No concept labels</span>'}</div>
+        </div>`;
+    }).join("");
+    host.innerHTML = `
+      <p class="community-intro">These clusters reflect co-occurrence structure from the same corpus that drives the Concept Network. Click any tag to explore the graph.</p>
+      ${cards}
+      <div><a href="/network" class="network-nav-btn">Explore full Concept Network →</a></div>`;
   }
 
   function countSignificant(axisPayload) {
@@ -625,8 +660,6 @@
       renderValidation(elements.productionValidation, productionAxis, "Production");
       renderCommunities(elements.topicCommunities, topicAxis.graph || {}, "Topic communities");
       renderCommunities(elements.productionCommunities, productionAxis.graph || {}, "Production communities");
-      renderNetwork(elements.topicNetwork, topicAxis.graph || {});
-      renderNetwork(elements.productionNetwork, productionAxis.graph || {});
 
       setStatus(copyForLang(
         `โหลดข้อมูล ${topicAxis.years.length} ปี พร้อมหัวข้อและรูปแบบการผลิต`,
