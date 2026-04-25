@@ -59,7 +59,8 @@ def _prewarm_registry_sync() -> None:
 
 
 async def _daily_ingest_task() -> None:
-    """Run GDELT + YouTube today-range ingest once per day at ~00:05."""
+    """Run GDELT + YouTube ingest once per day at ~00:05.
+    Fetches last 3 days to compensate for GDELT's ~24-48h indexing lag."""
     from datetime import date, datetime, timedelta
 
     while True:
@@ -70,9 +71,10 @@ async def _daily_ingest_task() -> None:
             from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
             db = db_path_from_url(settings.database_url)
             today = date.today()
-            g_fetched, g_inserted = await ingest_gdelt_daterange(today, today, db)
+            start = today - timedelta(days=2)  # 3-day window covers GDELT lag
+            g_fetched, g_inserted = await ingest_gdelt_daterange(start, today, db)
             logger.info("Daily GDELT: fetched=%d inserted=%d", g_fetched, g_inserted)
-            y_fetched, y_inserted = await ingest_youtube_daterange(today, today, db)
+            y_fetched, y_inserted = await ingest_youtube_daterange(start, today, db)
             logger.info("Daily YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
             if g_inserted + y_inserted > 0:
                 _invalidate_node_registry()
