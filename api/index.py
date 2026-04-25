@@ -16,17 +16,21 @@ if str(SRC) not in sys.path:
 
 
 def _prepare_demo_db() -> str:
+    """Copy bundled DB to /tmp (writable) so SQLite can use WAL mode."""
     if DATA_DB.exists():
         try:
             if (not TMP_DB.exists()) or DATA_DB.stat().st_mtime > TMP_DB.stat().st_mtime:
                 shutil.copy2(DATA_DB, TMP_DB)
             return f"sqlite:///{TMP_DB.as_posix()}"
-        except Exception:
+        except Exception as exc:
+            # /tmp unavailable — fall back to read-only source path
+            os.environ["SIAMQUANTUM_DATABASE_READ_ONLY"] = "true"
             return f"sqlite:///{DATA_DB.as_posix()}"
-    return "sqlite:///data/processed/siamquantum_atlas.db"
+    return f"sqlite:///{(ROOT / 'data' / 'processed' / 'siamquantum_atlas.db').as_posix()}"
 
 
-os.environ.setdefault("SIAMQUANTUM_DEPLOYMENT_MODE", "vercel")
-os.environ.setdefault("SIAMQUANTUM_DATABASE_URL", _prepare_demo_db())
+# Force-set — Vercel dashboard env vars must NOT override these
+os.environ["SIAMQUANTUM_DEPLOYMENT_MODE"] = "vercel"
+os.environ["SIAMQUANTUM_DATABASE_URL"] = _prepare_demo_db()
 
-from siamquantum.viewer.server import app
+from siamquantum.viewer.server import app  # noqa: E402
