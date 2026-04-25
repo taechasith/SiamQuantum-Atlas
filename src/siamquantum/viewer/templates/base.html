@@ -1014,10 +1014,11 @@
           var camera = new window.THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
           camera.position.set(0, 0, 100);
 
-          var TOTAL = 220;
-          var HUB_COUNT = 28;
+          var TOTAL = 320;
+          var HUB_COUNT = 40;
           var REPEL_DIST = 58;
           var REPEL_FORCE = 0.17;
+          var fieldBounds = { x: 78, y: 46, z: 26 };
 
           // Brand colors: Siam(blue) Quantum(violet) Atlas(cyan)
           var palette = [
@@ -1031,12 +1032,23 @@
           var velocities = new Float32Array(TOTAL * 3);
           var pColors = new Float32Array(TOTAL * 3);
 
+          function updateFieldBounds() {
+            var halfFov = (camera.fov * Math.PI / 180) * 0.5;
+            var halfHeight = Math.tan(halfFov) * camera.position.z;
+            var halfWidth = halfHeight * camera.aspect;
+
+            fieldBounds.x = Math.max(halfWidth - 18, 42);
+            fieldBounds.y = Math.max(halfHeight - 18, 28);
+            fieldBounds.z = Math.min(Math.max(Math.min(fieldBounds.x, fieldBounds.y) * 0.52, 18), 34);
+          }
+          updateFieldBounds();
+
           for (var i = 0; i < TOTAL; i++) {
             var ix = i * 3;
             var isHub = i < HUB_COUNT;
-            positions[ix]     = (Math.random() - 0.5) * 210;
-            positions[ix + 1] = (Math.random() - 0.5) * 130;
-            positions[ix + 2] = (Math.random() - 0.5) * 70;
+            positions[ix]     = (Math.random() * 2 - 1) * fieldBounds.x;
+            positions[ix + 1] = (Math.random() * 2 - 1) * fieldBounds.y;
+            positions[ix + 2] = (Math.random() * 2 - 1) * fieldBounds.z;
             var spd = isHub ? 0.032 : 0.014;
             velocities[ix]     = (Math.random() - 0.5) * spd;
             velocities[ix + 1] = (Math.random() - 0.5) * spd;
@@ -1067,11 +1079,11 @@
           hubGeo.setAttribute("color",    new window.THREE.BufferAttribute(hubColors, 3));
 
           var dotMat = new window.THREE.PointsMaterial({
-            vertexColors: true, size: 2.8, transparent: true,
+            vertexColors: true, size: 3.8, transparent: true,
             opacity: 0.72, depthWrite: false, sizeAttenuation: false
           });
           var hubMat = new window.THREE.PointsMaterial({
-            vertexColors: true, size: 5.5, transparent: true,
+            vertexColors: true, size: 7.2, transparent: true,
             opacity: 0.92, depthWrite: false, sizeAttenuation: false
           });
 
@@ -1086,6 +1098,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight, false);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+            updateFieldBounds();
           }
           resize();
           window.addEventListener("resize", resize);
@@ -1095,8 +1108,8 @@
           window.addEventListener("mousemove", function (e) {
             mViewX = e.clientX;
             mViewY = e.clientY;
-            mWorldX = (e.clientX / window.innerWidth  - 0.5) * 210;
-            mWorldY = -(e.clientY / window.innerHeight - 0.5) * 130;
+            mWorldX = (e.clientX / window.innerWidth  - 0.5) * fieldBounds.x * 2;
+            mWorldY = -(e.clientY / window.innerHeight - 0.5) * fieldBounds.y * 2;
           });
 
           function animate() {
@@ -1134,12 +1147,12 @@
               arr[ix + 2] += velocities[ix + 2];
 
               // Bounce — tighter bounds keep all particles within visible viewport
-              if (arr[ix]     >  90) { arr[ix]     =  90; velocities[ix]     *= -0.8; }
-              if (arr[ix]     < -90) { arr[ix]     = -90; velocities[ix]     *= -0.8; }
-              if (arr[ix + 1] >  56) { arr[ix + 1] =  56; velocities[ix + 1] *= -0.8; }
-              if (arr[ix + 1] < -56) { arr[ix + 1] = -56; velocities[ix + 1] *= -0.8; }
-              if (arr[ix + 2] >  32) { arr[ix + 2] =  32; velocities[ix + 2] *= -0.8; }
-              if (arr[ix + 2] < -32) { arr[ix + 2] = -32; velocities[ix + 2] *= -0.8; }
+              if (arr[ix]     >  fieldBounds.x) { arr[ix]     =  fieldBounds.x; velocities[ix]     *= -0.84; }
+              if (arr[ix]     < -fieldBounds.x) { arr[ix]     = -fieldBounds.x; velocities[ix]     *= -0.84; }
+              if (arr[ix + 1] >  fieldBounds.y) { arr[ix + 1] =  fieldBounds.y; velocities[ix + 1] *= -0.84; }
+              if (arr[ix + 1] < -fieldBounds.y) { arr[ix + 1] = -fieldBounds.y; velocities[ix + 1] *= -0.84; }
+              if (arr[ix + 2] >  fieldBounds.z) { arr[ix + 2] =  fieldBounds.z; velocities[ix + 2] *= -0.8; }
+              if (arr[ix + 2] < -fieldBounds.z) { arr[ix + 2] = -fieldBounds.z; velocities[ix + 2] *= -0.8; }
 
               // Sync hub positions
               if (i < HUB_COUNT) {
@@ -1156,9 +1169,9 @@
             camera.position.x += ((mViewX / window.innerWidth  - 0.5) * 10 - camera.position.x) * 0.035;
             camera.position.y += (-(mViewY / window.innerHeight - 0.5) * 7  - camera.position.y) * 0.035;
 
-            // Slow field rotation
-            dots.rotation.y += 0.00045;
-            dots.rotation.x += 0.00015;
+            // Keep the field screen-locked so bounce matches the visible viewport.
+            dots.rotation.y *= 0.96;
+            dots.rotation.x *= 0.96;
             hubs.rotation.y = dots.rotation.y;
             hubs.rotation.x = dots.rotation.x;
 

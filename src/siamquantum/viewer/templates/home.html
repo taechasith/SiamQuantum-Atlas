@@ -51,14 +51,76 @@
   }
 
   .home-shell {
-    max-width: 1180px;
+    max-width: 1260px;
     margin: 0 auto;
-    padding: 3rem 1.5rem 5rem;
+    padding: 3.5rem 1.5rem 5rem;
   }
 
   .hero-section {
-    text-align: center;
-    padding: 4rem 1rem 3.5rem;
+    padding: 2rem 0 3.5rem;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+    gap: 1.4rem;
+    align-items: stretch;
+  }
+
+  .hero-main,
+  .hero-side,
+  .section-intro {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
+  }
+
+  .hero-main {
+    border-radius: 32px;
+    padding: 2.25rem 2.25rem 2rem;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, rgba(96, 165, 250, 0.16), rgba(139, 130, 255, 0.06) 42%, rgba(8, 14, 30, 0.92) 72%),
+      radial-gradient(circle at top left, rgba(79, 215, 255, 0.18), transparent 34%),
+      var(--panel);
+  }
+
+  .hero-main::after {
+    content: "";
+    position: absolute;
+    right: -8%;
+    bottom: -28%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.18), transparent 68%);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    background: rgba(96, 165, 250, 0.08);
+    color: var(--accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-kicker::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 14px currentColor;
   }
 
   .live-status::before {
@@ -81,8 +143,9 @@
     font-size: clamp(2.6rem, 6vw, 5rem);
     line-height: 1;
     color: var(--text);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     letter-spacing: -0.02em;
+    max-width: 10ch;
   }
 
   .hero-title .hl-blue  { color: var(--accent); }
@@ -131,8 +194,135 @@
     font-size: clamp(1rem, 2vw, 1.25rem);
     color: var(--muted);
     max-width: 58ch;
-    margin: 1rem auto 0;
+    margin: 0;
     line-height: 1.7;
+  }
+
+  .hero-actions,
+  .hero-proof,
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .hero-actions {
+    margin-top: 1.7rem;
+  }
+
+  .hero-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0.78rem 1.15rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: transform .2s, border-color .2s, background .2s;
+    font-weight: 600;
+  }
+
+  .hero-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .hero-action.primary {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.96), rgba(79, 215, 255, 0.92));
+    color: #05111f;
+    box-shadow: 0 16px 40px rgba(96, 165, 250, 0.22);
+  }
+
+  .hero-action.secondary {
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .hero-proof {
+    margin-top: 1.6rem;
+  }
+
+  .hero-proof-item {
+    min-width: 150px;
+    padding: 0.85rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-proof-label {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.45rem;
+  }
+
+  .hero-proof-value {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: 1.02rem;
+    line-height: 1.4;
+  }
+
+  .hero-side {
+    border-radius: 28px;
+    padding: 1.3rem;
+    display: grid;
+    gap: 1rem;
+    background:
+      linear-gradient(180deg, rgba(8, 14, 30, 0.96), rgba(5, 10, 20, 0.92)),
+      var(--panel);
+  }
+
+  .hero-side-card {
+    border-radius: 22px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-side .section-label {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
+  .hero-side-title,
+  .section-title {
+    color: var(--text);
+    font-family: var(--font-heading);
+  }
+
+  .hero-side-title {
+    font-size: 1.08rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .hero-side-copy,
+  .section-copy {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+
+  .hero-side-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .hero-side-metric {
+    border-radius: 16px;
+    padding: 0.8rem 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .hero-side-metric strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.96rem;
+    margin-top: 0.25rem;
   }
 
   .stats-strip,
@@ -143,7 +333,7 @@
 
   .stats-strip {
     grid-template-columns: repeat(4, 1fr);
-    margin: 3rem 0;
+    margin: 1.25rem 0 3rem;
   }
 
   .stat-card,
@@ -159,7 +349,7 @@
   .stat-card {
     border-radius: 18px;
     padding: 1.4rem 1.2rem;
-    text-align: center;
+    text-align: left;
     transition: border-color .2s, transform .2s;
   }
 
@@ -222,12 +412,31 @@
     background: linear-gradient(180deg, rgba(8, 14, 30, 0.94), rgba(6, 11, 22, 0.92));
   }
 
-  .live-head {
-    display: flex;
-    justify-content: space-between;
+  .live-shell {
+    display: grid;
+    grid-template-columns: minmax(250px, 0.74fr) minmax(0, 1.26fr);
     gap: 1rem;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    align-items: start;
+  }
+
+  .live-intro {
+    border-radius: 20px;
+    padding: 1.15rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    position: sticky;
+    top: 5rem;
+  }
+
+  .live-head {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 0;
+  }
+
+  .live-body {
+    display: grid;
+    gap: 1rem;
   }
 
   .live-title {
@@ -403,6 +612,27 @@
     margin-bottom: 3rem;
   }
 
+  .section-intro {
+    border-radius: 24px;
+    padding: 1.35rem 1.4rem;
+    margin-bottom: 1.1rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(96, 165, 250, 0.04));
+  }
+
+  .section-head {
+    justify-content: space-between;
+    align-items: end;
+  }
+
+  .section-title {
+    font-size: clamp(1.35rem, 2vw, 1.9rem);
+    margin-top: 0.35rem;
+  }
+
+  .section-copy {
+    max-width: 60ch;
+  }
+
   .feature-card {
     border-radius: 20px;
     padding: 1.5rem;
@@ -449,12 +679,15 @@
   }
 
   .about-strip {
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 24px;
+    padding: 2.15rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 2.2rem;
     margin-bottom: 3rem;
+    background:
+      linear-gradient(120deg, rgba(96, 165, 250, 0.08), rgba(139, 130, 255, 0.03) 45%, rgba(8, 14, 30, 0.9) 82%),
+      var(--panel);
   }
 
   .about-strip h2 {
@@ -501,22 +734,40 @@
   }
 
   @media (max-width: 900px) {
+    .hero-grid,
+    .live-shell,
     .stats-strip,
     .pipeline-meters {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .live-head,
+    .hero-grid,
+    .live-shell,
     .live-grid,
     .about-strip {
       grid-template-columns: 1fr;
       display: grid;
+    }
+
+    .hero-main,
+    .hero-side,
+    .section-intro {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
+    .live-intro {
+      position: static;
     }
   }
 
   @media (max-width: 560px) {
     .stats-strip,
     .pipeline-meters {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-side-metrics {
       grid-template-columns: 1fr;
     }
 
@@ -541,6 +792,9 @@
 
 <div class="home-shell">
   <section class="hero-section">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <div class="hero-kicker">Thai Quantum Research Interface</div>
     <h1 class="hero-title">
       <span class="hl-blue">Siam</span><span class="hl-amber">Quantum</span> <span class="hl-atlas">Atlas</span>
     </h1>
@@ -548,6 +802,52 @@
       <span class="th-text">คลังสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยสำหรับการสำรวจเชิงวิจัย</span>
       <span class="en-text">A 10-year corpus of Thai-relevant quantum discourse, mapped, extracted, and ready for analyst exploration.</span>
     </p>
+        <div class="hero-actions">
+          <a class="hero-action primary" href="/dashboard">Open Map Workspace</a>
+          <a class="hero-action secondary" href="/analytics">View Research Analytics</a>
+        </div>
+        <div class="hero-proof">
+          <div class="hero-proof-item">
+            <div class="hero-proof-label">Coverage</div>
+            <div class="hero-proof-value">Thai web, video, and social discourse</div>
+          </div>
+          <div class="hero-proof-item">
+            <div class="hero-proof-label">Methods</div>
+            <div class="hero-proof-value">Triplets, trend inference, network metrics</div>
+          </div>
+          <div class="hero-proof-item">
+            <div class="hero-proof-label">Use</div>
+            <div class="hero-proof-value">Live pipeline, atlas views, and corpus evidence</div>
+          </div>
+        </div>
+      </div>
+      <aside class="hero-side" aria-label="Atlas summary">
+        <div class="hero-side-card">
+          <div class="section-label">Product overview</div>
+          <div class="hero-side-title">Research workflow in one place</div>
+          <div class="hero-side-copy">The atlas combines collection, geocoding, extraction, trend analysis, and navigation across multiple research views without hiding the underlying corpus detail.</div>
+        </div>
+        <div class="hero-side-metrics">
+          <div class="hero-side-metric">
+            <span class="section-label">Explore</span>
+            <strong>Map, network, analytics, database</strong>
+          </div>
+          <div class="hero-side-metric">
+            <span class="section-label">Live data</span>
+            <strong>Pipeline and queue state refresh automatically</strong>
+          </div>
+          <div class="hero-side-metric">
+            <span class="section-label">Corpus</span>
+            <strong>Built for Thai-relevant quantum discourse tracking</strong>
+          </div>
+          <div class="hero-side-metric">
+            <span class="section-label">Community</span>
+            <strong>Submission queue stays visible to contributors</strong>
+          </div>
+        </div>
+        <a class="hero-action secondary" href="/community">Open Community Intake</a>
+      </aside>
+    </div>
   </section>
 
   <div class="stats-strip" id="stats-strip">
@@ -574,6 +874,8 @@
   </div>
 
   <section class="live-section">
+    <div class="live-shell">
+      <div class="live-intro">
     <div class="live-head">
       <div>
         <div class="section-label"><span class="th-text">สถานะ pipeline แบบสด</span><span class="en-text">Live pipeline</span></div>
@@ -585,7 +887,9 @@
       </div>
       <div class="live-status" id="pipeline-status">Checking live pipeline</div>
     </div>
+      </div>
 
+      <div class="live-body">
     <div class="pipeline-meters">
       <div class="meter-card">
         <div class="meter-label"><span class="th-text">ดึงเข้าคอร์ปัสแล้ว</span><span class="en-text">Fetched</span></div>
@@ -623,9 +927,19 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
   </section>
 
-  <p class="section-label">Explore the research workspace</p>
+  <div class="section-intro">
+    <div class="section-head">
+      <div>
+        <p class="section-label">Explore the research workspace</p>
+        <h2 class="section-title">Move from overview to evidence with dedicated views</h2>
+      </div>
+      <p class="section-copy">Each route preserves a different research task: spatial reading, concept structure, engagement trend analysis, direct source inspection, and community intake tracking.</p>
+    </div>
+  </div>
   <div class="feature-grid">
     <a class="feature-card" href="/dashboard">
       <span class="card-icon" aria-hidden="true">
