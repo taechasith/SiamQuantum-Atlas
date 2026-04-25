@@ -33,21 +33,6 @@
     padding: 4rem 1rem 3.5rem;
   }
 
-  .hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent);
-    border: 1px solid rgba(96, 165, 250, 0.3);
-    border-radius: 999px;
-    padding: 0.35rem 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .hero-eyebrow::before,
   .live-status::before {
     content: "";
     width: 6px;
@@ -72,8 +57,47 @@
     letter-spacing: -0.02em;
   }
 
-  .hero-title .hl-blue { color: var(--accent); }
-  .hero-title .hl-amber { color: var(--accent-2); }
+  .hero-title .hl-blue {
+    color: var(--accent);
+    text-shadow:
+      0 0 4px rgba(96, 165, 250, 1),
+      0 0 14px rgba(96, 165, 250, 0.85),
+      0 0 32px rgba(96, 165, 250, 0.55),
+      0 0 64px rgba(96, 165, 250, 0.28);
+    animation: neon-blue 3.2s ease-in-out infinite;
+  }
+
+  .hero-title .hl-amber {
+    color: var(--accent-2);
+    text-shadow:
+      0 0 4px rgba(139, 130, 255, 1),
+      0 0 14px rgba(139, 130, 255, 0.85),
+      0 0 32px rgba(139, 130, 255, 0.55),
+      0 0 64px rgba(139, 130, 255, 0.28);
+    animation: neon-amber 3.2s ease-in-out infinite;
+    animation-delay: 0.4s;
+  }
+
+  .hero-title .hl-atlas {
+    color: var(--accent-3);
+    text-shadow:
+      0 0 4px rgba(79, 215, 255, 1),
+      0 0 14px rgba(79, 215, 255, 0.8),
+      0 0 32px rgba(79, 215, 255, 0.5),
+      0 0 64px rgba(79, 215, 255, 0.25);
+    animation: neon-blue 3.2s ease-in-out infinite;
+    animation-delay: 0.8s;
+  }
+
+  @keyframes neon-blue {
+    0%, 100% { text-shadow: 0 0 4px rgba(96, 165, 250, 1), 0 0 14px rgba(96, 165, 250, 0.85), 0 0 32px rgba(96, 165, 250, 0.55), 0 0 64px rgba(96, 165, 250, 0.28); }
+    50% { text-shadow: 0 0 6px rgba(96, 165, 250, 1), 0 0 22px rgba(96, 165, 250, 1), 0 0 48px rgba(96, 165, 250, 0.75), 0 0 96px rgba(96, 165, 250, 0.42); }
+  }
+
+  @keyframes neon-amber {
+    0%, 100% { text-shadow: 0 0 4px rgba(139, 130, 255, 1), 0 0 14px rgba(139, 130, 255, 0.85), 0 0 32px rgba(139, 130, 255, 0.55), 0 0 64px rgba(139, 130, 255, 0.28); }
+    50% { text-shadow: 0 0 6px rgba(139, 130, 255, 1), 0 0 22px rgba(139, 130, 255, 1), 0 0 48px rgba(139, 130, 255, 0.75), 0 0 96px rgba(139, 130, 255, 0.42); }
+  }
 
   .hero-sub {
     font-size: clamp(1rem, 2vw, 1.25rem);
@@ -484,9 +508,8 @@
 {% block body %}
 <div class="home-shell">
   <section class="hero-section">
-    <div class="hero-eyebrow">Thai Quantum Media Research · 2014-2024</div>
     <h1 class="hero-title">
-      <span class="hl-blue">Siam</span><span class="hl-amber">Quantum</span> Atlas
+      <span class="hl-blue">Siam</span><span class="hl-amber">Quantum</span> <span class="hl-atlas">Atlas</span>
     </h1>
     <p class="hero-sub">
       <span class="th-text">คลังสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยสำหรับการสำรวจเชิงวิจัย</span>

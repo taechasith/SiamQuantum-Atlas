@@ -1396,6 +1396,7 @@ async function loadMetrics() {
             </div>
           </details>
         </div>
+        <a href="/analytics" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.85rem;padding:0.45rem 0.9rem;background:rgba(199,155,255,0.08);border:1px solid rgba(199,155,255,0.25);border-radius:999px;color:#c79bff;font-size:0.8rem;text-decoration:none;">See also: Yearly Cluster Analysis →</a>
       `;
     } catch (error) {
       elements.metricsBody.textContent = t("metricsUnavailable", error.message);
