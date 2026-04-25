@@ -1016,18 +1016,15 @@
 
           var TOTAL = 130;
           var HUB_COUNT = 18;
-          var CONNECT_DIST = 68;
-          var MAX_LINES = 380;
           var REPEL_DIST = 52;
           var REPEL_FORCE = 0.22;
 
-          // Color palette: cyan/blue/violet
+          // Brand colors: Siam(blue) Quantum(violet) Atlas(cyan)
           var palette = [
-            [0.52, 0.81, 1.00],
-            [0.42, 0.54, 1.00],
-            [0.55, 0.49, 1.00],
-            [0.30, 0.91, 1.00],
-            [0.86, 0.92, 1.00]
+            [0.376, 0.647, 0.980],  // #60a5fa — Siam blue
+            [0.545, 0.510, 1.000],  // #8b82ff — Quantum violet
+            [0.310, 0.843, 1.000],  // #4fd7ff — Atlas cyan
+            [0.440, 0.730, 1.000],  // mid blue-cyan blend
           ];
 
           var positions = new Float32Array(TOTAL * 3);
@@ -1082,18 +1079,6 @@
           var hubs = new window.THREE.Points(hubGeo, hubMat);
           scene.add(dots);
           scene.add(hubs);
-
-          // Pre-allocated line geometry
-          var linePos = new Float32Array(MAX_LINES * 6);
-          var lineCol = new Float32Array(MAX_LINES * 6);
-          var lineGeo = new window.THREE.BufferGeometry();
-          lineGeo.setAttribute("position", new window.THREE.BufferAttribute(linePos, 3));
-          lineGeo.setAttribute("color",    new window.THREE.BufferAttribute(lineCol, 3));
-          lineGeo.setDrawRange(0, 0);
-          var lines = new window.THREE.LineSegments(lineGeo, new window.THREE.LineBasicMaterial({
-            vertexColors: true, transparent: true, opacity: 0.32, depthWrite: false
-          }));
-          scene.add(lines);
 
           renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
 
@@ -1158,34 +1143,6 @@
               }
             }
 
-            // Build connection lines
-            var lineCount = 0;
-            var done = false;
-            for (var i = 0; i < TOTAL - 1 && !done; i++) {
-              var ix = i * 3;
-              for (var j = i + 1; j < TOTAL && !done; j++) {
-                var jx = j * 3;
-                var dx = arr[ix] - arr[jx];
-                var dy = arr[ix + 1] - arr[jx + 1];
-                var dz = arr[ix + 2] - arr[jx + 2];
-                var d2 = dx * dx + dy * dy + dz * dz;
-                if (d2 < CONNECT_DIST * CONNECT_DIST) {
-                  var d   = Math.sqrt(d2);
-                  var alp = (1 - d / CONNECT_DIST) * 0.62;
-                  var li  = lineCount * 6;
-                  linePos[li]     = arr[ix];     linePos[li + 1] = arr[ix + 1]; linePos[li + 2] = arr[ix + 2];
-                  linePos[li + 3] = arr[jx];     linePos[li + 4] = arr[jx + 1]; linePos[li + 5] = arr[jx + 2];
-                  lineCol[li]     = 0.52 * alp;  lineCol[li + 1] = 0.81 * alp;  lineCol[li + 2] = 1.0 * alp;
-                  lineCol[li + 3] = 0.42 * alp;  lineCol[li + 4] = 0.54 * alp;  lineCol[li + 5] = 1.0 * alp;
-                  lineCount++;
-                  if (lineCount >= MAX_LINES) done = true;
-                }
-              }
-            }
-
-            lineGeo.setDrawRange(0, lineCount * 2);
-            lineGeo.attributes.position.needsUpdate = true;
-            lineGeo.attributes.color.needsUpdate    = true;
             geo.attributes.position.needsUpdate     = true;
             hubGeo.attributes.position.needsUpdate  = true;
 
@@ -1198,8 +1155,6 @@
             dots.rotation.x += 0.00015;
             hubs.rotation.y = dots.rotation.y;
             hubs.rotation.x = dots.rotation.x;
-            lines.rotation.y = dots.rotation.y;
-            lines.rotation.x = dots.rotation.x;
 
             renderer.render(scene, camera);
             window.requestAnimationFrame(animate);
