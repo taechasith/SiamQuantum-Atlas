@@ -55,6 +55,7 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
         "CREATE INDEX IF NOT EXISTS idx_sources_channel ON sources(channel_id)",
         # DQ-2: taxonomy columns on entities
         "ALTER TABLE entities ADD COLUMN media_format TEXT",
+        "ALTER TABLE entities ADD COLUMN media_format_detail TEXT",
         "ALTER TABLE entities ADD COLUMN user_intent TEXT",
         "ALTER TABLE entities ADD COLUMN thai_cultural_angle TEXT",
         "CREATE INDEX IF NOT EXISTS idx_entities_media_format ON entities(media_format)",

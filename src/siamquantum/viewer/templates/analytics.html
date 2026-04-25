@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}สถิติประจำปี | SiamQuantum Atlas{% endblock %}
+{% block title %}Analytics | SiamQuantum Atlas{% endblock %}
 {% set active = 'analytics' %}
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script defer src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+<script defer src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
 <style>
   :root {
     --panel: rgba(10, 16, 35, 0.84);
@@ -38,16 +40,15 @@
     -webkit-backdrop-filter: blur(4px);
   }
 
-  .hero-card {
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-
   .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
     gap: 1.25rem;
     margin-bottom: 1.25rem;
+  }
+
+  .hero-card {
+    padding: 1.5rem;
   }
 
   .eyebrow {
@@ -65,9 +66,11 @@
     margin-bottom: 0.75rem;
   }
 
-  .hero-card p {
+  .hero-card p,
+  .card p,
+  .brief-card p,
+  .brief-card li {
     color: var(--muted);
-    max-width: 68ch;
     line-height: 1.6;
   }
 
@@ -78,14 +81,19 @@
     margin-top: 1.2rem;
   }
 
-  .stat-card {
+  .stat-card,
+  .insight-card,
+  .brief-card,
+  .validation-item,
+  .community-card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    padding: 0.9rem 1rem;
+    padding: 0.95rem 1rem;
   }
 
-  .stat-label {
+  .stat-label,
+  .insight-label {
     color: var(--muted);
     font-size: 0.76rem;
     text-transform: uppercase;
@@ -99,32 +107,11 @@
     margin-top: 0.35rem;
   }
 
-  .side-stack {
+  .side-stack,
+  .validation-list,
+  .community-strip {
     display: grid;
-    gap: 1rem;
-  }
-
-  .brief-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    padding: 1.25rem;
-  }
-
-  .brief-card h3 {
-    color: var(--text);
-    font-size: 1rem;
-    margin-bottom: 0.45rem;
-  }
-
-  .brief-card p,
-  .brief-card li {
-    color: var(--muted);
-    line-height: 1.65;
-    font-size: 0.9rem;
+    gap: 0.9rem;
   }
 
   .brief-list {
@@ -143,110 +130,6 @@
     margin-top: 1rem;
   }
 
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 1.25rem;
-  }
-
-  .insight-strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.85rem;
-    margin: 1.1rem 0 1.25rem;
-  }
-
-  .insight-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 0.95rem 1rem;
-  }
-
-  .insight-label {
-    color: var(--muted);
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .insight-value {
-    color: var(--text);
-    font-size: 1rem;
-    margin-top: 0.35rem;
-    line-height: 1.45;
-  }
-
-  .card {
-    padding: 1.25rem;
-  }
-
-  .card h3 {
-    color: var(--text);
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .card p {
-    color: var(--muted);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    line-height: 1.5;
-  }
-
-  .wide-card {
-    grid-column: 1 / -1;
-  }
-
-  canvas {
-    width: 100%;
-    max-height: 340px;
-  }
-
-  .significance-list {
-    display: grid;
-    gap: 0.8rem;
-  }
-
-  .sig-item {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-    padding: 0.9rem 1rem;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .sig-copy {
-    color: var(--muted);
-    line-height: 1.5;
-    font-size: 0.92rem;
-  }
-
-  .sig-badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 999px;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .sig-yes {
-    background: rgba(86, 243, 154, 0.12);
-    color: var(--success);
-    border: 1px solid rgba(86, 243, 154, 0.32);
-  }
-
-  .sig-no {
-    background: rgba(199, 155, 255, 0.12);
-    color: var(--accent-2);
-    border: 1px solid rgba(199, 155, 255, 0.32);
-  }
-
   .scope-banner {
     border: 1px solid rgba(255, 179, 71, 0.45);
     background: rgba(255, 179, 71, 0.07);
@@ -261,48 +144,85 @@
   .scope-banner strong {
     display: block;
     margin-bottom: 0.25rem;
-    font-size: 0.9rem;
   }
 
-  .prob-badge {
+  .insight-strip,
+  .charts-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .insight-strip {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin: 1.1rem 0 1.25rem;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .card h3 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .wide-card {
+    grid-column: 1 / -1;
+  }
+
+  canvas {
+    width: 100%;
+    max-height: 360px;
+  }
+
+  .sig-badge {
     display: inline-flex;
     align-items: center;
     border-radius: 999px;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    white-space: nowrap;
-    background: rgba(112, 225, 255, 0.10);
-    color: var(--accent);
-    border: 1px solid rgba(112, 225, 255, 0.28);
-  }
-
-  .trend-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-  }
-
-  .trend-stat {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 0.85rem 1rem;
-  }
-
-  .trend-label {
-    color: var(--muted);
+    padding: 0.25rem 0.6rem;
     font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
+    font-weight: 700;
+    margin-top: 0.45rem;
   }
 
-  .trend-value {
+  .sig-yes {
+    background: rgba(86, 243, 154, 0.12);
+    color: var(--success);
+    border: 1px solid rgba(86, 243, 154, 0.32);
+  }
+
+  .sig-no {
+    background: rgba(199, 155, 255, 0.12);
+    color: var(--accent-2);
+    border: 1px solid rgba(199, 155, 255, 0.32);
+  }
+
+  .validation-item strong,
+  .community-card strong {
     color: var(--text);
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-top: 0.2rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .validation-item span,
+  .community-card span,
+  .insight-value {
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .network-canvas {
+    width: 100%;
+    height: 420px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: radial-gradient(circle at top, rgba(112, 225, 255, 0.08), rgba(5, 8, 22, 0.96));
   }
 
   .empty-state,
@@ -340,111 +260,14 @@
     color: var(--danger);
   }
 
-  .taxonomy-card {
-    margin-top: 1.25rem;
-  }
-
-  .tax-counts {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 0.85rem;
-  }
-
-  .tax-count-line {
-    font-size: 0.88rem;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-
-  .tax-count-line strong {
-    color: var(--accent);
-    margin-right: 0.5rem;
-  }
-
-  .tax-tables-row {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
-
-  .tax-group {
-    min-width: 200px;
-  }
-
-  .tax-group-title {
-    color: var(--text);
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-  }
-
-  .tax-kw-line {
-    color: var(--muted);
-    font-size: 0.78rem;
-    margin-bottom: 0.45rem;
-  }
-
-  .tax-table {
-    border-collapse: collapse;
-    font-size: 0.84rem;
-  }
-
-  .tax-table th {
-    color: var(--muted);
-    font-size: 0.74rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    text-align: left;
-    padding: 0.2rem 0.9rem 0.2rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .tax-table td {
-    padding: 0.28rem 0.9rem 0.28rem 0;
-    color: var(--text);
-  }
-
-  .tax-table td.num {
-    color: var(--muted);
-  }
-
-  .tax-chi2-block {
-    margin-top: 0.9rem;
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    font-size: 0.84rem;
-    color: var(--muted);
-  }
-
-  .tax-chi2-block strong {
-    color: var(--text);
-  }
-
   @media (max-width: 860px) {
     .analytics-shell {
       padding: 1rem;
     }
 
-    .hero-grid {
-      grid-template-columns: 1fr;
-    }
-
+    .hero-grid,
     .charts-grid {
       grid-template-columns: 1fr;
-    }
-
-    .sig-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .tax-tables-row {
-      flex-direction: column;
     }
   }
 </style>
@@ -453,148 +276,113 @@
 {% block body %}
 <section class="analytics-shell">
   <div class="scope-banner">
-    <strong>Scope: Thai web &amp; social media engagement only.</strong>
-    Academic publications in English journals and institutional reports (NSTDA, NXPO, universities) are not in scope of this analysis.
-    Coverage: 0.4% academic/gov sources (3 of 768). Method: bootstrap geometric mean on log&#8321;&#8346;(view_count), 10,000 resamples, 90% CI.
+    <strong>Scope: Thai web and social engagement only.</strong>
+    This page focuses on Thai-linked discourse records with observable engagement fields. The methods use public scientific libraries:
+    bootstrap geometric means on log1p engagement, Kruskal-Wallis for between-group engagement differences, chi-square for year-by-category composition,
+    and Mann-Kendall plus Spearman for monotonic trend validation when the corpus has enough yearly support.
   </div>
 
   <div class="hero-grid">
-  <div class="hero-card" style="margin-bottom:0;">
-    <div class="eyebrow">Yearly Statistical View</div>
-    <h1>
-      <span class="th-text">สถิติรายปีของข้อมูลควอนตัมไทย</span>
-      <span class="en-text">Thai Quantum Yearly Analytics</span>
-    </h1>
-    <p>
-      <span class="th-text">หน้านี้สรุปแนวโน้มรายปีจากฐานข้อมูล โดยผสานจำนวนแหล่งข้อมูลกับสัญญาณ engagement ระดับสูง
-      และแสดงผลการทดสอบนัยสำคัญทางสถิติเมื่อมีข้อมูลใน cache พร้อมใช้งาน.</span>
-      <span class="en-text">This page summarises yearly trends from the corpus, combining source counts with high-engagement signals and statistical test results when cached analysis is available.</span>
-    </p>
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-label"><span class="th-text">ปีที่มีข้อมูล</span><span class="en-text">Years</span></div>
-        <div class="stat-value" id="stat-years">0</div>
+    <div class="hero-card">
+      <div class="eyebrow">Yearly Topic And Production Analytics</div>
+      <h1>
+        <span class="th-text">การมีส่วนร่วมรายปีตามหัวข้อควอนตัมและรูปแบบการผลิต</span>
+        <span class="en-text">Yearly Engagement By Topic And Production Form</span>
+      </h1>
+      <p>
+        <span class="th-text">หน้านี้แยกการมีส่วนร่วมของคนไทยตามหัวข้อควอนตัมแบบละเอียดและตามรูปแบบการผลิตเนื้อหา พร้อมการทดสอบทางสถิติและกราฟคลัสเตอร์ 3 มิติที่สร้างจากข้อมูลจริงชุดเดียวกัน</span>
+        <span class="en-text">This page separates Thai engagement by fine-grained quantum topics and by content production forms, then validates those splits with statistical tests and matching 3D cluster graphs built from the same observed rows.</span>
+      </p>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Years</div>
+          <div class="stat-value" id="stat-years">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sources</div>
+          <div class="stat-value" id="stat-sources">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Significant Tests</div>
+          <div class="stat-value" id="stat-significance">0</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label"><span class="th-text">แหล่งข้อมูลรวม</span><span class="en-text">Sources</span></div>
-        <div class="stat-value" id="stat-sources">0</div>
+      <div class="status-pill" id="status-pill">Loading analytics</div>
+    </div>
+
+    <div class="side-stack">
+      <div class="brief-card">
+        <h3>Topic axis</h3>
+        <p>Topic labels are drawn from `entities.area`, with quantum-domain fallback only when no finer topic text exists in the row.</p>
       </div>
-      <div class="stat-card">
-        <div class="stat-label"><span class="th-text">ผลทดสอบ</span><span class="en-text">Significance</span></div>
-        <div class="stat-value" id="stat-significance">0</div>
+      <div class="brief-card">
+        <h3>Production axis</h3>
+        <p>Production labels are normalized from `media_format_detail` first, then backed by media-format, content-type, and production-type fallbacks so article, podcast, vlog, course, paper, film, game, and related forms can surface cleanly.</p>
+      </div>
+      <div class="brief-card">
+        <h3>Reading rule</h3>
+        <p>Treat visually strong lines as hypotheses first. The validation cards underneath each chart show whether the current corpus supports a statistically meaningful split.</p>
       </div>
     </div>
-    <div class="status-pill" id="status-pill">
-      <span class="th-text">กำลังโหลดข้อมูล</span><span class="en-text">Loading analytics</span>
-    </div>
-  </div>
-  <div class="side-stack">
-    <div class="brief-card">
-      <h3>Method brief</h3>
-      <p>Read the charts as distribution-sensitive summaries, not as raw-view popularity claims. This page prioritizes log handling, bootstrap intervals, and nonparametric comparisons.</p>
-      <ul class="brief-list">
-        <li>Trend panel for year-level movement</li>
-        <li>Pairwise ratios for directional comparison</li>
-        <li>Taxonomy block for subgroup concentration</li>
-      </ul>
-    </div>
-    <div class="brief-card">
-      <h3>Analyst use</h3>
-      <p>Start with yearly movement, then move down to format-intent cells and subgroup signals to separate volume shifts from composition shifts.</p>
-    </div>
-  </div>
   </div>
 
   <div class="insight-strip">
     <div class="insight-card">
-      <div class="insight-label">Corpus framing</div>
-      <div class="insight-value">Operational Thai-quantum corpus boundary, with analytics restricted to Thai web and social engagement.</div>
+      <div class="insight-label">Scientific basis</div>
+      <div class="insight-value">SciPy, pymannkendall, Chart.js, and 3d-force-graph drive the calculations and the views.</div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">Method discipline</div>
-      <div class="insight-value">Bootstrap geometric means on log1p views, plus nonparametric group and trend tests.</div>
+      <div class="insight-label">Engagement metric</div>
+      <div class="insight-value">Each point is a bootstrap geometric mean on log1p view-count engagement, which is more robust than raw arithmetic means for skewed web data.</div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">Reading mode</div>
-      <div class="insight-value">Use the trend panel for year-level change, then scan taxonomy insights for subgroup concentration.</div>
+      <div class="insight-label">3D graph logic</div>
+      <div class="insight-value">Each 3D graph links years to categories using observed counts, then colors communities from weighted graph structure instead of arbitrary styling.</div>
     </div>
   </div>
 
   <div class="empty-state" id="empty-state">
     <div>
-      <div class="state-title">
-        <span class="th-text">ยังไม่มีสถิติรายปี</span><span class="en-text">No yearly stats available</span>
-      </div>
-      <div class="state-copy">
-        <span class="th-text">หน้า analytics ยังเปิดได้ตามปกติ แต่ฐานข้อมูลยังไม่มีข้อมูลรายปีเพียงพอสำหรับเรนเดอร์กราฟในตอนนี้.</span>
-        <span class="en-text">Analytics is operational, but the database does not yet have enough yearly data to render charts.</span>
-      </div>
+      <div class="state-title">No yearly analytics available</div>
+      <div class="state-copy">The current database does not yet have enough topic or production taxonomy coverage to render these views.</div>
     </div>
   </div>
 
   <div class="error-state" id="error-state">
     <div>
-      <div class="state-title">
-        <span class="th-text">โหลดข้อมูลสถิติไม่สำเร็จ</span><span class="en-text">Yearly stats API error</span>
-      </div>
-      <div class="state-copy" id="error-message">
-        <span class="th-text">ไม่สามารถโหลดข้อมูลจาก /api/stats/yearly ได้ในขณะนี้.</span>
-        <span class="en-text">Could not load data from /api/stats/yearly.</span>
-      </div>
+      <div class="state-title">Analytics request failed</div>
+      <div class="state-copy" id="error-message">The page could not load the current analytics payload.</div>
     </div>
   </div>
 
   <div class="charts-grid" id="charts-grid">
-    <div class="card wide-card">
-      <h3><span class="th-text">แนวโน้มรายปี</span><span class="en-text">Annual Trend + Engagement Comparison</span></h3>
-      <p><span class="th-text">Bar + line composite chart แสดงจำนวนแหล่งข้อมูลทั้งหมดเทียบกับจำนวน high-engagement ต่อปี</span><span class="en-text">Bar + line composite chart: total sources vs. high-engagement count per year.</span></p>
-      <canvas id="trend-chart"></canvas>
+    <div class="card">
+      <h3>Yearly Quantum Topic Engagement</h3>
+      <p>Fine-grained yearly engagement by quantum subject area. The chart only uses the most stable topic labels in the current corpus window so the lines stay interpretable.</p>
+      <canvas id="topic-chart"></canvas>
+      <div class="validation-list" id="topic-validation"></div>
     </div>
 
     <div class="card">
-      <h3><span class="th-text">แยกตามแพลตฟอร์ม</span><span class="en-text">Platform Breakdown</span></h3>
-      <p><span class="th-text">จำนวนแหล่งข้อมูลจากแต่ละแพลตฟอร์มในแต่ละปี</span><span class="en-text">Source count per platform per year.</span></p>
-      <canvas id="platform-chart"></canvas>
-    </div>
-
-    <div class="card">
-      <h3>Bootstrap Pairwise Ratios</h3>
-      <p>Ratio of geometric means (year B / year A) with 90% bootstrap CI and P(B &gt; A). No p-values — probabilities only.</p>
-      <div class="significance-list" id="significance-list"></div>
+      <h3>Yearly Production Engagement</h3>
+      <p>Yearly engagement by production form. When the source rows carry fine format detail, this separates article, podcast, vlog, course, academic paper, film, game, digital art, and related forms.</p>
+      <canvas id="production-chart"></canvas>
+      <div class="validation-list" id="production-validation"></div>
     </div>
 
     <div class="card wide-card">
-      <h3>Trend Analysis</h3>
-      <p>Mann-Kendall tests for monotonic trend in yearly geometric means. Spearman tests correlation of all log(view_count) data points with year.</p>
-      <div class="trend-panel" id="trend-panel">
-        <div class="trend-stat">
-          <div class="trend-label">Mann-Kendall &#964;</div>
-          <div class="trend-value" id="mk-tau">—</div>
-        </div>
-        <div class="trend-stat">
-          <div class="trend-label">Mann-Kendall p</div>
-          <div class="trend-value" id="mk-p">—</div>
-        </div>
-        <div class="trend-stat">
-          <div class="trend-label">Spearman &#961;</div>
-          <div class="trend-value" id="sp-rho">—</div>
-        </div>
-        <div class="trend-stat">
-          <div class="trend-label">Spearman p</div>
-          <div class="trend-value" id="sp-p">—</div>
-        </div>
-      </div>
-      <p style="margin-top:0.85rem;font-size:0.87rem;color:var(--muted)" id="trend-interp"></p>
+      <h3>3D Topic Cluster Graph</h3>
+      <p>Year nodes connect to topic nodes through observed category-year counts. Dense multi-year topic regions settle into visible communities.</p>
+      <div class="network-canvas" id="topic-network"></div>
+      <div class="community-strip" id="topic-communities"></div>
     </div>
-  </div>
-</section>
 
-<section class="analytics-shell" style="padding-top:0;padding-bottom:2rem;">
-  <div class="card taxonomy-card">
-    <div class="eyebrow">DQ-2 · DQ-3 Taxonomy Analysis</div>
-    <h3>Media Format &amp; User Intent</h3>
-    <p>Bootstrap geometric mean engagement · Kruskal-Wallis group comparison · Chi-square independence test</p>
-    <div id="taxonomy-summary" style="margin-top:0.85rem;">Loading…</div>
+    <div class="card wide-card">
+      <h3>3D Production Cluster Graph</h3>
+      <p>Year nodes connect to production-form nodes through the same source rows used in the chart above, making it easier to see where formats consolidate or fragment across years.</p>
+      <div class="network-canvas" id="production-network"></div>
+      <div class="community-strip" id="production-communities"></div>
+    </div>
   </div>
 </section>
 
@@ -614,10 +402,17 @@
     error: document.getElementById("error-state"),
     errorMessage: document.getElementById("error-message"),
     charts: document.getElementById("charts-grid"),
-    significanceList: document.getElementById("significance-list")
+    topicValidation: document.getElementById("topic-validation"),
+    productionValidation: document.getElementById("production-validation"),
+    topicCommunities: document.getElementById("topic-communities"),
+    productionCommunities: document.getElementById("production-communities"),
+    topicNetwork: document.getElementById("topic-network"),
+    productionNetwork: document.getElementById("production-network")
   };
 
-  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+  function copyForLang(th, en) {
+    return document.documentElement.dataset.lang === "th" ? th : en;
+  }
 
   function setStatus(text) {
     elements.status.textContent = text;
@@ -628,7 +423,7 @@
     elements.empty.classList.add("is-visible");
     elements.error.classList.remove("is-visible");
     elements.charts.style.display = "none";
-    setStatus(L("ไม่มีข้อมูล", "No yearly stats"));
+    setStatus(copyForLang("ไม่มีข้อมูล", "No analytics data"));
   }
 
   function showError(message) {
@@ -636,7 +431,7 @@
     elements.error.classList.add("is-visible");
     elements.empty.classList.remove("is-visible");
     elements.charts.style.display = "none";
-    setStatus(L("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
+    setStatus(copyForLang("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
@@ -651,9 +446,7 @@
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: {
-            color: chartDefaults.color
-          }
+          labels: { color: chartDefaults.color }
         }
       },
       scales: {
@@ -670,220 +463,166 @@
     };
   }
 
-  function renderPairwise(items) {
-    if (!items.length) {
-      elements.significanceList.innerHTML = `
-        <div class="sig-item">
-          <div class="sig-copy">Bootstrap pairwise ratios not yet computed. Run <code>analyze stats</code> first.</div>
-          <span class="sig-badge sig-no">No data</span>
-        </div>
-      `;
-      return;
-    }
-    elements.significanceList.innerHTML = items.map((item) => {
-      const ratio = typeof item.ratio === "number" ? item.ratio.toFixed(2) : "n/a";
-      const ciLow = typeof item.ratio_ci_low === "number" ? item.ratio_ci_low.toFixed(2) : "n/a";
-      const ciHigh = typeof item.ratio_ci_high === "number" ? item.ratio_ci_high.toFixed(2) : "n/a";
-      const prob = typeof item.p_b_greater === "number" ? Math.round(item.p_b_greater * 100) : "n/a";
-      return `
-        <div class="sig-item">
-          <div class="sig-copy">
-            <strong>${item.year_a} vs ${item.year_b}</strong><br>
-            Geo-mean ratio: ${ratio}x &nbsp;(90% CI ${ciLow}–${ciHigh}x)
-          </div>
-          <span class="prob-badge">${prob}% P(${item.year_b} &gt; ${item.year_a})</span>
-        </div>
-      `;
-    }).join("");
+  function palette(index) {
+    const colors = ["#70e1ff", "#56f39a", "#c79bff", "#ffb347", "#ff7a90", "#7cf2ff", "#b8ff7a", "#ffd36f"];
+    return colors[index % colors.length];
   }
 
-  function renderTrend(trend) {
-    if (!trend || !Object.keys(trend).length) {
-      document.getElementById("trend-interp").textContent = "Trend data not yet computed. Run analyze stats first.";
+  function renderLineChart(canvasId, axisPayload) {
+    const datasets = axisPayload.series.map((series, index) => ({
+      label: series.label,
+      data: axisPayload.years.map((year) => {
+        const point = series.years[year];
+        return point ? Number(point.geo_mean || 0) : null;
+      }),
+      borderColor: palette(index),
+      backgroundColor: palette(index),
+      tension: 0.25,
+      spanGaps: true
+    }));
+
+    new Chart(document.getElementById(canvasId), {
+      type: "line",
+      data: { labels: axisPayload.years, datasets },
+      options: chartOptions()
+    });
+  }
+
+  function sigBadge(significant) {
+    return significant
+      ? '<span class="sig-badge sig-yes">p < 0.05</span>'
+      : '<span class="sig-badge sig-no">not significant</span>';
+  }
+
+  function renderValidation(host, axisPayload, title) {
+    const overall = axisPayload.tests.overall_kruskal_wallis || {};
+    const composition = axisPayload.tests.year_x_label_chi2 || {};
+    const trend = axisPayload.tests.strongest_trend || null;
+    const yearlySignals = (axisPayload.tests.yearly_kruskal_wallis || []).filter((item) => item && item.significant);
+    const topYearSignal = yearlySignals.sort((a, b) => Number(a.p || 1) - Number(b.p || 1))[0];
+
+    host.innerHTML = `
+      <div class="validation-item">
+        <strong>${title} engagement differences</strong>
+        <span>Kruskal-Wallis H=${overall.h ?? "n/a"}, p=${overall.p ?? "n/a"} across the stable labels shown in this view.</span>
+        ${sigBadge(Boolean(overall.significant))}
+      </div>
+      <div class="validation-item">
+        <strong>${title} composition by year</strong>
+        <span>Chi-square χ²=${composition.chi2 ?? "n/a"}, p=${composition.p ?? "n/a"}, Cramér's V=${composition.cramers_v ?? "n/a"} for the year-by-label contingency table.</span>
+        ${sigBadge(Boolean(composition.significant))}
+      </div>
+      <div class="validation-item">
+        <strong>Strongest monotonic trend</strong>
+        <span>${trend ? `${trend.label} · tau=${Number(trend.mannkendall_tau || 0).toFixed(3)} · p=${Number(trend.mannkendall_p || 0).toFixed(4)} · rho=${Number(trend.spearman_rho || 0).toFixed(3)}` : "Insufficient multi-year support for a stable label-level trend test."}</span>
+      </div>
+      <div class="validation-item">
+        <strong>Most distinct yearly split</strong>
+        <span>${topYearSignal ? `Year ${topYearSignal.year} showed the clearest between-label engagement separation in this axis (Kruskal p=${topYearSignal.p}).` : "No per-year Kruskal-Wallis result passed the significance threshold in the current data."}</span>
+      </div>
+    `;
+  }
+
+  function renderCommunities(host, graphPayload, title) {
+    const items = Array.isArray(graphPayload.community_summaries) ? graphPayload.community_summaries : [];
+    if (!items.length) {
+      host.innerHTML = `<div class="community-card"><strong>${title}</strong><span>No stable community structure yet. The current graph is still sparse on this axis.</span></div>`;
       return;
     }
-    const fmt = (v) => typeof v === "number" ? v.toFixed(3) : "—";
-    document.getElementById("mk-tau").textContent = fmt(trend.mannkendall_tau);
-    document.getElementById("mk-p").textContent = fmt(trend.mannkendall_p);
-    document.getElementById("sp-rho").textContent = fmt(trend.spearman_rho);
-    document.getElementById("sp-p").textContent = fmt(trend.spearman_p);
-    document.getElementById("trend-interp").textContent = trend.interpretation || "";
+    host.innerHTML = items.map((item) => `
+      <div class="community-card">
+        <strong>Cluster ${item.community + 1}</strong>
+        <span>Size ${item.size}. Leading labels: ${(item.labels || []).join(", ") || "n/a"}.</span>
+      </div>
+    `).join("");
+  }
+
+  async function waitForForceGraph() {
+    for (let index = 0; index < 50; index += 1) {
+      if (window.ForceGraph3D && window.THREE) return true;
+      await new Promise((resolve) => setTimeout(resolve, 120));
+    }
+    return false;
+  }
+
+  async function renderNetwork(host, graphPayload) {
+    const ready = await waitForForceGraph();
+    if (!ready || !graphPayload || !Array.isArray(graphPayload.nodes) || !graphPayload.nodes.length) {
+      host.innerHTML = '<div style="padding:1rem;color:var(--muted)">3D graph unavailable for the current dataset.</div>';
+      return;
+    }
+    ForceGraph3D()(host)
+      .backgroundColor("#060811")
+      .graphData(graphPayload)
+      .nodeLabel((node) => `${node.label} · n=${node.count || node.value || 0}`)
+      .nodeColor((node) => palette(Number(node.community || 0)))
+      .nodeVal((node) => Math.max(2, Math.sqrt(Number(node.value || 1)) * 1.8))
+      .linkWidth((link) => Math.max(1, Math.log2(Number(link.weight || 1) + 1)))
+      .linkColor(() => "rgba(132, 207, 255, 0.35)")
+      .cooldownTicks(120);
+  }
+
+  function countSignificant(axisPayload) {
+    const tests = axisPayload.tests || {};
+    let count = 0;
+    if (tests.overall_kruskal_wallis && tests.overall_kruskal_wallis.significant) count += 1;
+    if (tests.year_x_label_chi2 && tests.year_x_label_chi2.significant) count += 1;
+    count += (tests.yearly_kruskal_wallis || []).filter((item) => item && item.significant).length;
+    return count;
   }
 
   async function loadAnalytics() {
     try {
-      const response = await fetch("/api/stats/yearly");
-      const payload = await response.json();
+      const [yearlyResp, taxonomyResp] = await Promise.all([
+        fetch("/api/stats/yearly"),
+        fetch("/api/analytics/yearly_taxonomy")
+      ]);
+      const [yearlyPayload, taxonomyPayload] = await Promise.all([yearlyResp.json(), taxonomyResp.json()]);
 
-      if (!response.ok || !payload.ok) {
-        const message = payload && payload.error ? payload.error.message : "Unknown yearly stats error";
-        throw new Error(message);
+      if (!yearlyResp.ok || !yearlyPayload.ok) {
+        throw new Error((yearlyPayload.error || {}).message || "Could not load /api/stats/yearly");
+      }
+      if (!taxonomyResp.ok || !taxonomyPayload.ok) {
+        throw new Error((taxonomyPayload.error || {}).message || "Could not load /api/analytics/yearly_taxonomy");
       }
 
-      const data = payload.data || {};
-      const years = Array.isArray(data.years) ? data.years : [];
-      const counts = data.counts || {};
-      const trendlines = data.trendlines || { total_sources: [], high_engagement: [] };
-      const pairwise = Array.isArray(data.pairwise) ? data.pairwise : [];
-      const trend = data.trend || {};
+      const yearly = yearlyPayload.data || {};
+      const taxonomy = taxonomyPayload.data || {};
+      const topicAxis = taxonomy.topics || {};
+      const productionAxis = taxonomy.productions || {};
+      const years = Array.isArray(yearly.years) ? yearly.years : [];
+      const counts = yearly.counts || {};
 
-      if (!years.length) {
-        showEmpty(L("ยังไม่มีข้อมูลรายปีในฐานข้อมูลสำหรับวาดกราฟ trendline หรือแสดงผล.", "No yearly data in the database yet to render trendline charts."));
+      if (!Array.isArray(topicAxis.years) || !topicAxis.years.length) {
+        showEmpty(copyForLang("ยังไม่มีข้อมูล taxonomy รายปีพอสำหรับการแสดงผล", "There is not yet enough yearly taxonomy data to render this page."));
         return;
       }
 
       hideStates();
 
-      const totalSources = trendlines.total_sources || years.map((year) => (counts[year] || {}).total || 0);
-      const highEngagement = trendlines.high_engagement || years.map(() => 0);
-      const gdelt = years.map((year) => (counts[year] || {}).gdelt || 0);
-      const youtube = years.map((year) => (counts[year] || {}).youtube || 0);
+      const totalSources = years.reduce((sum, year) => sum + Number((counts[year] || {}).total || 0), 0);
+      elements.years.textContent = String(topicAxis.years.length);
+      elements.sources.textContent = String(totalSources);
+      elements.significance.textContent = String(countSignificant(topicAxis) + countSignificant(productionAxis));
 
-      elements.years.textContent = String(years.length);
-      elements.sources.textContent = String(totalSources.reduce((sum, value) => sum + Number(value || 0), 0));
-      elements.significance.textContent = pairwise.length ? String(pairwise.length) + " pairs" : "0";
+      renderLineChart("topic-chart", topicAxis);
+      renderLineChart("production-chart", productionAxis);
+      renderValidation(elements.topicValidation, topicAxis, "Topic");
+      renderValidation(elements.productionValidation, productionAxis, "Production");
+      renderCommunities(elements.topicCommunities, topicAxis.graph || {}, "Topic communities");
+      renderCommunities(elements.productionCommunities, productionAxis.graph || {}, "Production communities");
+      renderNetwork(elements.topicNetwork, topicAxis.graph || {});
+      renderNetwork(elements.productionNetwork, productionAxis.graph || {});
 
-      new Chart(document.getElementById("trend-chart"), {
-        data: {
-          labels: years,
-          datasets: [
-            {
-              type: "bar",
-              label: "Total Sources",
-              data: totalSources,
-              backgroundColor: "rgba(112, 225, 255, 0.45)",
-              borderColor: "#70e1ff",
-              borderWidth: 1.2
-            },
-            {
-              type: "line",
-              label: "High Engagement",
-              data: highEngagement,
-              borderColor: "#ffb347",
-              backgroundColor: "rgba(255, 179, 71, 0.2)",
-              tension: 0.28,
-              fill: false,
-              pointRadius: 4
-            }
-          ]
-        },
-        options: chartOptions()
-      });
-
-      new Chart(document.getElementById("platform-chart"), {
-        type: "bar",
-        data: {
-          labels: years,
-          datasets: [
-            {
-              label: "GDELT",
-              data: gdelt,
-              backgroundColor: "rgba(112, 225, 255, 0.45)",
-              borderColor: "#70e1ff",
-              borderWidth: 1.2
-            },
-            {
-              label: "YouTube",
-              data: youtube,
-              backgroundColor: "rgba(199, 155, 255, 0.42)",
-              borderColor: "#c79bff",
-              borderWidth: 1.2
-            }
-          ]
-        },
-        options: chartOptions()
-      });
-
-      renderPairwise(pairwise);
-      renderTrend(trend);
-      setStatus(L(`โหลดแล้ว ${years.length} ปี / ${pairwise.length} bootstrap pairs`, `Loaded ${years.length} years · ${pairwise.length} bootstrap pairs`));
+      setStatus(copyForLang(
+        `โหลดข้อมูล ${topicAxis.years.length} ปี พร้อมหัวข้อและรูปแบบการผลิต`,
+        `Loaded ${topicAxis.years.length} yearly slices with topic and production analytics`
+      ));
     } catch (error) {
-      showError(L(`ไม่สามารถโหลดข้อมูลสถิติรายปีได้: ${error.message}`, `Could not load yearly stats: ${error.message}`));
-    }
-  }
-
-  async function loadTaxonomy() {
-    const el = document.getElementById("taxonomy-summary");
-    try {
-      const [sumR, statsR] = await Promise.all([
-        fetch("/api/taxonomy/summary"),
-        fetch("/api/taxonomy/stats"),
-      ]);
-      const sum = await sumR.json();
-      const stats = await statsR.json();
-      if (!sum.ok) throw new Error(sum?.error?.message || "taxonomy summary error");
-
-      const sd = sum.data;
-      const mfList = sd.media_format.map(x => `<span style="margin-right:1.2rem"><b style="color:var(--text)">${x.label}</b> <span style="color:var(--muted)">${x.count}</span></span>`).join("");
-      const uiList = sd.user_intent.map(x => `<span style="margin-right:1.2rem"><b style="color:var(--text)">${x.label.replace(/_/g," ")}</b> <span style="color:var(--muted)">${x.count}</span></span>`).join("");
-
-      let tablesBlock = "";
-      let chi2Block = "";
-      let insightBlock = "";
-      if (stats.ok && stats.data) {
-        const td = stats.data;
-        if (td["media_format"] && td["media_format"].summary) {
-          const fmtKW = (kw) => kw
-            ? `H=${Number(kw.h).toFixed(2)}, p=${Number(kw.p).toFixed(4)}, sig=${kw.significant}`
-            : "—";
-          const mfRows = td["media_format"].summary.slice(0, 6)
-            .map(g => `<tr><td>${g.label}</td><td class="num">${Math.round(g.geo_mean).toLocaleString()}</td><td class="num">${g.n}</td></tr>`)
-            .join("");
-          const uiRows = td["user_intent"] && td["user_intent"].summary
-            ? td["user_intent"].summary.slice(0, 6)
-              .map(g => `<tr><td>${g.label.replace(/_/g," ")}</td><td class="num">${Math.round(g.geo_mean).toLocaleString()}</td><td class="num">${g.n}</td></tr>`)
-              .join("")
-            : "";
-          const mfKW = td["media_format"].kruskal_wallis;
-          const uiKW = td["user_intent"] && td["user_intent"].kruskal_wallis ? td["user_intent"].kruskal_wallis : null;
-          tablesBlock = `<div class="tax-tables-row">
-            <div class="tax-group">
-              <div class="tax-group-title">Engagement by media format</div>
-              <div class="tax-kw-line">Kruskal-Wallis: ${fmtKW(mfKW)}</div>
-              <table class="tax-table"><thead><tr><th>Format</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${mfRows}</tbody></table>
-            </div>
-            <div class="tax-group">
-              <div class="tax-group-title">Engagement by user intent</div>
-              <div class="tax-kw-line">Kruskal-Wallis: ${fmtKW(uiKW)}</div>
-              <table class="tax-table"><thead><tr><th>Intent</th><th>Geo mean views</th><th>n</th></tr></thead><tbody>${uiRows}</tbody></table>
-            </div>
-          </div>`;
-        }
-        if (td["media_x_intent:chi2"]) {
-          const c = td["media_x_intent:chi2"];
-          chi2Block = `<div class="tax-chi2-block"><strong>Media format × User intent (Chi-square):</strong> χ²=${c.chi2}, p=${c.p}, dof=${c.dof}, Cramér's V=${c.cramers_v}, significant=${c.significant}</div>`;
-        }
-        const strongestCell = td["media_x_intent:engagement"] && td["media_x_intent:engagement"].strongest_cell
-          ? td["media_x_intent:engagement"].strongest_cell
-          : null;
-        const strongestTrend = td["insight:strongest_trend"] || null;
-        if (strongestCell || strongestTrend) {
-          const cellLine = strongestCell
-            ? `<div><strong>Strongest format × intent cell:</strong> ${strongestCell.media_format} × ${strongestCell.user_intent.replace(/_/g," ")} · geo mean ${Math.round(strongestCell.geo_mean_views).toLocaleString()} · n=${strongestCell.count}</div>`
-            : "";
-          const trendLine = strongestTrend
-            ? `<div style="margin-top:0.45rem;"><strong>Strongest subgroup trend:</strong> ${strongestTrend.group_type.replace("_"," ")}=${strongestTrend.label.replace(/_/g," ")} · τ=${Number(strongestTrend.mannkendall_tau).toFixed(3)} · p=${Number(strongestTrend.mannkendall_p).toFixed(4)}</div>`
-            : "";
-          insightBlock = `<div class="tax-chi2-block" style="margin-top:0.75rem;"><strong>Compact insights:</strong>${cellLine}${trendLine}</div>`;
-        }
-      }
-
-      el.innerHTML = `
-        <div class="tax-counts">
-          <div class="tax-count-line"><strong>Media Format:</strong>${mfList}</div>
-          <div class="tax-count-line"><strong>User Intent:</strong>${uiList}</div>
-          <div class="tax-count-line"><strong>Thai cultural angle:</strong> <span style="color:var(--text)">${sd.thai_cultural_angle_count}</span> sources</div>
-        </div>
-        ${tablesBlock}
-        ${chi2Block}
-        ${insightBlock}
-      `;
-    } catch (e) {
-      el.textContent = "Taxonomy unavailable: " + e.message;
+      showError(copyForLang(`ไม่สามารถโหลด analytics ได้: ${error.message}`, `Could not load analytics: ${error.message}`));
     }
   }
 
   loadAnalytics();
-  loadTaxonomy();
 </script>
 {% endblock %}

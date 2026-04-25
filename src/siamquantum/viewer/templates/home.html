@@ -118,9 +118,23 @@
   }
 
   .stat-icon {
-    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
     margin-bottom: 0.6rem;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+  }
+
+  .stat-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .stat-value,
@@ -468,22 +482,22 @@
 
   <div class="stats-strip" id="stats-strip">
     <div class="stat-card">
-      <span class="stat-icon">[S]</span>
+      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 9.5 12 5l8.5 4.5-8.5 4.5-8.5-4.5Z"/><path d="M7 11.6V15c0 1.4 2.4 3 5 3s5-1.6 5-3v-3.4"/></svg></span>
       <div class="stat-value loading" id="stat-sources">-</div>
       <div class="stat-label">Corpus Sources</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">[T]</span>
+      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 4.5h11a2 2 0 0 1 2 2v12h-11a2 2 0 0 0-2 2Z"/><path d="M7.5 4.5h-1a2 2 0 0 0-2 2v13"/><path d="M8.5 8.5h7"/><path d="M8.5 12h7"/></svg></span>
       <div class="stat-value loading" id="stat-triplets">-</div>
       <div class="stat-label">Knowledge Triplets</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">[G]</span>
+      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4a12 12 0 0 1 0 16"/><path d="M12 4a12 12 0 0 0 0 16"/></svg></span>
       <div class="stat-value loading" id="stat-geo">-</div>
       <div class="stat-label">Geolocated Sources</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">[Y]</span>
+      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M8 3.5v4"/><path d="M16 3.5v4"/><path d="M4 9.5h16"/></svg></span>
       <div class="stat-value loading" id="stat-years">-</div>
       <div class="stat-label">Year Range</div>
     </div>
@@ -505,17 +519,17 @@
     <div class="pipeline-meters">
       <div class="meter-card">
         <div class="meter-label"><span class="th-text">ดึงเข้าคอร์ปัสแล้ว</span><span class="en-text">Fetched</span></div>
-        <div class="meter-value" id="pipe-total">-</div>
+        <div class="meter-value" id="pipe-pulling">-</div>
         <div class="meter-meta" id="pipe-fetch-meta">Waiting for live data</div>
       </div>
       <div class="meter-card">
         <div class="meter-label"><span class="th-text">ผูกพิกัดแล้ว</span><span class="en-text">Geocoded</span></div>
-        <div class="meter-value" id="pipe-geo">-</div>
+        <div class="meter-value" id="pipe-analyzing">-</div>
         <div class="meter-meta"><span class="th-text">พร้อมเข้าสู่ชั้นแผนที่</span><span class="en-text">Ready for the map layer</span></div>
       </div>
       <div class="meter-card">
         <div class="meter-label"><span class="th-text">ผ่านการวิเคราะห์แล้ว</span><span class="en-text">Analyzed</span></div>
-        <div class="meter-value" id="pipe-analyzed">-</div>
+        <div class="meter-value" id="pipe-done-today">-</div>
         <div class="meter-meta" id="pipe-analysis-meta"><span class="th-text">รอข้อมูลจริง</span><span class="en-text">Waiting for live data</span></div>
       </div>
       <div class="meter-card">

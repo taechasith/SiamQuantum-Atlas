@@ -27,6 +27,7 @@ from siamquantum.db.repos import (
 )
 from siamquantum.db.session import db_path_from_url, get_connection
 from siamquantum.models import CommunitySubmissionCreate
+from siamquantum.stats.yearly_taxonomy_analytics import build_yearly_taxonomy_analytics
 
 logger = logging.getLogger(__name__)
 
@@ -943,6 +944,53 @@ def api_stats_yearly(
     })
 
 
+@app.get("/api/analytics/yearly_taxonomy")
+def api_analytics_yearly_taxonomy(
+    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
+) -> JSONResponse:
+    """Fine-grained yearly topic and production analytics with validation tests and graph payloads."""
+    db = _db()
+    where = "" if include_filtered else "WHERE s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+    try:
+        with get_connection(db) as conn:
+            relevance = _relevance_metadata(conn)
+            rows = conn.execute(
+                f"""
+                SELECT s.published_year, s.view_count, s.quantum_domain,
+                       e.area, e.content_type, e.production_type,
+                       e.media_format, e.media_format_detail, e.user_intent
+                FROM sources s
+                LEFT JOIN entities e ON s.id = e.source_id
+                {where}
+                ORDER BY s.published_year ASC, s.id ASC
+                """
+            ).fetchall()
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": {
+                    "topics": {"labels": [], "years": [], "series": [], "tests": {}, "graph": {"nodes": [], "links": [], "community_summaries": []}},
+                    "productions": {"labels": [], "years": [], "series": [], "tests": {}, "graph": {"nodes": [], "links": [], "community_summaries": []}},
+                    "method_note": "",
+                },
+                "relevance": None,
+                "error": {"code": "yearly_taxonomy_failed", "message": str(exc)},
+            },
+            status_code=500,
+        )
+
+    payload = build_yearly_taxonomy_analytics([dict(row) for row in rows])
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": payload,
+            "relevance": relevance,
+            "error": None,
+        }
+    )
+
+
 # ---------------------------------------------------------------------------
 # API — database (paginated source list)
 # ---------------------------------------------------------------------------
@@ -1479,12 +1527,39 @@ def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
                     SUM(CASE WHEN COALESCE(tc.triplet_count, 0) > 0 THEN 1 ELSE 0 END) AS triplet_ready_sources,
                     SUM(
                         CASE
+                            WHEN e.source_id IS NULL
+                              AND COALESCE(tc.triplet_count, 0) = 0
+                              AND na.source_id IS NULL
+                            THEN 1 ELSE 0
+                        END
+                    ) AS pulling_sources,
+                    SUM(
+                        CASE
+                            WHEN e.source_id IS NOT NULL
+                              AND COALESCE(tc.triplet_count, 0) = 0
+                              AND na.source_id IS NULL
+                            THEN 1 ELSE 0
+                        END
+                    ) AS analyzing_sources,
+                    SUM(
+                        CASE
                             WHEN e.source_id IS NOT NULL
                               OR COALESCE(tc.triplet_count, 0) > 0
                               OR na.source_id IS NOT NULL
                             THEN 1 ELSE 0
                         END
                     ) AS analyzed_sources,
+                    SUM(
+                        CASE
+                            WHEN date(s.fetched_at) = date('now', 'localtime')
+                              AND (
+                                e.source_id IS NOT NULL
+                                OR COALESCE(tc.triplet_count, 0) > 0
+                                OR na.source_id IS NOT NULL
+                              )
+                            THEN 1 ELSE 0
+                        END
+                    ) AS done_today,
                     MAX(datetime(s.fetched_at)) AS latest_fetch_at
                 FROM sources s
                 LEFT JOIN geo g ON g.source_id = s.id
@@ -1562,7 +1637,10 @@ def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
         "total_sources": int(overview_row["total_sources"] or 0),
         "geocoded_sources": int(overview_row["geocoded_sources"] or 0),
         "triplet_ready_sources": int(overview_row["triplet_ready_sources"] or 0),
+        "pulling_sources": int(overview_row["pulling_sources"] or 0),
+        "analyzing_sources": int(overview_row["analyzing_sources"] or 0),
         "analyzed_sources": int(overview_row["analyzed_sources"] or 0),
+        "done_today": int(overview_row["done_today"] or 0),
         "pending_sources": max(
             int(overview_row["total_sources"] or 0) - int(overview_row["analyzed_sources"] or 0),
             0,

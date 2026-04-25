@@ -55,17 +55,17 @@ def seeded_db(tmp_path: Path) -> Path:
         # Entities (with taxonomy columns now included in schema via migration)
         conn.execute(
             "INSERT INTO entities (source_id,content_type,production_type,area,engagement_level,"
-            "media_format,user_intent)"
-            " VALUES (?,?,?,?,?,?,?)",
+            "media_format,media_format_detail,user_intent)"
+            " VALUES (?,?,?,?,?,?,?,?)",
             (1, "news", "corporate_media", "quantum computing", "medium",
-             "text_static", "information_news"),
+             "text_static", "news article", "information_news"),
         )
         conn.execute(
             "INSERT INTO entities (source_id,content_type,production_type,area,engagement_level,"
-            "media_format,user_intent)"
-            " VALUES (?,?,?,?,?,?,?)",
+            "media_format,media_format_detail,user_intent)"
+            " VALUES (?,?,?,?,?,?,?,?)",
             (2, "educational", "independent", "quantum algorithms", "high",
-             "video_long", "education_self_improvement"),
+             "video_long", "lecture course video", "education_self_improvement"),
         )
         conn.commit()
         # Triplets
@@ -109,7 +109,7 @@ def test_root_returns_home_page(client: TestClient) -> None:
 @pytest.mark.parametrize("path,expected", [
     ("/dashboard",  "Thai Quantum Geo Dashboard"),
     ("/network",    "Quantum Relationship View"),
-    ("/analytics",  "Bootstrap Pairwise Ratios"),
+    ("/analytics",  "Yearly Quantum Topic Engagement"),
     ("/database",   "Source Database View"),
     ("/community",  "Community Submission"),
 ])
@@ -266,6 +266,23 @@ def test_stats_yearly_method_field(client: TestClient) -> None:
     assert data.get("method") == "bootstrap_geometric_mean"
     assert "operational" in data.get("relevance_scope_note", "")
     assert payload["relevance"]["mode"] == "operational_default"
+
+
+def test_yearly_taxonomy_analytics_schema(client: TestClient) -> None:
+    resp = client.get("/api/analytics/yearly_taxonomy")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    assert payload["relevance"]["mode"] == "operational_default"
+    data = payload["data"]
+    assert "topics" in data
+    assert "productions" in data
+    assert "method_note" in data
+    assert data["topics"]["years"] == ["2024"]
+    assert len(data["topics"]["series"]) >= 1
+    assert len(data["productions"]["series"]) >= 1
+    topic_graph = data["topics"]["graph"]
+    assert "nodes" in topic_graph and "links" in topic_graph and "community_summaries" in topic_graph
 
 
 # ---------------------------------------------------------------------------

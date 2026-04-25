@@ -398,10 +398,6 @@
           <div class="stat-value" id="stat-count">768</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Pending Analysis</div>
-          <div class="stat-value" id="stat-pending">â€”</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-label">Knowledge Triplets</div>
           <div class="stat-value" id="stat-triplets">â€”</div>
         </div>
@@ -546,7 +542,6 @@
     statCount: document.getElementById("stat-count"),
     statGeo: document.getElementById("stat-geo"),
     statTriplets: document.getElementById("stat-triplets"),
-    statPending: document.getElementById("stat-pending"),
     statFetch: document.getElementById("stat-fetch"),
     statYears: document.getElementById("stat-years")
   };
@@ -625,7 +620,6 @@
       const payload = await response.json();
       if (!response.ok || !payload.ok) return;
       const overview = payload.data && payload.data.overview ? payload.data.overview : {};
-      if (elements.statPending) elements.statPending.textContent = String(overview.pending_sources || 0);
       if (elements.statFetch) elements.statFetch.textContent = relTime(overview.latest_fetch_at);
     } catch (error) {
       // Summary cards remain partially available if pipeline state is unavailable.
