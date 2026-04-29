@@ -141,9 +141,10 @@ async def _daily_ingest_task() -> None:
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):  # type: ignore[type-arg]
-    _ensure_local_auth_tables()
-    asyncio.create_task(asyncio.to_thread(_prewarm_registry_sync))
-    asyncio.create_task(_daily_ingest_task())
+    if settings.deployment_mode != "vercel":
+        _ensure_local_auth_tables()
+        asyncio.create_task(asyncio.to_thread(_prewarm_registry_sync))
+        asyncio.create_task(_daily_ingest_task())
     yield
 
 
