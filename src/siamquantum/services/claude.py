@@ -187,6 +187,107 @@ def _fallback_entity(text: str, title: str | None = None, url: str = "") -> Enti
     )
 
 
+def _fallback_quantum_domain(text: str) -> str:
+    lower = text.lower()
+    if any(token in lower for token in ("cryptography", "communication", "network", "photon")):
+        return "quantum_communication"
+    if any(token in lower for token in ("sensor", "sensing", "metrology")):
+        return "quantum_sensing"
+    if any(token in lower for token in ("material", "materials", "superconductor", "topological")):
+        return "quantum_materials"
+    if any(token in lower for token in ("policy", "industry", "startup", "investment")):
+        return "quantum_policy_industry"
+    if any(token in lower for token in ("education", "course", "lecture", "workshop", "training")):
+        return "quantum_education"
+    if any(token in lower for token in ("physics", "entanglement", "superposition")):
+        return "quantum_fundamentals"
+    return "quantum_computing"
+
+
+def _fallback_relevance(title: str | None, raw_text: str | None, platform: str) -> RelevanceVerdict:
+    content = f"{title or ''}\n{raw_text or ''}".lower()
+
+    strong_quantum_terms = (
+        "quantum computing",
+        "quantum computer",
+        "quantum communication",
+        "quantum cryptography",
+        "quantum sensing",
+        "quantum materials",
+        "qubit",
+        "ควอนตัม",
+        "คิวบิต",
+    )
+    weak_quantum_terms = (
+        "quantum",
+        "entanglement",
+        "superposition",
+        "quantum physics",
+    )
+    thai_terms = (
+        "thailand",
+        "thai",
+        "bangkok",
+        "pathum thani",
+        "chiang mai",
+        "nstda",
+        "nectec",
+        "chulalongkorn",
+        "mahidol",
+        "kmutt",
+        "kmitl",
+        "ประเทศไทย",
+        "ไทย",
+        "กรุงเทพ",
+        "จุฬา",
+        "มหิดล",
+    )
+    reject_terms = (
+        "quantum healing",
+        "manifestation",
+        "law of attraction",
+        "quantum leap",
+        "album",
+        "music video",
+        "official mv",
+        "cover song",
+        "reaction video",
+        "gaming",
+        "สล็อต",
+        "บาคาร่า",
+    )
+
+    has_strong_quantum = any(term in content for term in strong_quantum_terms)
+    has_weak_quantum = any(term in content for term in weak_quantum_terms)
+    has_thai = any(term in content for term in thai_terms)
+    has_reject = any(term in content for term in reject_terms)
+    is_news_like = platform == "gdelt"
+    is_quantum = (has_strong_quantum or (has_weak_quantum and has_thai and is_news_like)) and not has_reject
+    is_thai = has_thai or (is_news_like and any(token in content for token in ("bangkok post", "the nation thailand", "กรุงเทพธุรกิจ", "ประชาชาติ")))
+
+    if is_quantum and is_thai:
+        return RelevanceVerdict(
+            is_quantum_tech=True,
+            is_thailand_related=True,
+            quantum_domain=_fallback_quantum_domain(content),
+            rejection_reason=None,
+            confidence=0.58,
+        )
+
+    reasons: list[str] = []
+    if not is_quantum:
+        reasons.append("not substantive quantum technology")
+    if not is_thai:
+        reasons.append("no Thai angle detected")
+    return RelevanceVerdict(
+        is_quantum_tech=is_quantum,
+        is_thailand_related=is_thai,
+        quantum_domain="not_applicable" if not is_quantum else _fallback_quantum_domain(content),
+        rejection_reason=", ".join(reasons) or "not relevant",
+        confidence=0.46,
+    )
+
+
 def extract_triplets(text: str) -> list[Triplet]:
     """
     Call Claude to extract knowledge triplets from text.
@@ -303,7 +404,10 @@ def is_relevant_source(
             return None
         except _APIError as exc:
             logger.warning("is_relevant_source: API error: %s", exc)
-            return None
+            return _fallback_relevance(title, raw_text, platform)
+        except Exception as exc:
+            logger.warning("is_relevant_source: unexpected error: %s", exc)
+            return _fallback_relevance(title, raw_text, platform)
 
     return None
 

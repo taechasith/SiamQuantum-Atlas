@@ -1,6 +1,11 @@
 {% extends "base.html" %}
-{% block title %}แผนที่แดชบอร์ด | SiamQuantum Atlas{% endblock %}
+{% block title %}Source Map | SiamQuantum Atlas{% endblock %}
 {% set active = 'dashboard' %}
+
+{% block page_title %}
+  <span class="th-text">แผนที่แหล่งข้อมูล</span>
+  <span class="en-text">Source Map</span>
+{% endblock %}
 
 {% block head %}
 <link
@@ -19,261 +24,447 @@
 />
 <style>
   :root {
-    --bg: #050816;
-    --panel: rgba(10, 16, 35, 0.84);
-    --panel-border: rgba(112, 147, 255, 0.24);
-    --text: #f3f7ff;
-    --muted: #99a7d3;
-    --accent: #70e1ff;
-    --accent-2: #a855f7;
-    --glow: rgba(112, 225, 255, 0.22);
-    --danger: #ff7a90;
-    --empty: rgba(255, 255, 255, 0.08);
+    --map-surface: #111a2d;
+    --map-surface-2: #16223a;
+    --map-panel: #151f33;
+    --map-border: rgba(128, 162, 215, 0.18);
+    --map-strong: rgba(117, 193, 255, 0.36);
+    --map-glow: rgba(80, 194, 255, 0.2);
+    --map-copy: #96a7c5;
+    --map-copy-strong: #d8e4f3;
+    --map-green: #4ade80;
+    --map-cyan: #71d8ff;
+    --map-rose: #ff8aa3;
   }
 
-  body {
-    background:
-      radial-gradient(circle at top left, rgba(112, 225, 255, 0.18), transparent 28%),
-      radial-gradient(circle at top right, rgba(168, 85, 247, 0.16), transparent 24%),
-      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
-  }
+  .dashboard-shell { display: grid; gap: 1rem; }
 
-  .dashboard-shell {
-    padding: 1.5rem;
-  }
-
-  .hero {
+  .mission-brief {
     display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.8fr);
+    gap: 1rem;
   }
 
-  .hero-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+  .brief-card {
+    background: linear-gradient(180deg, rgba(17, 26, 45, 0.94), rgba(14, 21, 37, 0.98));
+    border: 1px solid var(--map-border);
+    border-radius: 18px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
   }
 
   .eyebrow {
-    color: var(--accent);
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    color: var(--map-cyan);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.7rem;
   }
 
-  .hero h1 {
-    font-size: clamp(1.8rem, 3vw, 3rem);
-    line-height: 1.05;
+  .mission-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1.02;
+    font-weight: 400;
+    color: var(--text);
     margin-bottom: 0.75rem;
-    color: var(--text);
   }
 
-  .hero p {
-    color: var(--muted);
-    max-width: 68ch;
-    line-height: 1.6;
+  .mission-copy {
+    color: var(--map-copy);
+    line-height: 1.68;
+    font-size: 0.92rem;
+    max-width: 62ch;
   }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.9rem;
-    margin-top: 1.25rem;
-  }
-
-  .hero-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-    margin-top: 1rem;
-  }
-
-  .meta-pill {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0.5rem 0.85rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--muted);
-    font-size: 0.84rem;
-  }
-
-  .stat-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 0.9rem 1rem;
-  }
-
-  .stat-label {
-    color: var(--muted);
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .stat-value {
-    color: var(--text);
-    font-size: 1.65rem;
-    font-weight: 700;
-    margin-top: 0.35rem;
-  }
-
-  .hero-side {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .brief-title {
-    color: var(--text);
-    font-size: 0.98rem;
-    font-weight: 600;
-    margin-bottom: 0.45rem;
-  }
-
-  .brief-copy,
-  .brief-list li {
-    color: var(--muted);
-    line-height: 1.65;
-    font-size: 0.9rem;
-  }
-
-  .brief-list {
-    margin: 0.55rem 0 0;
-    padding-left: 1rem;
-  }
-
-  .brief-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .brief-stat {
-    border-radius: 16px;
-    padding: 0.85rem 0.95rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .brief-stat-label {
-    color: var(--muted);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .brief-stat-value {
-    color: var(--text);
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-top: 0.25rem;
-  }
-
-  .map-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    overflow: hidden;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-  }
-
-  .map-toolbar {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    align-items: center;
-  }
-
-  .toolbar-copy {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .map-badges {
+  .brief-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
+    margin-top: 1rem;
   }
 
-  .map-title {
-    color: var(--text);
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .map-subtitle {
-    color: var(--muted);
-    font-size: 0.9rem;
-    margin-top: 0.2rem;
-  }
-
-  .status-pill {
-    border: 1px solid rgba(112, 225, 255, 0.25);
-    background: rgba(112, 225, 255, 0.08);
+  .brief-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.42rem 0.78rem;
     border-radius: 999px;
-    color: var(--accent);
-    padding: 0.45rem 0.8rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--map-copy);
+    font-size: 0.8rem;
+  }
+
+  .brief-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    align-content: start;
+  }
+
+  .metric-block {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .metric-label {
+    color: var(--map-copy);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .metric-value {
+    color: var(--map-copy-strong);
+    font-size: 1.28rem;
+    font-weight: 600;
+    margin-top: 0.24rem;
+  }
+
+  .metric-note {
+    color: var(--map-copy);
+    font-size: 0.76rem;
+    margin-top: 0.16rem;
+  }
+
+  .ops-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(330px, 380px);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .map-stage {
+    position: relative;
+    min-height: 720px;
+    background: linear-gradient(180deg, rgba(12, 19, 34, 0.98), rgba(13, 19, 33, 1));
+    border: 1px solid var(--map-border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+  }
+
+  .map-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(2, 6, 18, 0.08), rgba(2, 6, 18, 0.24)),
+      radial-gradient(circle at 18% 16%, rgba(67, 176, 255, 0.12), transparent 24%);
+    pointer-events: none;
+    z-index: 390;
+  }
+
+  .map-controls {
+    position: absolute;
+    top: 1.1rem;
+    left: 1.1rem;
+    z-index: 520;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .control-chip {
+    min-height: 42px;
+    padding: 0.65rem 0.92rem;
+    border-radius: 12px;
+    border: 1px solid rgba(120, 165, 230, 0.16);
+    background: rgba(13, 20, 35, 0.88);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 16px 24px rgba(0, 0, 0, 0.22);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--map-copy-strong);
     font-size: 0.82rem;
-    white-space: nowrap;
+  }
+
+  .control-chip span {
+    color: var(--map-copy);
+  }
+
+  .map-label {
+    position: absolute;
+    left: 1.1rem;
+    bottom: 1.15rem;
+    z-index: 520;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0.55rem 0.82rem;
+    border-radius: 12px;
+    border: 1px solid rgba(120, 165, 230, 0.14);
+    background: rgba(11, 18, 31, 0.86);
+    color: var(--map-copy-strong);
+    font-size: 0.8rem;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+  }
+
+  .map-label::before {
+    content: "";
+    width: 0.58rem;
+    height: 0.58rem;
+    border-radius: 999px;
+    background: var(--map-green);
+    box-shadow: 0 0 12px var(--map-green);
   }
 
   #dashboard-map {
-    height: min(70vh, 720px);
-    min-height: 480px;
+    height: 100%;
+    min-height: 720px;
     width: 100%;
   }
 
-  .panel-footer {
+  .ops-panel {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.2fr);
     gap: 1rem;
-    padding: 1rem 1.25rem 1.25rem;
-    color: var(--muted);
+    background: linear-gradient(180deg, rgba(20, 31, 51, 0.98), rgba(16, 24, 40, 1));
+    border: 1px solid var(--map-border);
+    border-radius: 22px;
+    padding: 1.25rem;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+  }
+
+  .panel-head {
+    display: grid;
+    gap: 0.8rem;
+    padding-bottom: 0.95rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .panel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--map-green);
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .panel-status::before {
+    content: "";
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 999px;
+    background: var(--map-green);
+    box-shadow: 0 0 12px var(--map-green);
+  }
+
+  .panel-node-title {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    line-height: 1.08;
+    font-weight: 400;
+  }
+
+  .panel-node-meta {
+    color: var(--map-copy);
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  .panel-section {
+    display: grid;
+    gap: 0.78rem;
+  }
+
+  .panel-section-title {
+    color: var(--map-copy);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .focus-tags {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .focus-tag {
+    min-height: 42px;
+    padding: 0.62rem 0.72rem;
+    border-radius: 12px;
+    border: 1px solid rgba(120, 165, 230, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--map-copy-strong);
+    font-size: 0.84rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+  }
+
+  .focus-tag::before {
+    content: "";
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: var(--map-cyan);
+    box-shadow: 0 0 10px var(--map-cyan);
+  }
+
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .telemetry-item {
+    min-height: 102px;
+    padding: 0.85rem 0.9rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .telemetry-item:nth-child(2n) { border-right: 0; }
+  .telemetry-item:nth-last-child(-n + 2) { border-bottom: 0; }
+
+  .telemetry-label {
+    color: var(--map-copy);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .telemetry-value {
+    color: var(--map-copy-strong);
+    font-size: 2rem;
+    line-height: 1;
+    margin-top: 0.46rem;
+  }
+
+  .telemetry-value.small { font-size: 1.24rem; line-height: 1.25; }
+  .telemetry-value.green { color: var(--map-green); }
+
+  .topology-list {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .topology-row {
+    display: grid;
+    gap: 0.38rem;
+    padding: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .topology-row:last-child { border-bottom: 0; }
+
+  .topology-title {
+    color: var(--map-copy-strong);
     font-size: 0.92rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+  }
+
+  .topology-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--map-copy);
+    font-size: 0.78rem;
+  }
+
+  .topology-bar {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .topology-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #63c3ff, #8fdcff);
+  }
+
+  .panel-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .panel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    border-radius: 12px;
+    border: 1px solid rgba(120, 165, 230, 0.2);
+    color: var(--map-copy-strong);
+    background: rgba(255, 255, 255, 0.03);
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  }
+
+  .panel-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(120, 165, 230, 0.34);
+  }
+
+  .panel-btn.primary {
+    color: #07213a;
+    background: #8fdcff;
+    border-color: rgba(143, 220, 255, 0.34);
+    font-weight: 700;
+  }
+
+  .legend-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.4rem 0.35rem 0;
   }
 
   .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.85rem;
+    gap: 0.9rem;
   }
 
   .legend-item {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+    color: var(--map-copy);
+    font-size: 0.82rem;
   }
 
   .legend-dot {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.68rem;
+    height: 0.68rem;
     border-radius: 999px;
-    box-shadow: 0 0 18px currentColor;
+    box-shadow: 0 0 14px currentColor;
   }
 
   .empty-state,
   .error-state {
     position: absolute;
-    inset: 84px 1.25rem 4.5rem;
+    inset: 5.4rem 1.2rem 1.2rem;
     display: none;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 2rem;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(4, 8, 22, 0.88), rgba(8, 14, 30, 0.95));
+    background: linear-gradient(180deg, rgba(8, 14, 30, 0.92), rgba(10, 17, 31, 0.97));
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text);
     z-index: 500;
@@ -291,7 +482,7 @@
   }
 
   .state-copy {
-    color: var(--muted);
+    color: var(--map-copy);
     max-width: 52ch;
     line-height: 1.6;
   }
@@ -306,8 +497,9 @@
 
   .leaflet-popup-content-wrapper,
   .leaflet-popup-tip {
-    background: #0f172f;
+    background: #121d31;
     color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .leaflet-popup-content {
@@ -316,30 +508,30 @@
   }
 
   .popup-meta {
-    color: var(--muted);
+    color: var(--map-copy);
     font-size: 0.84rem;
   }
 
   .popup-link {
-    color: var(--accent);
+    color: var(--map-cyan);
   }
 
   .quantum-marker {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 999px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 0 16px currentColor;
+    border: 2px solid rgba(235, 245, 255, 0.9);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 0 14px currentColor;
   }
 
   .marker-gdelt {
-    color: #70e1ff;
-    background: #70e1ff;
+    color: var(--map-cyan);
+    background: var(--map-cyan);
   }
 
   .marker-youtube {
-    color: #ff7a90;
-    background: #ff7a90;
+    color: var(--map-rose);
+    background: var(--map-rose);
   }
 
   .marker-other {
@@ -347,130 +539,125 @@
     background: #b59cff;
   }
 
-  @media (max-width: 720px) {
-    .dashboard-shell {
-      padding: 1rem;
-    }
+  .leaflet-control-zoom a {
+    background: rgba(13, 20, 35, 0.92);
+    color: var(--map-copy-strong);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
 
-    .hero {
+  .leaflet-control-zoom a:hover {
+    background: rgba(20, 30, 48, 0.98);
+  }
+
+  .marker-cluster-small,
+  .marker-cluster-medium,
+  .marker-cluster-large {
+    background: rgba(113, 216, 255, 0.16);
+  }
+
+  .marker-cluster-small div,
+  .marker-cluster-medium div,
+  .marker-cluster-large div {
+    background: rgba(113, 216, 255, 0.84);
+    color: #081726;
+    font-weight: 700;
+  }
+
+  @media (max-width: 720px) {
+    .mission-brief,
+    .ops-layout {
       grid-template-columns: 1fr;
     }
 
-    .map-toolbar,
-    .panel-footer {
-      flex-direction: column;
-      align-items: flex-start;
+    .map-stage,
+    #dashboard-map {
+      min-height: 480px;
     }
 
-    #dashboard-map {
-      min-height: 420px;
-    }
+    .focus-tags,
+    .panel-actions,
+    .brief-metrics { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block body %}
 <section class="dashboard-shell">
-  <div class="hero">
-    <div class="hero-card">
-      <div class="eyebrow">Thailand Quantum Signals</div>
-      <h1>
-        <span class="th-text">แผนที่แหล่งข้อมูลควอนตัมไทย</span>
-        <span class="en-text">Thai Quantum Geo Dashboard</span>
-      </h1>
-      <p>
-        <span class="th-text">แดชบอร์ดนี้แสดงตำแหน่งต้นทางของแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทย โดยเน้นจุดที่มีพิกัดจริงจากฐานข้อมูล
-        และจัดกลุ่ม marker เมื่อพื้นที่หนาแน่นเพื่ออ่านภาพรวมได้เร็วขึ้น.</span>
-        <span class="en-text">This dashboard shows origin locations of Thai-linked quantum discourse sources. Origin IPs are prioritised; markers cluster in dense areas for faster overview.</span>
-      </p>
-      <p style="margin-top:0.85rem;font-size:0.9rem;">
-        Corpus scope note: the current `is_quantum_tech` and `is_thailand_related` flags are operational corpus-boundary defaults,
-        not per-row classifier verification.
-      </p>
-      <div class="hero-meta">
-        <span class="meta-pill">Origin-first map framing</span>
-        <span class="meta-pill">CDN rows excluded by default</span>
-        <span class="meta-pill">Leaflet clustering for dense areas</span>
+  <div class="mission-brief">
+    <div class="brief-card">
+      <div class="eyebrow">
+        <span class="th-text">สัญญาณควอนตัมในประเทศไทย</span>
+        <span class="en-text">Thailand Quantum Signals</span>
       </div>
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></div>
-          <div class="stat-value" id="stat-count">768</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Knowledge Triplets</div>
-          <div class="stat-value" id="stat-triplets">â€”</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Latest Fetch</div>
-          <div class="stat-value" id="stat-fetch">â€”</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label"><span class="th-text">ปีที่ศึกษา</span><span class="en-text">Years</span></div>
-          <div class="stat-value" id="stat-years">â€”</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Geo Points</div>
-          <div class="stat-value" id="stat-geo">—</div>
-        </div>
+      <div class="mission-title">
+        <span class="th-text">แผนที่ตำแหน่งแหล่งข้อมูล</span>
+        <span class="en-text">Source Map</span>
+      </div>
+      <div class="mission-copy">
+        <span class="th-text">อ่านตำแหน่งแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทยแบบมุมมองปฏิบัติการ แผนที่นี้เน้นจุดกำเนิดของสัญญาณ แหล่งที่มาของข้อมูล และการเชื่อมต่อเชิงพื้นที่ที่ควรติดตามต่อ</span>
+        <span class="en-text">Read Thai-linked quantum sources in an operations-style map view. This page emphasizes where signals originate, which sources they came from, and what geographic patterns deserve follow-up.</span>
+      </div>
+      <div class="brief-pills">
+        <span class="brief-pill">
+          <span class="th-text">คลิกจุดเพื่อเปิดคอนโซลข้อมูล</span>
+          <span class="en-text">Click a point to update the signal console</span>
+        </span>
+        <span class="brief-pill">
+          <span class="th-text">ค่าเริ่มต้นซ่อนแถว CDN</span>
+          <span class="en-text">CDN-based rows stay hidden by default</span>
+        </span>
       </div>
     </div>
-    <div class="hero-side">
-      <div class="hero-card" style="padding:1.25rem;">
-        <div class="brief-title">How to read the map</div>
-        <p class="brief-copy">Use this page as a provenance lens, not a popularity chart. Origin rows are shown first because they are more interpretable than CDN-resolved locations for source tracing.</p>
-        <ul class="brief-list">
-          <li>Cluster density shows where source infrastructure concentrates.</li>
-          <li>Popup ISP labels help separate institutional hosting from generic delivery layers.</li>
-          <li>CDN rows are intentionally hidden by default for cleaner trust signals.</li>
-        </ul>
+    <div class="brief-metrics">
+      <div class="metric-block">
+        <div class="metric-label"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></div>
+        <div class="metric-value" id="stat-count">-</div>
+        <div class="metric-note"><span class="th-text">อยู่ในขอบเขตควอนตัมไทย</span><span class="en-text">Within Thai quantum scope</span></div>
       </div>
-      <div class="hero-card" style="padding:1.25rem;">
-        <div class="brief-title">Operator snapshot</div>
-        <div class="brief-grid">
-          <div class="brief-stat">
-            <div class="brief-stat-label">Default mode</div>
-            <div class="brief-stat-value">Origin-first</div>
-          </div>
-          <div class="brief-stat">
-            <div class="brief-stat-label">Map stack</div>
-            <div class="brief-stat-value">Leaflet</div>
-          </div>
-          <div class="brief-stat">
-            <div class="brief-stat-label">Popup context</div>
-            <div class="brief-stat-value">ISP + source</div>
-          </div>
-          <div class="brief-stat">
-            <div class="brief-stat-label">Primary task</div>
-            <div class="brief-stat-value">Trace origin</div>
-          </div>
-        </div>
+      <div class="metric-block">
+        <div class="metric-label"><span class="th-text">ลิงก์แนวคิด</span><span class="en-text">Connections</span></div>
+        <div class="metric-value" id="stat-triplets">-</div>
+        <div class="metric-note"><span class="th-text">พร้อมสำหรับมุมมองเครือข่าย</span><span class="en-text">Ready for network inspection</span></div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-label"><span class="th-text">ตำแหน่งบนแผนที่</span><span class="en-text">Mapped</span></div>
+        <div class="metric-value" id="stat-geo">-</div>
+        <div class="metric-note"><span class="th-text">ซ่อน CDN ตามค่าเริ่มต้น</span><span class="en-text">CDN rows hidden by default</span></div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-label"><span class="th-text">ช่วงปี</span><span class="en-text">Year Range</span></div>
+        <div class="metric-value" id="stat-years">-</div>
+        <div class="metric-note"><span class="th-text">อัปเดตล่าสุด <span id="stat-fetch">-</span></span><span class="en-text">Latest refresh <span id="stat-fetch-en">-</span></span></div>
       </div>
     </div>
   </div>
 
-  <div class="map-card">
-    <div class="map-toolbar">
-      <div class="toolbar-copy">
-        <div class="map-title"><span class="th-text">แผนที่ประเทศไทย</span><span class="en-text">Thailand Focus</span></div>
-        <div class="map-subtitle">Leaflet + marker clustering, backed by `/api/geo/list`, with origin-first framing for cleaner trust signals</div>
-        <div class="map-badges">
-          <span class="meta-pill">88 origin points in current baseline</span>
-          <span class="meta-pill">Use popup ISP labels for provenance</span>
+  <div class="ops-layout">
+    <div class="map-stage">
+      <div class="map-controls">
+        <div class="control-chip">
+          <strong><span class="th-text">ขอบเขต</span><span class="en-text">Scope</span></strong>
+          <span id="control-scope"><span class="th-text">Thai Quantum Corpus</span><span class="en-text">Thai Quantum Corpus</span></span>
+        </div>
+        <div class="control-chip">
+          <strong><span class="th-text">โหมดแผนที่</span><span class="en-text">Map Mode</span></strong>
+          <span id="control-mode"><span class="th-text">Origin Nodes</span><span class="en-text">Origin Nodes</span></span>
+        </div>
+        <div class="control-chip">
+          <strong><span class="th-text">จุดที่มองเห็น</span><span class="en-text">Visible Nodes</span></strong>
+          <span id="map-badge-count"><span class="th-text">กำลังโหลด</span><span class="en-text">Loading</span></span>
         </div>
       </div>
-      <div class="status-pill" id="status-pill"><span class="th-text">กำลังโหลดข้อมูล</span><span class="en-text">Loading data</span></div>
-    </div>
-    <div class="map-stack">
       <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
+      <div class="map-label" id="status-pill"><span class="th-text">กำลังโหลดแผนที่</span><span class="en-text">Loading map</span></div>
       <div class="empty-state" id="empty-state">
         <div>
           <div class="state-title">
             <span class="th-text">ยังไม่มีข้อมูลพิกัด</span><span class="en-text">No geo rows available</span>
           </div>
           <div class="state-copy">
-            <span class="th-text">หน้าแดชบอร์ดยังทำงานได้ตามปกติ แต่ฐานข้อมูลยังไม่มีแถว geo ที่มี lat และ lng สำหรับการแสดงผลบนแผนที่ในตอนนี้.</span>
-            <span class="en-text">The dashboard is operational, but no geo rows with lat/lng are currently available to render on the map.</span>
+            <span class="th-text">ตอนนี้ยังไม่มีแถวพิกัดที่พร้อมแสดงผลบนแผนที่ แต่ส่วนอื่นของระบบยังทำงานได้ตามปกติ</span>
+            <span class="en-text">There are no geo rows ready for the map right now, but the rest of the atlas can still operate normally.</span>
           </div>
         </div>
       </div>
@@ -480,31 +667,98 @@
             <span class="th-text">โหลดข้อมูลแผนที่ไม่สำเร็จ</span><span class="en-text">Geo API error</span>
           </div>
           <div class="state-copy" id="error-copy">
-            <span class="th-text">ไม่สามารถอ่านข้อมูลพิกัดจาก /api/geo/list ได้ในขณะนี้.</span>
+            <span class="th-text">ไม่สามารถอ่านข้อมูลพิกัดจาก /api/geo/list ได้ในขณะนี้</span>
             <span class="en-text">Could not load geo data from /api/geo/list.</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="panel-footer">
-      <div class="legend">
-        <div class="legend-item">
-          <span class="legend-dot" style="background:#70e1ff; color:#70e1ff;"></span>
-          <span>GDELT</span>
+
+    <aside class="ops-panel">
+      <div class="panel-head">
+        <div class="panel-status" id="panel-status">
+          <span class="th-text">ออนไลน์ • ซิงก์ข้อมูล</span>
+          <span class="en-text">Online • Syncing</span>
         </div>
-        <div class="legend-item">
-          <span class="legend-dot" style="background:#ff7a90; color:#ff7a90;"></span>
-          <span>YouTube</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot" style="background:#b59cff; color:#b59cff;"></span>
-          <span>Other</span>
-        </div>
+        <div class="panel-node-title" id="panel-node-title">Awaiting source selection</div>
+        <div class="panel-node-meta" id="panel-node-meta">Select a source marker on the map to inspect its live context.</div>
       </div>
-      <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
-        <span id="footer-summary">Origin points only (CDN-resolved rows excluded by default)</span>
-        <span style="color:#8b949e;font-size:0.82rem;">Basemap: OpenStreetMap</span>
+
+      <section class="panel-section">
+        <div class="panel-section-title">
+          <span class="th-text">จุดโฟกัส</span>
+          <span class="en-text">Domain Focus</span>
+        </div>
+        <div class="focus-tags" id="focus-tags">
+          <div class="focus-tag">Thai Quantum</div>
+          <div class="focus-tag">Source Origin</div>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="panel-section-title">
+          <span class="th-text">ค่าข้อมูลสด</span>
+          <span class="en-text">Live Telemetry</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <div class="telemetry-label"><span class="th-text">ลำดับข้อมูล</span><span class="en-text">Source ID</span></div>
+            <div class="telemetry-value" id="telemetry-source-id">-</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label"><span class="th-text">แพลตฟอร์ม</span><span class="en-text">Platform</span></div>
+            <div class="telemetry-value small" id="telemetry-platform">-</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label"><span class="th-text">ปีเผยแพร่</span><span class="en-text">Published</span></div>
+            <div class="telemetry-value" id="telemetry-year">-</div>
+          </div>
+          <div class="telemetry-item">
+            <div class="telemetry-label"><span class="th-text">อัปเดตล่าสุด</span><span class="en-text">Last Fetch</span></div>
+            <div class="telemetry-value small green" id="telemetry-fetch">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <div class="panel-section-title">
+          <span class="th-text">บริบทรอบจุด</span>
+          <span class="en-text">Network Topology</span>
+        </div>
+        <div class="topology-list" id="topology-list">
+          <div class="topology-row">
+            <div class="topology-title">Waiting for geo rows</div>
+            <div class="topology-meta"><span>Map context</span><span>0 peers</span></div>
+            <div class="topology-bar"><div class="topology-bar-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="panel-actions">
+        <a class="panel-btn primary" id="panel-open-source" href="/database">Open Source</a>
+        <a class="panel-btn" id="panel-open-library" href="/database">View Library</a>
       </div>
+    </aside>
+  </div>
+
+  <div class="legend-bar">
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-dot" style="background:var(--map-cyan); color:var(--map-cyan);"></span>
+        <span>GDELT</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background:var(--map-rose); color:var(--map-rose);"></span>
+        <span>YouTube</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background:#b59cff; color:#b59cff;"></span>
+        <span>Other</span>
+      </div>
+    </div>
+    <div id="footer-summary" style="color:var(--map-copy);font-size:0.8rem;">
+      <span class="th-text">แสดงตำแหน่งต้นทางของแหล่งข้อมูล</span>
+      <span class="en-text">Showing source-origin locations</span>
     </div>
   </div>
 </section>
@@ -523,8 +777,8 @@
     maxZoom: 18
   }).setView(thailandCenter, 6);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors"
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: "&copy; OpenStreetMap &copy; CARTO"
   }).addTo(map);
 
   const clusters = L.markerClusterGroup({
@@ -543,8 +797,23 @@
     statGeo: document.getElementById("stat-geo"),
     statTriplets: document.getElementById("stat-triplets"),
     statFetch: document.getElementById("stat-fetch"),
-    statYears: document.getElementById("stat-years")
+    statFetchEn: document.getElementById("stat-fetch-en"),
+    statYears: document.getElementById("stat-years"),
+    panelStatus: document.getElementById("panel-status"),
+    panelTitle: document.getElementById("panel-node-title"),
+    panelMeta: document.getElementById("panel-node-meta"),
+    focusTags: document.getElementById("focus-tags"),
+    topologyList: document.getElementById("topology-list"),
+    telemetrySourceId: document.getElementById("telemetry-source-id"),
+    telemetryPlatform: document.getElementById("telemetry-platform"),
+    telemetryYear: document.getElementById("telemetry-year"),
+    telemetryFetch: document.getElementById("telemetry-fetch"),
+    openSource: document.getElementById("panel-open-source"),
+    openLibrary: document.getElementById("panel-open-library")
   };
+
+  let geoRows = [];
+  let selectedRow = null;
 
   const platformClass = {
     gdelt: "marker-gdelt",
@@ -555,6 +824,15 @@
 
   function setStatus(text) {
     elements.status.textContent = text;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 
   function showEmpty() {
@@ -589,8 +867,88 @@
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
       <span class="popup-meta">${item.isp || "Unknown ISP"}</span><br>
-      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open source")}</a>
+      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open link")}</a>
     `;
+  }
+
+  function titleFromRow(item) {
+    return item.title || item.city || item.region || item.url || copyForLang("ไม่ระบุชื่อ", "Untitled source");
+  }
+
+  function deriveFocusTags(item) {
+    const tags = [];
+    if (item.quantum_domain) {
+      tags.push(String(item.quantum_domain).replaceAll("_", " "));
+    }
+    if (item.platform) tags.push(String(item.platform).toUpperCase());
+    if (item.city) tags.push(item.city);
+    if (item.region && item.region !== item.city) tags.push(item.region);
+    if (item.isp) tags.push(item.isp.split(",")[0]);
+    return tags.filter(Boolean).slice(0, 4);
+  }
+
+  function renderFocusTags(item) {
+    const tags = deriveFocusTags(item);
+    elements.focusTags.innerHTML = (tags.length ? tags : [copyForLang("Thai Quantum", "Thai Quantum"), copyForLang("Source Origin", "Source Origin")])
+      .map((tag) => `<div class="focus-tag">${escapeHtml(tag)}</div>`).join("");
+  }
+
+  function buildTopologyRows(item) {
+    if (!geoRows.length) return [];
+    const sameCity = geoRows.filter((row) => row.city && item.city && row.city === item.city && row.source_id !== item.source_id);
+    const samePlatform = geoRows.filter((row) => row.platform === item.platform && row.source_id !== item.source_id);
+    const sameRegion = geoRows.filter((row) => row.region && item.region && row.region === item.region && row.source_id !== item.source_id);
+    return [
+      {
+        title: item.city ? `${item.city} cluster` : copyForLang("คลัสเตอร์เมืองเดียวกัน", "Same-city cluster"),
+        metaLeft: item.city || copyForLang("ไม่พบชื่อเมือง", "Unknown city"),
+        metaRight: `${sameCity.length} peers`,
+        width: Math.min(100, 24 + sameCity.length * 14)
+      },
+      {
+        title: `${(item.platform || "other").toUpperCase()} feed`,
+        metaLeft: copyForLang("แหล่งประเภทเดียวกัน", "Same platform feed"),
+        metaRight: `${samePlatform.length} peers`,
+        width: Math.min(100, 22 + samePlatform.length * 12)
+      },
+      {
+        title: item.region ? `${item.region} region` : copyForLang("บริบทภูมิภาค", "Regional context"),
+        metaLeft: item.region || copyForLang("ไม่พบภูมิภาค", "Unknown region"),
+        metaRight: `${sameRegion.length} peers`,
+        width: Math.min(100, 18 + sameRegion.length * 14)
+      }
+    ];
+  }
+
+  function renderTopology(item) {
+    const rows = buildTopologyRows(item);
+    elements.topologyList.innerHTML = rows.map((row) => `
+      <div class="topology-row">
+        <div class="topology-title">${escapeHtml(row.title)}</div>
+        <div class="topology-meta"><span>${escapeHtml(row.metaLeft)}</span><span>${escapeHtml(row.metaRight)}</span></div>
+        <div class="topology-bar"><div class="topology-bar-fill" style="width:${row.width}%"></div></div>
+      </div>
+    `).join("");
+  }
+
+  function applySelectedRow(item) {
+    selectedRow = item;
+    const title = titleFromRow(item);
+    const location = [item.city, item.region].filter(Boolean).join(", ") || copyForLang("ไม่ทราบตำแหน่ง", "Unknown location");
+    const sourceId = `SQA-${String(item.source_id || "0").padStart(4, "0")}`;
+    elements.panelTitle.textContent = title;
+    elements.panelMeta.textContent = `${sourceId} • ${location}`;
+    elements.telemetrySourceId.textContent = sourceId;
+    elements.telemetryPlatform.textContent = (item.platform || "other").toUpperCase();
+    elements.telemetryYear.textContent = item.published_year || "-";
+    elements.telemetryFetch.textContent = relTime(item.fetched_at);
+    elements.panelStatus.textContent = copyForLang("ออนไลน์ • ซิงก์ข้อมูล", "Online • Syncing");
+    renderFocusTags(item);
+    renderTopology(item);
+    elements.openSource.href = item.url || "/database";
+    elements.openSource.target = item.url ? "_blank" : "_self";
+    elements.openSource.rel = item.url ? "noopener" : "";
+    elements.openLibrary.href = `/database?platform=${encodeURIComponent(item.platform || "")}`;
   }
 
   function applySummary(summary) {
@@ -621,6 +979,7 @@
       if (!response.ok || !payload.ok) return;
       const overview = payload.data && payload.data.overview ? payload.data.overview : {};
       if (elements.statFetch) elements.statFetch.textContent = relTime(overview.latest_fetch_at);
+      if (elements.statFetchEn) elements.statFetchEn.textContent = relTime(overview.latest_fetch_at);
     } catch (error) {
       // Summary cards remain partially available if pipeline state is unavailable.
     }
@@ -648,10 +1007,10 @@
       }
 
       const rows = Array.isArray(payload.data) ? payload.data : [];
-      const platformSet = new Set(rows.map((row) => row.platform || "other"));
+      geoRows = rows.slice();
 
       if (elements.statGeo) elements.statGeo.textContent = String(payload.count || rows.length);
-      elements.footer.textContent = copyForLang("ค่าเริ่มต้นไม่รวม CDN-resolved rows", "CDN-resolved rows excluded by default");
+      elements.footer.textContent = copyForLang("ค่าเริ่มต้นไม่รวมแถวที่ resolve ผ่าน CDN", "CDN-based rows are hidden by default");
 
       if (!rows.length) {
         showEmpty();
@@ -659,6 +1018,7 @@
       }
 
       hideStates();
+      clusters.clearLayers();
       rows.forEach((item) => {
         const marker = L.marker([item.lat, item.lng], {
           icon: L.divIcon({
@@ -669,15 +1029,21 @@
           })
         });
         marker.bindPopup(popupHtml(item));
+        marker.on("click", function () {
+          applySelectedRow(item);
+        });
         clusters.addLayer(marker);
       });
 
       map.addLayer(clusters);
       map.fitBounds(clusters.getBounds(), { padding: [28, 28], maxZoom: 9 });
-      setStatus(`${rows.length} origin points mapped`);
+      setStatus(copyForLang(`${rows.length} จุดบนแผนที่`, `${rows.length} locations mapped`));
+      const badge = document.getElementById("map-badge-count");
+      if (badge) badge.textContent = copyForLang(`${rows.length} จุด`, `${rows.length} nodes`);
+      applySelectedRow(rows[0]);
     } catch (error) {
-      showError(copyForLang(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`, `Failed to load map data: ${error.message}`));
-      elements.footer.textContent = copyForLang("ตรวจสอบสถานะ /api/geo/list และข้อมูลฐานข้อมูล", "Check /api/geo/list status and database");
+      showError(copyForLang(`ไม่สามารถโหลดข้อมูลแผนที่ได้: ${error.message}`, `Could not load the map: ${error.message}`));
+      elements.footer.textContent = copyForLang("ตรวจสอบสถานะ /api/geo/list และข้อมูลฐานข้อมูล", "Check /api/geo/list and the local database");
     }
   }
 

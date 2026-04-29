@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
 import io
 import json
 import logging
+import secrets
 import sqlite3
 import time
 from collections import Counter
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,9 +33,44 @@ from siamquantum.db.repos import (
 )
 from siamquantum.db.session import db_path_from_url, get_connection
 from siamquantum.models import CommunitySubmissionCreate
+from siamquantum.pipeline.filter import backfill_relevance, recheck_relevance
+from siamquantum.services.supabase import (
+    SupabaseError,
+    SupabaseUser,
+    current_profile,
+    ensure_profile_for_user,
+    is_admin_profile,
+    rest_insert,
+    rest_select,
+    rest_update,
+    slugify,
+    supabase_enabled,
+    verify_user_access_token,
+)
 from siamquantum.stats.yearly_taxonomy_analytics import build_yearly_taxonomy_analytics
 
 logger = logging.getLogger(__name__)
+_LOCAL_SESSION_COOKIE = "sq_local_session"
+
+
+@dataclass
+class LocalAuthUser:
+    id: str
+    email: str | None
+    created_at: str | None
+    raw: dict[str, Any]
+
+    @property
+    def user_metadata(self) -> dict[str, Any]:
+        return {}
+
+    @property
+    def display_name(self) -> str | None:
+        return str(self.raw.get("display_name") or "").strip() or None
+
+    @property
+    def avatar_url(self) -> str | None:
+        return str(self.raw.get("avatar_url") or "").strip() or None
 
 # ---------------------------------------------------------------------------
 # In-memory node registry cache (avoids cold DB rebuild on every click)
@@ -78,7 +118,19 @@ async def _daily_ingest_task() -> None:
             logger.info("Daily GDELT: fetched=%d inserted=%d", g_fetched, g_inserted)
             y_fetched, y_inserted = await ingest_youtube_daterange(start, today, db)
             logger.info("Daily YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
+            relevance_checked = 0
             if g_inserted + y_inserted > 0:
+                new_counts = backfill_relevance(db)
+                relevance_checked += int(new_counts.get("checked", 0))
+                logger.info("Daily relevance backfill: %s", new_counts)
+            audit_counts = recheck_relevance(
+                db,
+                stale_after_days=settings.relevance_recheck_days,
+                limit=settings.relevance_audit_batch_size,
+            )
+            relevance_checked += int(audit_counts.get("checked", 0))
+            logger.info("Daily relevance audit: %s", audit_counts)
+            if g_inserted + y_inserted > 0 or relevance_checked > 0:
                 _invalidate_node_registry()
                 if not settings.database_read_only:
                     with get_connection(db) as conn:
@@ -89,6 +141,7 @@ async def _daily_ingest_task() -> None:
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):  # type: ignore[type-arg]
+    _ensure_local_auth_tables()
     asyncio.create_task(asyncio.to_thread(_prewarm_registry_sync))
     asyncio.create_task(_daily_ingest_task())
     yield
@@ -102,10 +155,355 @@ app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+templates.env.globals["supabase_url"] = settings.supabase_url
+templates.env.globals["supabase_publishable_key"] = settings.supabase_publishable_key
+templates.env.globals["supabase_enabled"] = supabase_enabled()
 
 
 def _db() -> Path:
     return db_path_from_url(settings.database_url)
+
+
+def _prefer_local_auth() -> bool:
+    return settings.deployment_mode == "local"
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _password_hash(password: str, *, salt: str) -> str:
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120_000)
+    return digest.hex()
+
+
+def _ensure_local_auth_tables() -> None:
+    db = _db()
+    with get_connection(db) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS local_users (
+              id TEXT PRIMARY KEY,
+              email TEXT NOT NULL UNIQUE,
+              password_salt TEXT NOT NULL,
+              password_hash TEXT NOT NULL,
+              display_name TEXT,
+              avatar_url TEXT,
+              bio TEXT,
+              website_url TEXT,
+              role TEXT NOT NULL DEFAULT 'user',
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS local_sessions (
+              token TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL REFERENCES local_users(id) ON DELETE CASCADE,
+              created_at TEXT NOT NULL,
+              expires_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS local_categories (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL UNIQUE,
+              slug TEXT NOT NULL UNIQUE,
+              description TEXT,
+              created_by TEXT REFERENCES local_users(id) ON DELETE SET NULL,
+              created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS local_submitted_data (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id TEXT NOT NULL REFERENCES local_users(id) ON DELETE CASCADE,
+              title TEXT NOT NULL,
+              description TEXT,
+              source_url TEXT,
+              category TEXT NOT NULL,
+              page_target TEXT,
+              status TEXT NOT NULL DEFAULT 'pending',
+              analysis_status TEXT NOT NULL DEFAULT 'queued',
+              analysis_result TEXT,
+              metadata TEXT NOT NULL DEFAULT '{}',
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_local_sessions_user_id ON local_sessions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_local_submitted_user_id ON local_submitted_data(user_id);
+            CREATE INDEX IF NOT EXISTS idx_local_submitted_public ON local_submitted_data(status, analysis_status, created_at);
+            """
+        )
+        conn.commit()
+
+
+def _local_row_to_user(row: sqlite3.Row) -> LocalAuthUser:
+    raw = dict(row)
+    return LocalAuthUser(
+        id=str(raw["id"]),
+        email=str(raw.get("email") or "").strip() or None,
+        created_at=str(raw.get("created_at") or "").strip() or None,
+        raw=raw,
+    )
+
+
+def _local_profile_payload(row: sqlite3.Row | dict[str, Any]) -> dict[str, Any]:
+    raw = dict(row)
+    return {
+        "id": raw.get("id"),
+        "email": raw.get("email"),
+        "display_name": raw.get("display_name"),
+        "avatar_url": raw.get("avatar_url"),
+        "bio": raw.get("bio"),
+        "website_url": raw.get("website_url"),
+        "role": raw.get("role") or "user",
+        "created_at": raw.get("created_at"),
+        "updated_at": raw.get("updated_at"),
+    }
+
+
+def _local_submission_payload(row: sqlite3.Row | dict[str, Any]) -> dict[str, Any]:
+    raw = dict(row)
+    analysis_result = raw.get("analysis_result")
+    metadata = raw.get("metadata")
+    try:
+        analysis_result_value = json.loads(analysis_result) if analysis_result else None
+    except Exception:
+        analysis_result_value = None
+    try:
+        metadata_value = json.loads(metadata) if metadata else {}
+    except Exception:
+        metadata_value = {}
+    return {
+        "id": raw.get("id"),
+        "user_id": raw.get("user_id"),
+        "title": raw.get("title"),
+        "description": raw.get("description"),
+        "source_url": raw.get("source_url"),
+        "category": raw.get("category"),
+        "page_target": raw.get("page_target"),
+        "status": raw.get("status"),
+        "analysis_status": raw.get("analysis_status"),
+        "analysis_result": analysis_result_value,
+        "metadata": metadata_value,
+        "created_at": raw.get("created_at"),
+        "updated_at": raw.get("updated_at"),
+    }
+
+
+def _local_current_user(request: Request) -> LocalAuthUser | None:
+    token = request.cookies.get(_LOCAL_SESSION_COOKIE)
+    if not token:
+        return None
+    db = _db()
+    with get_connection(db) as conn:
+        row = conn.execute(
+            """
+            SELECT u.*
+            FROM local_sessions s
+            JOIN local_users u ON u.id = s.user_id
+            WHERE s.token = ?
+            """,
+            (token,),
+        ).fetchone()
+    return _local_row_to_user(row) if row else None
+
+
+def _require_local_user(request: Request) -> LocalAuthUser | JSONResponse:
+    user = _local_current_user(request)
+    if not user:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "auth_required", "message": "Login is required for this action."}},
+            status_code=401,
+        )
+    return user
+
+
+def _require_local_admin(request: Request) -> tuple[LocalAuthUser, dict[str, Any]] | JSONResponse:
+    user = _require_local_user(request)
+    if isinstance(user, JSONResponse):
+        return user
+    profile = _local_profile_payload(user.raw)
+    if str(profile.get("role") or "").strip().lower() != "admin":
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "admin_required", "message": "Admin access is required."}},
+            status_code=403,
+        )
+    return user, profile
+
+
+def _supabase_not_configured_response() -> JSONResponse:
+    return JSONResponse(
+        {
+            "ok": False,
+            "data": None,
+            "error": {
+                "code": "supabase_not_configured",
+                "message": (
+                    "Supabase is not configured. Set SUPABASE_URL, "
+                    "SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SECRET_KEY in the server environment."
+                ),
+            },
+        },
+        status_code=503,
+    )
+
+
+def _bearer_token(request: Request) -> str | None:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+        return token or None
+    return None
+
+
+def _supabase_error_response(exc: Exception, *, code: str = "supabase_request_failed", status_code: int = 500) -> JSONResponse:
+    return JSONResponse(
+        {
+            "ok": False,
+            "data": None,
+            "error": {"code": code, "message": str(exc)},
+        },
+        status_code=status_code,
+    )
+
+
+def _require_auth_user(request: Request) -> tuple[str, SupabaseUser] | JSONResponse:
+    if not supabase_enabled():
+        return _supabase_not_configured_response()
+    access_token = _bearer_token(request)
+    if not access_token:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "auth_required", "message": "Login is required for this action."},
+            },
+            status_code=401,
+        )
+    try:
+        user = verify_user_access_token(access_token)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="auth_invalid", status_code=401)
+    return access_token, user
+
+
+def _require_admin_user(request: Request) -> tuple[str, SupabaseUser, dict[str, Any]] | JSONResponse:
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    try:
+        profile = current_profile(access_token, user.id)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="admin_profile_failed", status_code=500)
+    if not is_admin_profile(profile):
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "admin_required", "message": "Admin access is required."},
+            },
+            status_code=403,
+        )
+    return access_token, user, profile or {}
+
+
+def _submitted_data_payload(row: dict[str, Any]) -> dict[str, Any]:
+    created_at = row.get("created_at")
+    updated_at = row.get("updated_at")
+    return {
+        "id": row.get("id"),
+        "user_id": row.get("user_id"),
+        "title": row.get("title"),
+        "description": row.get("description"),
+        "source_url": row.get("source_url"),
+        "category": row.get("category"),
+        "page_target": row.get("page_target"),
+        "status": row.get("status"),
+        "analysis_status": row.get("analysis_status"),
+        "analysis_result": row.get("analysis_result"),
+        "metadata": row.get("metadata") or {},
+        "created_at": created_at,
+        "updated_at": updated_at,
+    }
+
+
+def _profile_payload(profile: dict[str, Any] | None, user: SupabaseUser) -> dict[str, Any]:
+    profile_map = profile or {}
+    return {
+        "id": user.id,
+        "email": profile_map.get("email") or user.email,
+        "display_name": profile_map.get("display_name") or user.display_name,
+        "avatar_url": profile_map.get("avatar_url") or user.avatar_url,
+        "bio": profile_map.get("bio"),
+        "website_url": profile_map.get("website_url"),
+        "role": profile_map.get("role") or "user",
+        "created_at": profile_map.get("created_at") or user.created_at,
+        "updated_at": profile_map.get("updated_at"),
+    }
+
+
+def _enqueue_submitted_data_analysis(submission_id: int, source_url: str | None, owner_label: str | None) -> None:
+    if not supabase_enabled():
+        return
+    try:
+        rest_update(
+            "submitted_data",
+            {"analysis_status": "processing"},
+            filters={"id": f"eq.{submission_id}"},
+            use_service_role=True,
+        )
+
+        analysis_result: dict[str, Any] = {
+            "source_url": source_url,
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "pipeline": "submitted_data",
+            "owner_label": owner_label,
+        }
+
+        if source_url:
+            db = _db()
+            community_submission_id: int | None = None
+            with get_connection(db) as conn:
+                source = SourceRepo(conn).get_by_url(source_url)
+                if source is not None:
+                    analysis_result["matched_source"] = {
+                        "id": source.id,
+                        "platform": source.platform,
+                        "title": source.title,
+                        "published_year": source.published_year,
+                    }
+                sub_repo = CommunitySubmissionRepo(conn)
+                community_submission_id = sub_repo.insert(
+                    CommunitySubmissionCreate(handle=owner_label, url=source_url)
+                )
+                sub_repo.update_status(community_submission_id, "queued")
+            if community_submission_id is not None:
+                analysis_result["community_submission_id"] = community_submission_id
+                _process_community_submission(community_submission_id, source_url)
+
+        rest_update(
+            "submitted_data",
+            {
+                "analysis_status": "completed",
+                "analysis_result": analysis_result,
+            },
+            filters={"id": f"eq.{submission_id}"},
+            use_service_role=True,
+        )
+    except Exception as exc:
+        logger.exception("Submitted data analysis failed")
+        try:
+            rest_update(
+                "submitted_data",
+                {
+                    "analysis_status": "failed",
+                    "analysis_result": {
+                        "error": str(exc),
+                        "processed_at": datetime.now(timezone.utc).isoformat(),
+                    },
+                },
+                filters={"id": f"eq.{submission_id}"},
+                use_service_role=True,
+            )
+        except Exception:
+            logger.exception("Failed to persist submitted_data analysis error")
 
 
 def _norm_concept(text: str) -> str:
@@ -439,7 +837,12 @@ def _process_community_submission(submission_id: int, url: str) -> None:
 
 @app.get("/", include_in_schema=False)
 def root(request: Request) -> Any:
-    return templates.TemplateResponse(request, "home.html", {"active": "home"})
+    return templates.TemplateResponse(request, "landing.html")
+
+
+@app.get("/overview", include_in_schema=False)
+def page_overview(request: Request) -> Any:
+    return templates.TemplateResponse(request, "home.html", {"active": "overview"})
 
 
 # ---------------------------------------------------------------------------
@@ -448,31 +851,46 @@ def root(request: Request) -> Any:
 
 @app.get("/dashboard", include_in_schema=False)
 def page_dashboard(request: Request) -> Any:
-    return templates.TemplateResponse(request, "dashboard.html")
+    return templates.TemplateResponse(request, "dashboard.html", {"active": "dashboard"})
 
 
 @app.get("/network", include_in_schema=False)
 def page_network(request: Request) -> Any:
-    return templates.TemplateResponse(request, "network.html")
+    return templates.TemplateResponse(request, "network.html", {"active": "network"})
 
 
 @app.get("/analytics", include_in_schema=False)
 def page_analytics(request: Request) -> Any:
-    return templates.TemplateResponse(request, "analytics.html")
+    return templates.TemplateResponse(request, "analytics.html", {"active": "analytics"})
 
 
 @app.get("/database", include_in_schema=False)
 def page_database(request: Request) -> Any:
-    return templates.TemplateResponse(request, "database.html")
+    return templates.TemplateResponse(request, "database.html", {"active": "database"})
 
 
-@app.get("/community", include_in_schema=False)
-def page_community(request: Request) -> Any:
+@app.get("/submit-data", include_in_schema=False)
+def page_submit_data(request: Request) -> Any:
     return templates.TemplateResponse(
         request,
         "community.html",
-        {"demo_mode": _is_vercel_demo_mode()},
+        {"demo_mode": _is_vercel_demo_mode(), "active": "community"},
     )
+
+
+@app.get("/community", include_in_schema=False)
+def page_community_redirect() -> RedirectResponse:
+    return RedirectResponse(url="/submit-data", status_code=307)
+
+
+@app.get("/profile", include_in_schema=False)
+def page_profile(request: Request) -> Any:
+    return templates.TemplateResponse(request, "profile.html", {"active": "profile"})
+
+
+@app.get("/admin/submitted-data", include_in_schema=False)
+def page_admin_submitted_data(request: Request) -> Any:
+    return templates.TemplateResponse(request, "admin_submitted_data.html", {"active": "profile"})
 
 
 # ---------------------------------------------------------------------------
@@ -498,7 +916,7 @@ def api_geo_list(
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
@@ -510,7 +928,7 @@ def api_geo_list(
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
@@ -1308,6 +1726,623 @@ def api_export_xlsx(
 
 
 # ---------------------------------------------------------------------------
+# API — auth/profile
+# ---------------------------------------------------------------------------
+
+@app.get("/api/auth/config")
+def api_auth_config() -> JSONResponse:
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {
+                "enabled": supabase_enabled(),
+                "auth_mode": "local" if _prefer_local_auth() else "supabase",
+                "local_mode": _prefer_local_auth(),
+                "google_oauth_available": supabase_enabled() and not _prefer_local_auth(),
+                "supabase_url": settings.supabase_url,
+                "supabase_publishable_key": settings.supabase_publishable_key,
+            },
+            "error": None,
+        }
+    )
+
+
+@app.post("/api/auth/local/register", status_code=201)
+def api_local_auth_register(payload: dict[str, Any]) -> JSONResponse:
+    _ensure_local_auth_tables()
+    email = str(payload.get("email") or "").strip().lower()
+    password = str(payload.get("password") or "")
+    if not email or "@" not in email:
+        return JSONResponse({"ok": False, "data": None, "error": {"code": "email_invalid", "message": "A valid email is required."}}, status_code=422)
+    if len(password) < 6:
+        return JSONResponse({"ok": False, "data": None, "error": {"code": "password_short", "message": "Password must be at least 6 characters."}}, status_code=422)
+    db = _db()
+    with get_connection(db) as conn:
+        existing = conn.execute("SELECT id FROM local_users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "email_exists", "message": "An account with this email already exists."}}, status_code=409)
+        count_row = conn.execute("SELECT COUNT(*) AS count FROM local_users").fetchone()
+        role = "admin" if int(count_row["count"]) == 0 else "user"
+        user_id = secrets.token_hex(16)
+        salt = secrets.token_hex(16)
+        now = _utcnow_iso()
+        conn.execute(
+            """
+            INSERT INTO local_users (id, email, password_salt, password_hash, display_name, role, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (user_id, email, salt, _password_hash(password, salt=salt), email.split("@")[0], role, now, now),
+        )
+        conn.commit()
+        row = conn.execute("SELECT * FROM local_users WHERE id = ?", (user_id,)).fetchone()
+    return JSONResponse({"ok": True, "data": {"user": _local_profile_payload(row)}, "error": None}, status_code=201)
+
+
+@app.post("/api/auth/local/login")
+def api_local_auth_login(payload: dict[str, Any]) -> JSONResponse:
+    _ensure_local_auth_tables()
+    email = str(payload.get("email") or "").strip().lower()
+    password = str(payload.get("password") or "")
+    db = _db()
+    with get_connection(db) as conn:
+        row = conn.execute("SELECT * FROM local_users WHERE email = ?", (email,)).fetchone()
+        if not row:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "auth_invalid", "message": "Invalid email or password."}}, status_code=401)
+        expected = _password_hash(password, salt=row["password_salt"])
+        if not hmac.compare_digest(expected, row["password_hash"]):
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "auth_invalid", "message": "Invalid email or password."}}, status_code=401)
+        token = secrets.token_urlsafe(32)
+        conn.execute("INSERT INTO local_sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, NULL)", (token, row["id"], _utcnow_iso()))
+        conn.commit()
+    response = JSONResponse({"ok": True, "data": {"user": _local_profile_payload(row)}, "error": None})
+    response.set_cookie(_LOCAL_SESSION_COOKIE, token, httponly=True, samesite="lax", secure=False, path="/")
+    return response
+
+
+@app.post("/api/auth/local/logout")
+def api_local_auth_logout(request: Request) -> JSONResponse:
+    token = request.cookies.get(_LOCAL_SESSION_COOKIE)
+    if token:
+        db = _db()
+        with get_connection(db) as conn:
+            conn.execute("DELETE FROM local_sessions WHERE token = ?", (token,))
+            conn.commit()
+    response = JSONResponse({"ok": True, "data": {"logged_out": True}, "error": None})
+    response.delete_cookie(_LOCAL_SESSION_COOKIE, path="/")
+    return response
+
+
+@app.get("/api/auth/me")
+def api_auth_me(request: Request) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        return JSONResponse(
+            {
+                "ok": True,
+                "data": {
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "created_at": user.created_at,
+                        "display_name": user.display_name,
+                        "avatar_url": user.avatar_url,
+                        "user_metadata": {},
+                    },
+                    "profile": _local_profile_payload(user.raw),
+                },
+                "error": None,
+            }
+        )
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    try:
+        profile = ensure_profile_for_user(access_token, user)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="profile_sync_failed", status_code=500)
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "created_at": user.created_at,
+                    "display_name": user.display_name,
+                    "avatar_url": user.avatar_url,
+                    "user_metadata": user.user_metadata,
+                },
+                "profile": _profile_payload(profile, user),
+            },
+            "error": None,
+        }
+    )
+
+
+@app.post("/api/auth/sync-profile")
+def api_auth_sync_profile(request: Request) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        return JSONResponse({"ok": True, "data": {"profile": _local_profile_payload(user.raw)}, "error": None})
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    try:
+        profile = ensure_profile_for_user(access_token, user)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="profile_sync_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"profile": _profile_payload(profile, user)}, "error": None})
+
+
+@app.get("/api/profile")
+def api_profile_get(request: Request) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        return JSONResponse({"ok": True, "data": {"profile": _local_profile_payload(user.raw)}, "error": None})
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    try:
+        profile = ensure_profile_for_user(access_token, user)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="profile_load_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"profile": _profile_payload(profile, user)}, "error": None})
+
+
+@app.patch("/api/profile")
+def api_profile_update(request: Request, payload: dict[str, Any]) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        patch: dict[str, Any] = {}
+        for key in ("display_name", "bio", "website_url", "avatar_url"):
+            if key in payload:
+                value = str(payload.get(key) or "").strip()
+                patch[key] = value or None
+        if not patch:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "profile_empty_update", "message": "No profile fields were provided."}}, status_code=422)
+        patch["updated_at"] = _utcnow_iso()
+        assignments = ", ".join(f"{key} = ?" for key in patch)
+        values = list(patch.values()) + [user.id]
+        db = _db()
+        with get_connection(db) as conn:
+            conn.execute(f"UPDATE local_users SET {assignments} WHERE id = ?", values)
+            conn.commit()
+            row = conn.execute("SELECT * FROM local_users WHERE id = ?", (user.id,)).fetchone()
+        return JSONResponse({"ok": True, "data": {"profile": _local_profile_payload(row)}, "error": None})
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    patch: dict[str, Any] = {}
+    for key in ("display_name", "bio", "website_url", "avatar_url"):
+        value = payload.get(key)
+        if value is None:
+            continue
+        patch[key] = str(value).strip() or None
+    if not patch:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "profile_empty_update", "message": "No profile fields were provided."},
+            },
+            status_code=422,
+        )
+    try:
+        ensure_profile_for_user(access_token, user)
+        rows = rest_update(
+            "profiles",
+            patch,
+            filters={"id": f"eq.{user.id}"},
+            access_token=access_token,
+        )
+        profile = rows[0] if rows else current_profile(access_token, user.id)
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="profile_update_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"profile": _profile_payload(profile, user)}, "error": None})
+
+
+# ---------------------------------------------------------------------------
+# API — categories / submitted data
+# ---------------------------------------------------------------------------
+
+@app.get("/api/categories")
+def api_categories() -> JSONResponse:
+    if _prefer_local_auth():
+        db = _db()
+        with get_connection(db) as conn:
+            rows = conn.execute("SELECT id, name, slug, description, created_by, created_at FROM local_categories ORDER BY name ASC").fetchall()
+        return JSONResponse({"ok": True, "data": {"items": [dict(row) for row in rows]}, "error": None})
+    if not supabase_enabled():
+        return _supabase_not_configured_response()
+    try:
+        rows = rest_select("categories", order="name.asc")
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="categories_load_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"items": rows}, "error": None})
+
+
+@app.post("/api/categories", status_code=201)
+def api_categories_create(request: Request, payload: dict[str, Any]) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        name = str(payload.get("name") or "").strip()
+        description = str(payload.get("description") or "").strip() or None
+        if not name:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "category_name_required", "message": "Category name is required."}}, status_code=422)
+        slug = slugify(name)
+        if not slug:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "category_slug_invalid", "message": "Category name must contain letters or numbers."}}, status_code=422)
+        db = _db()
+        with get_connection(db) as conn:
+            existing = conn.execute("SELECT id FROM local_categories WHERE slug = ?", (slug,)).fetchone()
+            if existing:
+                return JSONResponse({"ok": False, "data": None, "error": {"code": "category_slug_exists", "message": "A category with this slug already exists."}}, status_code=409)
+            now = _utcnow_iso()
+            cur = conn.execute(
+                "INSERT INTO local_categories (name, slug, description, created_by, created_at) VALUES (?, ?, ?, ?, ?)",
+                (name, slug, description, user.id, now),
+            )
+            conn.commit()
+            row = conn.execute("SELECT id, name, slug, description, created_by, created_at FROM local_categories WHERE id = ?", (cur.lastrowid,)).fetchone()
+        return JSONResponse({"ok": True, "data": {"category": dict(row)}, "error": None}, status_code=201)
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    name = str(payload.get("name") or "").strip()
+    description = str(payload.get("description") or "").strip() or None
+    if not name:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "category_name_required", "message": "Category name is required."},
+            },
+            status_code=422,
+        )
+    slug = slugify(name)
+    if not slug:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "category_slug_invalid", "message": "Category name must contain letters or numbers."},
+            },
+            status_code=422,
+        )
+    try:
+        existing = rest_select("categories", filters={"slug": f"eq.{slug}"}, single=True)
+        if existing:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "data": None,
+                    "error": {"code": "category_slug_exists", "message": "A category with this slug already exists."},
+                },
+                status_code=409,
+            )
+        rows = rest_insert(
+            "categories",
+            {
+                "name": name,
+                "slug": slug,
+                "description": description,
+                "created_by": user.id,
+            },
+            access_token=access_token,
+        )
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="category_create_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"category": rows[0] if rows else None}, "error": None}, status_code=201)
+
+
+@app.get("/api/submitted-data/mine")
+def api_submitted_data_mine(request: Request, limit: int = Query(20, ge=1, le=100)) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        db = _db()
+        with get_connection(db) as conn:
+            rows = conn.execute(
+                "SELECT * FROM local_submitted_data WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+                (user.id, limit),
+            ).fetchall()
+        return JSONResponse({"ok": True, "data": {"items": [_local_submission_payload(row) for row in rows]}, "error": None})
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+    try:
+        rows = rest_select(
+            "submitted_data",
+            filters={"user_id": f"eq.{user.id}"},
+            access_token=access_token,
+            limit=limit,
+            order="created_at.desc",
+        )
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="submitted_data_load_failed", status_code=500)
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {"items": [_submitted_data_payload(row) for row in rows]},
+            "error": None,
+        }
+    )
+
+
+@app.get("/api/submitted-data/public")
+def api_submitted_data_public(
+    page_target: str | None = Query(None),
+    category: str | None = Query(None),
+    limit: int = Query(12, ge=1, le=100),
+) -> JSONResponse:
+    if _prefer_local_auth():
+        db = _db()
+        query = "SELECT * FROM local_submitted_data WHERE status = 'approved' AND analysis_status = 'completed'"
+        params: list[Any] = []
+        if page_target:
+            query += " AND page_target = ?"
+            params.append(page_target.strip())
+        if category:
+            query += " AND category = ?"
+            params.append(category.strip())
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+        with get_connection(db) as conn:
+            rows = conn.execute(query, params).fetchall()
+        return JSONResponse({"ok": True, "data": {"items": [_local_submission_payload(row) for row in rows]}, "error": None})
+    if not supabase_enabled():
+        return _supabase_not_configured_response()
+    filters: dict[str, str] = {
+        "status": "eq.approved",
+        "analysis_status": "eq.completed",
+    }
+    if page_target:
+        filters["page_target"] = f"eq.{page_target.strip()}"
+    if category:
+        filters["category"] = f"eq.{category.strip()}"
+    try:
+        rows = rest_select("submitted_data", filters=filters, limit=limit, order="created_at.desc")
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="submitted_data_public_failed", status_code=500)
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {"items": [_submitted_data_payload(row) for row in rows]},
+            "error": None,
+        }
+    )
+
+
+@app.post("/api/submitted-data", status_code=201)
+def api_submitted_data_create(
+    request: Request,
+    payload: dict[str, Any],
+    background_tasks: BackgroundTasks,
+) -> JSONResponse:
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+        title = str(payload.get("title") or "").strip()
+        description = str(payload.get("description") or "").strip() or None
+        source_url = str(payload.get("source_url") or "").strip() or None
+        category = str(payload.get("category") or "").strip()
+        page_target = str(payload.get("page_target") or "").strip() or None
+        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        if not title:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}}, status_code=422)
+        if not category:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "category_required", "message": "Category is required."}}, status_code=422)
+        now = _utcnow_iso()
+        db = _db()
+        with get_connection(db) as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO local_submitted_data
+                (user_id, title, description, source_url, category, page_target, status, analysis_status, analysis_result, metadata, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', 'queued', NULL, ?, ?, ?)
+                """,
+                (user.id, title, description, source_url, category, page_target, json.dumps(metadata), now, now),
+            )
+            conn.commit()
+            row = conn.execute("SELECT * FROM local_submitted_data WHERE id = ?", (cur.lastrowid,)).fetchone()
+        return JSONResponse({"ok": True, "data": {"item": _local_submission_payload(row)}, "error": None}, status_code=201)
+    auth_result = _require_auth_user(request)
+    if isinstance(auth_result, JSONResponse):
+        return auth_result
+    access_token, user = auth_result
+
+    title = str(payload.get("title") or "").strip()
+    description = str(payload.get("description") or "").strip() or None
+    source_url = str(payload.get("source_url") or "").strip() or None
+    category = str(payload.get("category") or "").strip()
+    page_target = str(payload.get("page_target") or "").strip() or None
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    if not title:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}},
+            status_code=422,
+        )
+    if not category:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "category_required", "message": "Category is required."}},
+            status_code=422,
+        )
+
+    try:
+        profile = ensure_profile_for_user(access_token, user)
+        rows = rest_insert(
+            "submitted_data",
+            {
+                "user_id": user.id,
+                "title": title,
+                "description": description,
+                "source_url": source_url,
+                "category": category,
+                "page_target": page_target,
+                "status": "pending",
+                "analysis_status": "queued",
+                "metadata": metadata,
+            },
+            access_token=access_token,
+        )
+        created = rows[0] if rows else None
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="submitted_data_create_failed", status_code=500)
+
+    if not created:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "submitted_data_create_failed", "message": "Submission was not created."},
+            },
+            status_code=500,
+        )
+
+    owner_label = str(profile.get("display_name") or user.display_name or user.email or "").strip() or None
+    background_tasks.add_task(
+        _enqueue_submitted_data_analysis,
+        int(created["id"]),
+        source_url,
+        owner_label,
+    )
+
+    return JSONResponse(
+        {
+            "ok": True,
+            "data": {"item": _submitted_data_payload(created)},
+            "error": None,
+        },
+        status_code=201,
+    )
+
+
+@app.get("/api/admin/submitted-data")
+def api_admin_submitted_data(
+    request: Request,
+    status: str | None = Query(None),
+    category: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+) -> JSONResponse:
+    if _prefer_local_auth():
+        admin_result = _require_local_admin(request)
+        if isinstance(admin_result, JSONResponse):
+            return admin_result
+        db = _db()
+        query = "SELECT * FROM local_submitted_data WHERE 1=1"
+        params: list[Any] = []
+        if status:
+            query += " AND status = ?"
+            params.append(status.strip())
+        if category:
+            query += " AND category = ?"
+            params.append(category.strip())
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+        with get_connection(db) as conn:
+            rows = conn.execute(query, params).fetchall()
+        return JSONResponse({"ok": True, "data": {"items": [_local_submission_payload(row) for row in rows]}, "error": None})
+    admin_result = _require_admin_user(request)
+    if isinstance(admin_result, JSONResponse):
+        return admin_result
+    filters: dict[str, str] = {}
+    if status:
+        filters["status"] = f"eq.{status.strip()}"
+    if category:
+        filters["category"] = f"eq.{category.strip()}"
+    try:
+        rows = rest_select(
+            "submitted_data",
+            filters=filters,
+            use_service_role=True,
+            limit=limit,
+            order="created_at.desc",
+        )
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="admin_submitted_data_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"items": rows}, "error": None})
+
+
+@app.patch("/api/admin/submitted-data/{submission_id}")
+def api_admin_submitted_data_update(
+    submission_id: int,
+    request: Request,
+    payload: dict[str, Any],
+) -> JSONResponse:
+    if _prefer_local_auth():
+        admin_result = _require_local_admin(request)
+        if isinstance(admin_result, JSONResponse):
+            return admin_result
+        patch: dict[str, Any] = {}
+        for key in ("status", "analysis_status", "analysis_result"):
+            if key in payload:
+                patch[key] = payload[key]
+        if not patch:
+            return JSONResponse({"ok": False, "data": None, "error": {"code": "admin_patch_empty", "message": "No admin fields were provided."}}, status_code=422)
+        columns: list[str] = []
+        values: list[Any] = []
+        for key, value in patch.items():
+            columns.append(f"{key} = ?")
+            if key == "analysis_result":
+                values.append(json.dumps(value))
+            else:
+                values.append(value)
+        columns.append("updated_at = ?")
+        values.append(_utcnow_iso())
+        values.append(submission_id)
+        db = _db()
+        with get_connection(db) as conn:
+            conn.execute(f"UPDATE local_submitted_data SET {', '.join(columns)} WHERE id = ?", values)
+            conn.commit()
+            row = conn.execute("SELECT * FROM local_submitted_data WHERE id = ?", (submission_id,)).fetchone()
+        return JSONResponse({"ok": True, "data": {"item": _local_submission_payload(row) if row else None}, "error": None})
+    admin_result = _require_admin_user(request)
+    if isinstance(admin_result, JSONResponse):
+        return admin_result
+    patch: dict[str, Any] = {}
+    for key in ("status", "analysis_status", "analysis_result"):
+        if key in payload:
+            patch[key] = payload[key]
+    if not patch:
+        return JSONResponse(
+            {
+                "ok": False,
+                "data": None,
+                "error": {"code": "admin_patch_empty", "message": "No admin fields were provided."},
+            },
+            status_code=422,
+        )
+    try:
+        rows = rest_update(
+            "submitted_data",
+            patch,
+            filters={"id": f"eq.{submission_id}"},
+            use_service_role=True,
+        )
+    except SupabaseError as exc:
+        return _supabase_error_response(exc, code="admin_submitted_data_update_failed", status_code=500)
+    return JSONResponse({"ok": True, "data": {"item": rows[0] if rows else None}, "error": None})
+
+
+# ---------------------------------------------------------------------------
 # API — community submissions queue
 # ---------------------------------------------------------------------------
 
@@ -1488,13 +2523,38 @@ async def api_ingest_today() -> JSONResponse:
     total_inserted = sum(
         v.get("inserted", 0) for v in results.values() if isinstance(v, dict)
     )
+    relevance_summary: dict[str, Any] | None = None
+    relevance_audit: dict[str, Any] | None = None
     if total_inserted > 0:
+        try:
+            relevance_summary = backfill_relevance(db)
+        except Exception as exc:
+            logger.exception("Manual relevance backfill failed")
+            results["relevance"] = {"error": str(exc)}
+    try:
+        relevance_audit = recheck_relevance(
+            db,
+            stale_after_days=settings.relevance_recheck_days,
+            limit=settings.relevance_audit_batch_size,
+        )
+    except Exception as exc:
+        logger.exception("Manual relevance audit failed")
+        results["relevance_audit"] = {"error": str(exc)}
+    if total_inserted > 0 or (relevance_audit and int(relevance_audit.get("checked", 0)) > 0):
         _invalidate_node_registry()
         if not settings.database_read_only:
             with get_connection(db) as conn:
                 StatsCacheRepo(conn).invalidate("graph:node_details")
-
-    return JSONResponse({"ok": True, "date": today.isoformat(), "results": results, "error": None})
+    return JSONResponse(
+        {
+            "ok": True,
+            "date": today.isoformat(),
+            "results": results,
+            "relevance": relevance_summary,
+            "relevance_audit": relevance_audit,
+            "error": None,
+        }
+    )
 
 
 @app.get("/api/pipeline/live")

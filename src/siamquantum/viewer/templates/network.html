@@ -1,43 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Network | SiamQuantum Atlas{% endblock %}
+{% block title %}Topic Network | SiamQuantum Atlas{% endblock %}
 {% set active = 'network' %}
+
+{% block page_title %}
+  <span class="th-text">เครือข่ายแนวคิด</span>
+  <span class="en-text">Topic Network</span>
+{% endblock %}
 
 {% block head %}
 <style>
   :root {
-    --bg: #02050d;
-    --bg-soft: #07111f;
-    --panel: rgba(8, 13, 24, 0.9);
-    --panel-strong: rgba(10, 18, 34, 0.96);
-    --line: rgba(120, 164, 255, 0.18);
-    --line-strong: rgba(120, 164, 255, 0.32);
-    --text: #f6f8fe;
-    --muted: #98a7c6;
-    --accent: #78c9ff;
-    --accent-2: #5ff2c8;
-    --accent-3: #ffb86b;
-    --danger: #ff7f96;
+    --panel: var(--surface);
+    --panel-strong: var(--surface-2);
+    --line: var(--border);
+    --line-strong: var(--border-strong);
+    --accent: var(--primary);
+    --accent-2: var(--secondary);
+    --accent-3: var(--warning);
   }
 
-  body {
-    background:
-      radial-gradient(circle at 12% 12%, rgba(120, 201, 255, 0.12), transparent 24%),
-      radial-gradient(circle at 88% 14%, rgba(95, 242, 200, 0.1), transparent 20%),
-      radial-gradient(circle at 50% 80%, rgba(83, 109, 254, 0.12), transparent 28%),
-      linear-gradient(180deg, #02050d 0%, #050914 42%, #070d18 100%);
-  }
-
-  .network-shell {
-    padding: 1.4rem;
-    display: grid;
-    gap: 1rem;
-  }
+  .network-shell { display: grid; gap: 1.2rem; }
 
   .hero,
   .surface,
   .metrics-grid {
-    background: var(--panel);
-    border: 1px solid var(--line);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 24px;
     box-shadow: 0 26px 90px rgba(0, 0, 0, 0.34);
     backdrop-filter: blur(4px);
@@ -45,10 +33,11 @@
   }
 
   .hero {
-    padding: 1.5rem;
+    padding: 1.45rem;
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.96fr);
+    gap: 1.15rem;
+    align-items: stretch;
   }
 
   .eyebrow {
@@ -91,7 +80,8 @@
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
+    gap: 0.95rem;
+    align-content: start;
   }
 
   .summary-card {
@@ -99,6 +89,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
     padding: 1rem;
+    min-height: 144px;
   }
 
   .summary-card .label {
@@ -131,7 +122,7 @@
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
-    padding: 1rem 1.15rem;
+    padding: 1.05rem 1.15rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
@@ -477,7 +468,8 @@
     padding: 1rem;
     display: grid;
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr) minmax(0, 1.1fr);
-    gap: 0.9rem;
+    gap: 1rem;
+    align-items: start;
   }
 
   .panel {
@@ -690,34 +682,34 @@
   <section class="hero">
     <div>
       <div class="eyebrow"><span class="th-text">มุมมองความสัมพันธ์ควอนตัม</span><span class="en-text">Quantum Relationship View</span></div>
-      <h1><span class="th-text">กราฟงานวิจัยสำหรับภูมิทัศน์วาทกรรมควอนตัมของไทย</span><span class="en-text">Research graph for the Thai quantum discourse landscape.</span></h1>
+      <h1><span class="th-text">กราฟงานวิจัยสำหรับภูมิทัศน์วาทกรรมควอนตัมของไทย</span><span class="en-text">Topic network for Thai quantum coverage.</span></h1>
       <p class="hero-copy">
         <span class="th-text">หน้านี้เปลี่ยน triplet ที่สกัดได้ให้เป็นกราฟแนวคิด 3 มิติที่สำรวจได้ โหนดแทนแนวคิดที่ผ่านการทำ normalization จากคอร์ปัสปัจจุบัน เส้นเชื่อมแทนความสัมพันธ์ที่ตรวจพบระหว่างแนวคิดเหล่านั้น โหนดที่ใหญ่กว่าจะเชื่อมต่อมากกว่า ส่วนโหนดสะพานจะอยู่ระหว่างคลัสเตอร์ที่แยกจากกัน</span>
-        <span class="en-text">This page turns extracted triplets into a navigable 3D concept graph. Nodes represent normalized concepts from the current corpus. Links represent observed relations between those concepts. Larger nodes are more connected; bridge nodes sit between otherwise separate clusters.</span>
+        <span class="en-text">Explore how topics connect across the current archive. Larger nodes appear more often, while bridge nodes help connect otherwise separate topic groups.</span>
       </p>
       <div class="hero-note">
         <span class="th-text"><strong>หมายเหตุเรื่องขอบเขต</strong> กราฟนี้สะท้อนขอบเขตคอร์ปัสควอนตัมไทยที่ระบบใช้งานอยู่ในขณะนี้ โหนดปลายทางที่มี degree ต่ำบางส่วนจะถูกซ่อนไว้ตามค่าเริ่มต้นเพื่อให้มองโครงสร้างหลักได้ง่ายในการอ่านรอบแรก</span>
-        <span class="en-text"><strong>Scope note.</strong> The graph reflects the current operational Thai-quantum corpus boundary. Some low-degree leaf nodes are hidden by default to keep the structure interpretable for first-pass review.</span>
+        <span class="en-text"><strong>Scope note.</strong> This view reflects the current archive only. Smaller one-off topics are hidden at first so the main structure is easier to read.</span>
       </div>
     </div>
     <div class="summary-grid">
       <article class="summary-card">
-        <div class="label"><span class="th-text">โหนดที่แสดง</span><span class="en-text">Visible Nodes</span></div>
+        <div class="label"><span class="th-text">โหนดที่แสดง</span><span class="en-text">Topics Shown</span></div>
         <div class="value" id="stat-nodes">-</div>
         <div class="subcopy"><span class="th-text">จำนวนโหนดในฉากปัจจุบันหลังกรอง leaf node และเปลี่ยนสถานะการโต้ตอบ</span><span class="en-text">Current scene after leaf filtering and interaction changes.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label"><span class="th-text">เส้นเชื่อมที่แสดง</span><span class="en-text">Visible Links</span></div>
+        <div class="label"><span class="th-text">เส้นเชื่อมที่แสดง</span><span class="en-text">Links Shown</span></div>
         <div class="value" id="stat-links">-</div>
         <div class="subcopy"><span class="th-text">ความสัมพันธ์แบบมีทิศทางที่กำลังแสดงอยู่ในมุมมอง 3 มิติ</span><span class="en-text">Directed relations currently shown in the 3D view.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label"><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected Concept</span></div>
+        <div class="label"><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected Topic</span></div>
         <div class="value" id="stat-selection">None</div>
         <div class="subcopy"><span class="th-text">คลิกโหนดเพื่อเปิดแผงรายละเอียดเชิงวิจัย</span><span class="en-text">Click a node to open the research detail drawer.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label"><span class="th-text">คู่มือการอ่าน</span><span class="en-text">Reading Guide</span></div>
+        <div class="label"><span class="th-text">คู่มือการอ่าน</span><span class="en-text">Quick Guide</span></div>
         <div class="subcopy">
           <span class="th-text">ฮับที่มี degree สูงแสดงจุดที่ได้รับความสนใจหนาแน่น ส่วนฮับที่มี betweenness สูงแสดงแนวคิดสะพานที่เชื่อมหัวข้อซึ่งแยกจากกัน</span>
           <span class="en-text">Degree hubs show dense attention. Betweenness hubs show bridge concepts connecting topic islands.</span>
@@ -729,7 +721,7 @@
   <section class="surface">
     <div class="surface-header">
       <div>
-        <h2 class="surface-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D concept network</span></h2>
+      <h2 class="surface-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D topic network</span></h2>
         <div class="surface-subtitle">
           <span class="th-text">โฟกัสกล้องลื่นไหล อนุภาคเคลื่อนที่ตามทิศทางแบบเบา ๆ ดูรายละเอียดโหนดได้เมื่อคลิก และมีคำอธิบายวิธีอ่านแบบกระชับสำหรับผู้ชมที่ไม่ใช่สายเทคนิค</span>
           <span class="en-text">Smooth camera focus, light directional particle motion, node detail on click, and concise method notes for non-technical viewers.</span>
@@ -737,19 +729,19 @@
       </div>
       <div class="status-row">
         <span class="micro-pill"><span class="th-text">โหนด = แนวคิด</span><span class="en-text">Nodes = concepts</span></span>
-        <span class="micro-pill"><span class="th-text">เส้นเชื่อม = ความสัมพันธ์ที่สกัดได้</span><span class="en-text">Links = extracted relations</span></span>
-        <span class="micro-pill"><span class="th-text">ฮับ = แนวคิดที่เชื่อมต่อมากกว่า</span><span class="en-text">Hubs = more connected concepts</span></span>
-        <span class="status-pill" id="status-pill">Click canvas to load</span>
+        <span class="micro-pill"><span class="th-text">เส้นเชื่อม = ความสัมพันธ์ที่สกัดได้</span><span class="en-text">Links = related topics</span></span>
+        <span class="micro-pill"><span class="th-text">ฮับ = แนวคิดที่เชื่อมต่อมากกว่า</span><span class="en-text">Hubs = denser topic areas</span></span>
+        <span class="status-pill" id="status-pill">Click to load</span>
       </div>
     </div>
 
     <div class="surface-body">
       <div class="hud hud-left">
         <aside class="callout">
-          <h3><span class="th-text">วิธีอ่านกราฟนี้</span><span class="en-text">How to read this graph</span></h3>
+          <h3><span class="th-text">วิธีอ่านกราฟนี้</span><span class="en-text">How to read this view</span></h3>
           <p>
             <span class="th-text">เริ่มจากโหนดที่ใหญ่ที่สุด แล้วเปิดแผงรายละเอียดต่อ แผงนี้จะอธิบายว่าแนวคิดนั้นคืออะไร สำคัญอย่างไร เชื่อมกับอะไร และมีสัญญาณจากแหล่งข้อมูลหรือ taxonomy ใดรองรับการตีความนั้น</span>
-            <span class="en-text">Start with the largest nodes, then inspect the drawer. It explains what the concept is, why it matters, what it connects to, and which source/taxonomy signals support that reading.</span>
+            <span class="en-text">Start with the largest nodes, then open the side panel. It explains what the topic is, why it matters, and what it connects to.</span>
           </p>
           <ul class="mini-list">
             <li><span class="th-text">ป้ายสีน้ำเงินมีอักษรไทย</span><span class="en-text">Blue labels contain Thai script.</span></li>
@@ -762,13 +754,13 @@
       <div class="hud hud-right">
         <div class="control-stack">
           <div class="control-row">
-            <button class="control-btn primary" id="leaf-toggle" type="button">Show leaf nodes</button>
+            <button class="control-btn primary" id="leaf-toggle" type="button">Show smaller topics</button>
             <button class="control-btn" id="reset-view" type="button"><span class="th-text">รีเซ็ตมุมมอง</span><span class="en-text">Reset view</span></button>
             <button class="control-btn warning" id="clear-selection" type="button"><span class="th-text">ล้างการเลือก</span><span class="en-text">Clear selection</span></button>
           </div>
           <div class="control-row">
-            <span class="micro-pill" id="legend-pill">Leaf nodes are hidden for readability</span>
-            <span class="micro-pill" id="selection-pill">No concept selected</span>
+            <span class="micro-pill" id="legend-pill">Smaller topics are hidden for readability</span>
+            <span class="micro-pill" id="selection-pill">No topic selected</span>
           </div>
         </div>
       </div>
@@ -776,13 +768,22 @@
       <div id="network-graph" aria-label="Thai quantum network graph">
         <div class="graph-launch-overlay" id="graph-launch-overlay">
           <div class="graph-launch-inner">
-            <div class="graph-launch-icon">🕸️</div>
-            <div class="graph-launch-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D Concept Network</span></div>
+            <div class="graph-launch-icon" aria-hidden="true">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="7" r="2.2"></circle>
+                <circle cx="18" cy="6" r="2.2"></circle>
+                <circle cx="12" cy="17" r="2.2"></circle>
+                <path d="M8 8.2L10.5 15"></path>
+                <path d="M16 7.2L13.5 15"></path>
+                <path d="M8.2 7h7.6"></path>
+              </svg>
+            </div>
+            <div class="graph-launch-title"><span class="th-text">เครือข่ายแนวคิด 3 มิติ</span><span class="en-text">3D Topic Network</span></div>
             <p class="graph-launch-desc">
               <span class="th-text">คลิกเพื่อเปิดกราฟแบบโต้ตอบ จะโหลด WebGL assets และ triplet ของคอร์ปัสประมาณ 1 MB</span>
-              <span class="en-text">Click to launch the interactive graph. Loads ~1 MB of WebGL assets and corpus triplets.</span>
+              <span class="en-text">Click to open the interactive graph. It loads a lightweight 3D view from the current archive.</span>
             </p>
-            <button class="graph-launch-btn" id="graph-launch-btn" type="button"><span class="th-text">เปิดกราฟ 3 มิติ</span><span class="en-text">Launch 3D Graph</span></button>
+            <button class="graph-launch-btn" id="graph-launch-btn" type="button"><span class="th-text">เปิดกราฟ 3 มิติ</span><span class="en-text">Open 3D View</span></button>
           </div>
         </div>
       </div>
@@ -790,7 +791,7 @@
       <aside class="drawer" id="detail-drawer" aria-live="polite">
         <div class="drawer-top">
           <div>
-            <div class="drawer-kicker"><span class="th-text">รายละเอียดโหนด</span><span class="en-text">Node Detail</span></div>
+            <div class="drawer-kicker"><span class="th-text">รายละเอียดโหนด</span><span class="en-text">Topic Detail</span></div>
             <div class="drawer-title" id="drawer-title">Select a concept</div>
           </div>
           <button class="drawer-close" id="drawer-close" type="button" aria-label="Close detail panel">x</button>
@@ -802,14 +803,14 @@
 
       <div class="overlay" id="empty-state">
         <div>
-          <div class="overlay-title"><span class="th-text">ไม่มีข้อมูลกราฟให้แสดง</span><span class="en-text">No graph data available</span></div>
+          <div class="overlay-title"><span class="th-text">ไม่มีข้อมูลกราฟให้แสดง</span><span class="en-text">No network data available</span></div>
           <div class="overlay-copy" id="empty-message"><span class="th-text">network endpoint ตอบกลับแล้ว แต่ไม่มี concept node ที่พร้อมสำหรับการเรนเดอร์</span><span class="en-text">The network endpoint responded, but no concept nodes were available to render.</span></div>
         </div>
       </div>
 
       <div class="overlay" id="error-state">
         <div>
-          <div class="overlay-title"><span class="th-text">โหลดกราฟไม่สำเร็จ</span><span class="en-text">Graph load failed</span></div>
+          <div class="overlay-title"><span class="th-text">โหลดกราฟไม่สำเร็จ</span><span class="en-text">Could not load the network</span></div>
           <div class="overlay-copy" id="error-message"><span class="th-text">หน้าเว็บไม่สามารถโหลด payload ของกราฟปัจจุบันได้</span><span class="en-text">The page could not load the current graph payload.</span></div>
         </div>
       </div>
@@ -828,18 +829,18 @@
       </div>
     </article>
     <article class="panel">
-      <h2><span class="th-text">ชั้นการตีความ</span><span class="en-text">Interpretation Layer</span></h2>
+      <h2><span class="th-text">ชั้นการตีความ</span><span class="en-text">How to Interpret It</span></h2>
       <p>
         <span class="th-text">นี่ไม่ใช่แผนที่เชิงเหตุและผล แต่เป็นแผนที่ของวาทกรรมที่สร้างจากความสัมพันธ์ที่สกัดได้ในชุดข้อมูลปัจจุบัน พื้นที่ที่ดูเด่นกว่ามักหมายถึงการถูกกล่าวถึงซ้ำหนาแน่นกว่า ไม่ได้แปลว่ามีความสำคัญเชิงข้อเท็จจริงมากกว่าเสมอไป</span>
-        <span class="en-text">This is not a causal map. It is a discourse map built from extracted relations in the current dataset. Stronger-looking regions usually mean denser repeated mention, not ground truth importance.</span>
+        <span class="en-text">This is not a causal map. Stronger-looking regions usually mean repeated mention, not proven importance.</span>
       </p>
       <p>
         <span class="th-text">leaf node ที่ถูกซ่อนยังสามารถเปิดดูได้ตามต้องการ ระบบซ่อนไว้ตอนเริ่มต้นเพราะแนวคิดที่มีเพียงเส้นเชื่อมเดียวอาจทำให้เลย์เอาต์รกโดยเพิ่มคุณค่าในการวางทิศทางเพียงเล็กน้อย</span>
-        <span class="en-text">Hidden leaf nodes are still available on demand. They are suppressed initially because single-edge concepts can overwhelm the layout while adding little orientation value.</span>
+        <span class="en-text">Smaller one-connection topics are still available on demand, but they are hidden first to keep the layout readable.</span>
       </p>
     </article>
     <article class="panel">
-      <h2><span class="th-text">ตัวชี้วัดกราฟ</span><span class="en-text">Graph Metrics</span></h2>
+      <h2><span class="th-text">ตัวชี้วัดกราฟ</span><span class="en-text">Network Metrics</span></h2>
       <div id="metrics-body">Loading metrics...</div>
     </article>
   </section>
@@ -948,12 +949,12 @@
       loadingMetrics: "กำลังโหลดตัวชี้วัด..."
     },
     en: {
-      clickCanvasToLoad: "Click canvas to load",
+      clickCanvasToLoad: "Click to load",
       noGraphData: "No graph data",
       graphRequestFailed: "Graph request failed",
       leafVisible: "Leaf nodes are visible",
-      leafHidden: "Leaf nodes are hidden for readability",
-      noSelection: "No concept selected",
+      leafHidden: "Smaller topics are hidden for readability",
+      noSelection: "No topic selected",
       selectConcept: "Select a concept",
       none: "None",
       drawerPrompt: "Click a node to inspect its role in the graph, nearby concepts, dominant relation types, and supporting source context.",
@@ -995,7 +996,7 @@
       selected: (label) => `Selected: ${label}`,
       resetCamera: "Resetting camera",
       nodesLinks: (nodes, links) => `${nodes} nodes, ${links} links`,
-      showLeafNodes: "Show leaf nodes",
+      showLeafNodes: "Show smaller topics",
       hideLeafNodes: "Hide leaf nodes",
       couldNotLoadGraphData: (message) => `Could not load graph data: ${message}`,
       metricsUnavailableShort: "Metrics unavailable",
@@ -1396,7 +1397,7 @@ async function loadMetrics() {
             </div>
           </details>
         </div>
-        <a href="/analytics" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.85rem;padding:0.45rem 0.9rem;background:rgba(199,155,255,0.08);border:1px solid rgba(199,155,255,0.25);border-radius:999px;color:#c79bff;font-size:0.8rem;text-decoration:none;">See also: Yearly Cluster Analysis →</a>
+        <a href="/analytics" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.85rem;padding:0.45rem 0.9rem;background:rgba(199,155,255,0.08);border:1px solid rgba(199,155,255,0.25);border-radius:999px;color:#c79bff;font-size:0.8rem;text-decoration:none;">See also: trend view →</a>
       `;
     } catch (error) {
       elements.metricsBody.textContent = t("metricsUnavailable", error.message);

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Admin Review | SiamQuantum Atlas{% endblock %}
+{% set active = 'profile' %}
+
+{% block page_title %}
+  <span class="th-text">Admin Review</span>
+  <span class="en-text">Admin Review</span>
+{% endblock %}
+
+{% block head %}
+<style>
+  .admin-shell { display: grid; gap: 1rem; }
+  .admin-card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: 1.2rem 1.25rem;
+  }
+  .admin-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+  }
+  .admin-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.45rem;
+  }
+  .admin-copy { color: var(--muted); line-height: 1.7; font-size: 0.9rem; }
+  .filters {
+    display: grid;
+    grid-template-columns: 180px 180px auto;
+    gap: 0.7rem;
+    align-items: end;
+  }
+  .field label {
+    display: block;
+    color: var(--muted-strong);
+    font-size: 0.82rem;
+    margin-bottom: 0.35rem;
+  }
+  .field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.7rem 0.85rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .secondary-btn, .primary-btn {
+    min-height: 42px;
+    padding: 0.7rem 0.95rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .secondary-btn { color: var(--primary); background: rgba(56,189,248,0.09); }
+  .primary-btn { color: #04111e; background: linear-gradient(135deg, #7ad7ff, #34baf0); }
+  .status-box {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .status-box.show { display: block; }
+  .status-box.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22); color: #fda4af; }
+  .status-box.success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.22); color: #6ee7b7; }
+  .admin-list { display: grid; gap: 0.9rem; margin-top: 1rem; }
+  .admin-item {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    padding: 0.95rem;
+  }
+  .admin-item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: flex-start;
+  }
+  .admin-item-title { color: var(--text); font-size: 0.98rem; font-weight: 600; }
+  .admin-item-copy, .admin-item-meta, .admin-json {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    margin-top: 0.35rem;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 0.72rem;
+    color: var(--muted-strong);
+    white-space: nowrap;
+  }
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+  }
+  .empty-state { color: var(--muted); font-size: 0.88rem; }
+  .hidden { display: none !important; }
+  @media (max-width: 960px) {
+    .filters { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="admin-shell">
+  <article class="admin-card">
+    <div class="admin-head">
+      <div>
+        <div class="admin-title">Submitted Data Review</div>
+        <div class="admin-copy">Admin-only queue for reviewing user submissions, approval state, and analysis output saved in <code>submitted_data.analysis_result</code>.</div>
+      </div>
+      <div class="filters">
+        <div class="field">
+          <label for="filter-status">Status</label>
+          <select id="filter-status">
+            <option value="">All</option>
+            <option value="pending">pending</option>
+            <option value="approved">approved</option>
+            <option value="rejected">rejected</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-category">Category</label>
+          <select id="filter-category">
+            <option value="">All</option>
+          </select>
+        </div>
+        <button class="secondary-btn" id="refresh-admin-btn" type="button">Refresh</button>
+      </div>
+    </div>
+    <div class="status-box" id="admin-status"></div>
+    <div class="admin-list" id="admin-list">
+      <div class="empty-state">Loading admin review queue...</div>
+    </div>
+  </article>
+</section>
+
+<script type="module">
+  import { apiFetch, loadAuthState } from "/static/js/auth.js";
+
+  const adminStatus = document.getElementById("admin-status");
+  const adminList = document.getElementById("admin-list");
+  const categoryFilter = document.getElementById("filter-category");
+
+  function setStatus(message, kind) {
+    adminStatus.textContent = message;
+    adminStatus.className = `status-box show ${kind}`;
+  }
+
+  async function loadCategories() {
+    try {
+      const data = await apiFetch("/api/categories");
+      const items = data?.items || [];
+      categoryFilter.innerHTML = '<option value="">All</option>' + items.map((item) => `
+        <option value="${item.name}">${item.name}</option>
+      `).join("");
+    } catch (_error) {
+      categoryFilter.innerHTML = '<option value="">All</option>';
+    }
+  }
+
+  async function updateSubmission(id, payload) {
+    await apiFetch(`/api/admin/submitted-data/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    setStatus(`Submission #${id} updated.`, "success");
+    await loadAdminQueue();
+  }
+
+  function renderAdminItems(items) {
+    if (!items?.length) {
+      adminList.innerHTML = '<div class="empty-state">No submissions matched the current filters.</div>';
+      return;
+    }
+    adminList.innerHTML = items.map((item) => `
+      <article class="admin-item">
+        <div class="admin-item-top">
+          <div class="admin-item-title">${item.title}</div>
+          <span class="pill">${item.status} / ${item.analysis_status}</span>
+        </div>
+        <div class="admin-item-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}${item.source_url ? ` · ${item.source_url}` : ""}</div>
+        <div class="admin-item-copy">${item.description || "No description."}</div>
+        <pre class="admin-json">${JSON.stringify(item.analysis_result || {}, null, 2)}</pre>
+        <div class="action-row">
+          <button class="primary-btn" data-action="approve" data-id="${item.id}" type="button">Approve</button>
+          <button class="secondary-btn" data-action="complete" data-id="${item.id}" type="button">Mark Completed</button>
+          <button class="secondary-btn" data-action="processing" data-id="${item.id}" type="button">Mark Processing</button>
+          <button class="secondary-btn" data-action="reject" data-id="${item.id}" type="button">Reject</button>
+        </div>
+      </article>
+    `).join("");
+
+    adminList.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const id = button.getAttribute("data-id");
+        const action = button.getAttribute("data-action");
+        button.disabled = true;
+        try {
+          if (action === "approve") {
+            await updateSubmission(id, { status: "approved" });
+          } else if (action === "reject") {
+            await updateSubmission(id, { status: "rejected" });
+          } else if (action === "complete") {
+            await updateSubmission(id, { analysis_status: "completed" });
+          } else if (action === "processing") {
+            await updateSubmission(id, { analysis_status: "processing" });
+          }
+        } catch (error) {
+          setStatus(error.message, "error");
+          button.disabled = false;
+        }
+      });
+    });
+  }
+
+  async function loadAdminQueue() {
+    const params = new URLSearchParams();
+    const status = document.getElementById("filter-status").value;
+    const category = document.getElementById("filter-category").value;
+    if (status) params.set("status", status);
+    if (category) params.set("category", category);
+    const path = params.toString()
+      ? `/api/admin/submitted-data?${params.toString()}`
+      : "/api/admin/submitted-data";
+
+    try {
+      const data = await apiFetch(path);
+      renderAdminItems(data?.items || []);
+    } catch (error) {
+      adminList.innerHTML = `<div class="empty-state">${error.message}</div>`;
+    }
+  }
+
+  document.getElementById("refresh-admin-btn").addEventListener("click", async () => {
+    await loadAdminQueue();
+  });
+
+  const authState = await loadAuthState();
+  if (!authState?.user) {
+    adminList.innerHTML = '<div class="empty-state">Login with an admin account to view this page.</div>';
+  } else {
+    await loadCategories();
+    await loadAdminQueue();
+  }
+</script>
+{% endblock %}

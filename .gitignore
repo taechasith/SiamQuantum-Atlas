@@ -1,9 +1,13 @@
 .env
+.env.local
+.env.*.local
 .clude/
 .codex/
 .codex-serve-stderr.log
 .codex-serve-stdout.log
 .claude/
+uirefs/
+ui refs/
 doc.md
 
 

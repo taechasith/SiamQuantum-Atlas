@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiamQuantum Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040913;
+      --text: #f8fafc;
+      --muted: #c6d3e2;
+      --primary: #7dd3fc;
+      --accent: #f8c35c;
+      --border: rgba(148, 163, 184, 0.2);
+      --panel: rgba(7, 13, 26, 0.68);
+      --font: "Sarabun", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+    .landing-shell {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(4, 9, 19, 0.35), rgba(4, 9, 19, 0.88));
+    }
+
+    .landing-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .landing-overlay {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 1.2rem;
+      background:
+        linear-gradient(120deg, rgba(4, 9, 19, 0.82), rgba(4, 9, 19, 0.42)),
+        radial-gradient(circle at 20% 18%, rgba(125, 211, 252, 0.16), transparent 25%);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(6, 12, 24, 0.42);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .brand span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-top: 0.12rem;
+    }
+
+    .enter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0.75rem 1.1rem;
+      border-radius: 999px;
+      color: #0b1423;
+      text-decoration: none;
+      font-weight: 700;
+      background: var(--accent);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.72fr);
+      gap: 1.2rem;
+      align-items: end;
+      padding: 2rem 0 1rem;
+    }
+
+    .hero-copy {
+      max-width: 760px;
+      padding: 1rem 0.2rem;
+    }
+
+    .eyebrow {
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      line-height: 0.95;
+      font-weight: 700;
+      max-width: 10ch;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.72;
+      max-width: 58ch;
+      margin: 1rem 0 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.45rem;
+    }
+
+    .hero-btn,
+    .hero-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0.82rem 1.2rem;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .hero-btn {
+      color: #09111d;
+      background: var(--accent);
+    }
+
+    .hero-ghost {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .hero-panel,
+    .summary-strip {
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+    }
+
+    .hero-panel {
+      padding: 1.1rem;
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .panel-title {
+      font-size: 1.22rem;
+      font-weight: 700;
+    }
+
+    .panel-copy {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.92rem;
+    }
+
+    .panel-item {
+      padding: 0.8rem 0.9rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .panel-item strong {
+      display: block;
+      margin-bottom: 0.14rem;
+    }
+
+    .panel-item span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: hidden;
+    }
+
+    .summary-card {
+      padding: 0.95rem 1rem;
+      border-right: 1px solid var(--border);
+      background: rgba(8, 14, 28, 0.4);
+    }
+
+    .summary-card:last-child { border-right: 0; }
+    .summary-card strong { display: block; font-size: 1.4rem; margin-bottom: 0.12rem; }
+    .summary-card span { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
+
+    .desk-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      background: rgba(3, 8, 18, 0.68);
+      backdrop-filter: blur(10px);
+    }
+
+    .desk-modal[hidden] {
+      display: none;
+    }
+
+    .desk-card {
+      width: min(520px, 100%);
+      padding: 1.25rem 1.25rem 1.15rem;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background: rgba(8, 15, 29, 0.92);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    .desk-card strong {
+      display: block;
+      font-size: 1.16rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .desk-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .desk-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .desk-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.7rem 1rem;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid var(--border);
+    }
+
+    .desk-btn.primary {
+      color: #07121f;
+      background: var(--accent);
+    }
+
+    .desk-btn.ghost {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    @media (max-width: 920px) {
+      .hero { grid-template-columns: 1fr; }
+      .summary-strip { grid-template-columns: 1fr 1fr; }
+      .hero h1 { max-width: none; }
+    }
+
+    @media (max-width: 640px) {
+      .summary-strip { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="desk-modal" id="desk-modal">
+    <div class="desk-card">
+      <strong>This website is best viewed on desktop.</strong>
+      <p>For the full SiamQuantum Atlas overview, network, analytics, and data workflow, use a desktop or large-screen browser. You can continue on mobile, but the primary viewer experience is desktop-first.</p>
+      <div class="desk-actions">
+        <a class="desk-btn primary" href="/overview">Continue to Overview</a>
+        <button class="desk-btn ghost" id="dismiss-desk-modal" type="button">Stay Here</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="landing-shell">
+    <video class="landing-video" id="landing-video" autoplay muted playsinline preload="auto" aria-hidden="true">
+      <source src="/static/video/sqa.mp4" type="video/mp4">
+    </video>
+
+    <div class="landing-overlay">
+      <header class="topbar">
+        <div class="brand">
+          <img src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas logo">
+          <div>
+            <strong>SiamQuantum Atlas</strong>
+            <span>Thai quantum discourse mapping and analysis workspace</span>
+          </div>
+        </div>
+        <a class="enter-link" href="/overview">Enter Atlas</a>
+      </header>
+
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Thai Quantum Intelligence Layer</div>
+          <h1>See how Thai quantum signals connect.</h1>
+          <p>SiamQuantum Atlas tracks Thai-linked quantum coverage across articles, videos, and community submissions, then maps those signals into source, place, topic, and trend views for research work.</p>
+          <div class="hero-actions">
+            <a class="hero-btn" href="/overview">Open Research Atlas</a>
+            <a class="hero-ghost" href="/submit-data">Submit Data</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel">
+          <div class="eyebrow" style="margin-bottom:0;">Inside the workspace</div>
+          <div class="panel-title">One corpus, multiple research views.</div>
+          <div class="panel-copy">Move from live source intake into map coverage, topic network inspection, yearly trend reading, and structured community submissions.</div>
+          <div class="panel-item">
+            <strong>Source Map</strong>
+            <span>Trace where Thai-linked quantum signals originate.</span>
+          </div>
+          <div class="panel-item">
+            <strong>Topic Network</strong>
+            <span>Inspect how concepts and entities co-occur across the corpus.</span>
+          </div>
+          <div class="panel-item">
+            <strong>Trends and Library</strong>
+            <span>Review shifts over time, then move directly into the source archive.</span>
+          </div>
+        </aside>
+      </div>
+
+      <section class="summary-strip">
+        <div class="summary-card">
+          <strong>10 years</strong>
+          <span>Thai-linked quantum discourse window.</span>
+        </div>
+        <div class="summary-card">
+          <strong>Map-first</strong>
+          <span>Source origins and geography in one operational view.</span>
+        </div>
+        <div class="summary-card">
+          <strong>Trend-aware</strong>
+          <span>Connected yearly and topic analysis across the same corpus.</span>
+        </div>
+        <div class="summary-card">
+          <strong>Structured intake</strong>
+          <span>Community data can be added into the review flow.</span>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var video = document.getElementById("landing-video");
+      var deskModal = document.getElementById("desk-modal");
+      var dismissButton = document.getElementById("dismiss-desk-modal");
+      if (!video) return;
+      video.addEventListener("ended", function () {
+        if (!isFinite(video.duration) || video.duration <= 0) return;
+        try { video.currentTime = Math.max(video.duration - 0.05, 0); } catch (error) {}
+        video.pause();
+      });
+
+      if (dismissButton && deskModal) {
+        dismissButton.addEventListener("click", function () {
+          deskModal.hidden = true;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

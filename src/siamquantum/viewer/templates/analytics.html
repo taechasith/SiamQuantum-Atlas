@@ -1,75 +1,116 @@
 {% extends "base.html" %}
-{% block title %}Analytics | SiamQuantum Atlas{% endblock %}
+{% block title %}Trends | SiamQuantum Atlas{% endblock %}
 {% set active = 'analytics' %}
+
+{% block page_title %}
+  <span class="th-text">วิเคราะห์แนวโน้ม</span>
+  <span class="en-text">Trends</span>
+{% endblock %}
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --panel: rgba(10, 16, 35, 0.84);
-    --panel-border: rgba(112, 147, 255, 0.24);
-    --text: #f3f7ff;
-    --muted: #99a7d3;
-    --accent: #70e1ff;
-    --accent-2: #c79bff;
-    --success: #56f39a;
-    --warning: #ffb347;
-    --danger: #ff7a90;
+    --panel: var(--surface);
+    --panel-border: var(--border);
+    --accent: var(--primary);
+    --accent-2: var(--tertiary);
+    --success: var(--secondary);
   }
 
-  body {
-    background:
-      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
-      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
-      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
-  }
+  .analytics-shell { display: grid; gap: 1.35rem; }
 
-  .analytics-shell {
-    padding: 1.5rem;
-  }
-
-  .hero-card,
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+  .hero-card, .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
   }
 
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: minmax(0, 1.48fr) minmax(320px, 0.92fr);
+    gap: 1.3rem;
+    align-items: stretch;
   }
 
-  .hero-card {
-    padding: 1.5rem;
-  }
+  .hero-card { padding: 1.45rem; min-height: 100%; }
 
   .eyebrow {
-    color: var(--accent);
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.65rem;
   }
 
   .hero-card h1 {
+    font-family: var(--font-heading);
     color: var(--text);
-    font-size: clamp(1.7rem, 3vw, 2.8rem);
-    line-height: 1.08;
-    margin-bottom: 0.75rem;
+    font-size: clamp(1.5rem, 2.8vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.7rem;
   }
 
-  .hero-card p,
-  .card p,
-  .brief-card p,
-  .brief-card li {
+  .hero-card p, .card p, .brief-card p, .brief-card li { color: var(--muted); line-height: 1.6; font-size: 0.875rem; }
+
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.2rem;
+  }
+
+  .kpi-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
     color: var(--muted);
-    line-height: 1.6;
+  }
+
+  .kpi-label {
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+
+  .kpi-value {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .kpi-sub {
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+
+  .kpi-sub .kpi-delta {
+    color: var(--secondary);
+    font-weight: 600;
+    margin-right: 0.35rem;
   }
 
   .stats {
@@ -79,37 +120,33 @@
     margin-top: 1.2rem;
   }
 
-  .stat-card,
-  .insight-card,
-  .brief-card,
-  .validation-item,
-  .community-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 0.95rem 1rem;
+  .stat-card, .insight-card, .brief-card, .validation-item, .community-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
   }
 
-  .stat-label,
-  .insight-label {
+  .stat-label, .insight-label {
     color: var(--muted);
-    font-size: 0.76rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
 
   .stat-value {
     color: var(--text);
-    font-size: 1.65rem;
-    font-weight: 700;
-    margin-top: 0.35rem;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-top: 0.3rem;
   }
 
   .side-stack,
   .validation-list,
   .community-strip {
     display: grid;
-    gap: 0.9rem;
+    gap: 1rem;
   }
 
   .brief-list {
@@ -119,30 +156,26 @@
 
   .status-pill {
     display: inline-flex;
-    border: 1px solid rgba(112, 225, 255, 0.25);
-    background: rgba(112, 225, 255, 0.08);
-    border-radius: 999px;
-    color: var(--accent);
-    padding: 0.45rem 0.8rem;
-    font-size: 0.82rem;
-    margin-top: 1rem;
+    border: 1px solid var(--border-strong);
+    background: rgba(56, 189, 248, 0.08);
+    border-radius: 8px;
+    color: var(--primary);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    margin-top: 0.85rem;
   }
 
   .scope-banner {
-    border: 1px solid rgba(255, 179, 71, 0.45);
-    background: rgba(255, 179, 71, 0.07);
-    border-radius: 14px;
-    padding: 0.9rem 1.1rem;
-    margin-bottom: 1.25rem;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    background: rgba(245, 158, 11, 0.06);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
     color: var(--warning);
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     line-height: 1.55;
   }
 
-  .scope-banner strong {
-    display: block;
-    margin-bottom: 0.25rem;
-  }
+  .scope-banner strong { display: block; margin-bottom: 0.2rem; font-weight: 600; }
 
   .insight-strip,
   .charts-grid {
@@ -152,22 +185,16 @@
 
   .insight-strip {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    margin: 1.1rem 0 1.25rem;
+    margin: 0.1rem 0 0.2rem;
   }
 
   .charts-grid {
     grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
 
-  .card {
-    padding: 1.25rem;
-  }
-
-  .card h3 {
-    color: var(--text);
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
-  }
+  .card { padding: 1.25rem; min-height: 100%; }
+  .card h3 { color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
 
   .wide-card {
     grid-column: 1 / -1;
@@ -323,109 +350,154 @@
 {% block body %}
 <section class="analytics-shell">
   <div class="scope-banner">
-    <strong>Scope: Thai web and social engagement only.</strong>
-    This page focuses on Thai-linked discourse records with observable engagement fields. The methods use public scientific libraries:
-    bootstrap geometric means on log1p engagement, Kruskal-Wallis for between-group engagement differences, chi-square for year-by-category composition,
-    and Mann-Kendall plus Spearman for monotonic trend validation when the corpus has enough yearly support.
+    <strong>
+      <span class="th-text">ขอบเขตการวิเคราะห์: วาทกรรมควอนตัมไทยเท่านั้น</span>
+      <span class="en-text">Scope: Thai quantum discourse only.</span>
+    </strong>
+    <span class="th-text">หน้านี้วิเคราะห์เฉพาะแหล่งข้อมูลที่เชื่อมโยงกับประเทศไทยและมีข้อมูลการมีส่วนร่วม ผลลัพธ์ใช้วิธีทางสถิติที่ผ่านการตรวจสอบ เหมาะสำหรับการตั้งสมมติฐาน ไม่ใช่ข้อสรุปเชิงเหตุผล</span>
+    <span class="en-text">This page looks at Thai-linked quantum coverage with visible engagement. Use it to spot patterns, not to make causal claims.</span>
   </div>
 
   <div class="hero-grid">
     <div class="hero-card">
-      <div class="eyebrow">Yearly Topic And Production Analytics</div>
+      <div class="eyebrow">
+        <span class="th-text">การวิเคราะห์รายปี</span>
+        <span class="en-text">Yearly Trends</span>
+      </div>
       <h1>
-        <span class="th-text">การมีส่วนร่วมรายปีตามหัวข้อควอนตัมและรูปแบบการผลิต</span>
-        <span class="en-text">Yearly Engagement By Topic And Production Form</span>
+        <span class="th-text">การมีส่วนร่วมตามหัวข้อและรูปแบบเนื้อหา</span>
+        <span class="en-text">Engagement by Topic &amp; Content Form</span>
       </h1>
       <p>
-        <span class="th-text">หน้านี้แยกการมีส่วนร่วมของคนไทยตามหัวข้อควอนตัมแบบละเอียดและตามรูปแบบการผลิตเนื้อหา พร้อมการทดสอบทางสถิติ คลัสเตอร์ที่พบเชื่อมโยงกับกราฟ Concept Network ที่มีอยู่แล้ว</span>
-        <span class="en-text">This page separates Thai engagement by fine-grained quantum topics and by content production forms, then validates those splits with statistical tests. Community clusters link back to the Concept Network graph already built from the same corpus.</span>
+        <span class="th-text">แยกการมีส่วนร่วมตามหัวข้อควอนตัมและรูปแบบเนื้อหา พร้อมการทดสอบทางสถิติเพื่อยืนยันความมีนัยสำคัญ กลุ่มแนวคิดที่พบเชื่อมโยงกับ Concept Network</span>
+        <span class="en-text">Compare engagement by topic and content form over time, then jump into related groups in the network view.</span>
       </p>
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label">Years</div>
-          <div class="stat-value" id="stat-years">0</div>
+      <div class="kpi-strip">
+        <div class="kpi-block">
+          <div class="kpi-badge" id="kpi-years-badge">n=0</div>
+          <div class="kpi-label"><span class="th-text">แหล่งข้อมูลที่วิเคราะห์</span><span class="en-text">Sources Reviewed</span></div>
+          <div class="kpi-value" id="stat-sources">0</div>
+          <div class="kpi-sub">
+            <span id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: —</span><span class="en-text">Years with data: —</span></span>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Sources</div>
-          <div class="stat-value" id="stat-sources">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Significant Tests</div>
-          <div class="stat-value" id="stat-significance">0</div>
+        <div class="kpi-block">
+          <div class="kpi-badge" id="kpi-sig-badge">α=0.05</div>
+          <div class="kpi-label"><span class="th-text">แนวโน้มที่พบ</span><span class="en-text">Signals Found</span></div>
+          <div class="kpi-value" id="stat-significance">0</div>
+          <div class="kpi-sub">
+            <span id="kpi-sig-sub"><span class="th-text">ผ่านการทดสอบทางสถิติ</span><span class="en-text">Signals passing the current tests</span></span>
+          </div>
         </div>
       </div>
-      <div class="status-pill" id="status-pill">Loading analytics</div>
+      <div style="display:none;">
+        <div id="stat-years">0</div>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="th-text">กำลังโหลด</span>
+        <span class="en-text">Loading</span>
+      </div>
     </div>
 
     <div class="side-stack">
       <div class="brief-card">
-        <h3>Topic axis</h3>
-        <p>Topic labels are drawn from `entities.area`, with quantum-domain fallback only when no finer topic text exists in the row.</p>
+        <h3><span class="th-text">หัวข้อควอนตัม</span><span class="en-text">By Topic</span></h3>
+        <p>
+          <span class="th-text">แสดงการมีส่วนร่วมตามหัวข้อย่อยของควอนตัม เช่น cryptography, computing, sensing</span>
+          <span class="en-text">Shows engagement split by quantum subject area (e.g. cryptography, computing, sensing).</span>
+        </p>
       </div>
       <div class="brief-card">
-        <h3>Production axis</h3>
-        <p>Production labels are normalized from `media_format_detail` first, then backed by media-format, content-type, and production-type fallbacks so article, podcast, vlog, course, paper, film, game, and related forms can surface cleanly.</p>
+        <h3><span class="th-text">รูปแบบเนื้อหา</span><span class="en-text">By Format</span></h3>
+        <p>
+          <span class="th-text">แสดงการมีส่วนร่วมตามรูปแบบ เช่น บทความ พอดแคสต์ วิดีโอ วิชาการ หรือฟิล์ม</span>
+          <span class="en-text">Breaks down engagement by format — article, podcast, video, academic paper, film, and more.</span>
+        </p>
       </div>
       <div class="brief-card">
-        <h3>Reading rule</h3>
-        <p>Treat visually strong lines as hypotheses first. The validation cards underneath each chart show whether the current corpus supports a statistically meaningful split.</p>
+        <h3><span class="th-text">วิธีอ่านกราฟ</span><span class="en-text">How to Read</span></h3>
+        <p>
+          <span class="th-text">เส้นที่โดดเด่นบ่งชี้แนวโน้มที่น่าสนใจ แต่ควรดูการ์ดผลทดสอบด้านล่างเพื่อยืนยันนัยสำคัญทางสถิติ</span>
+          <span class="en-text">Strong lines suggest interesting patterns. Check the validation cards below each chart to confirm statistical significance.</span>
+        </p>
       </div>
     </div>
   </div>
 
   <div class="insight-strip">
     <div class="insight-card">
-      <div class="insight-label">Scientific basis</div>
-      <div class="insight-value">SciPy, pymannkendall, Chart.js, and 3d-force-graph drive the calculations and the views.</div>
+      <div class="insight-label"><span class="th-text">วิธีคำนวณ</span><span class="en-text">Method Used</span></div>
+      <div class="insight-value">
+        <span class="th-text">ใช้ไลบรารีสถิติมาตรฐาน (SciPy, pymannkendall) สำหรับการทดสอบทางสถิติและ Chart.js สำหรับการแสดงผล</span>
+        <span class="en-text">Uses standard statistical libraries (SciPy, pymannkendall) for tests and Chart.js for visualization.</span>
+      </div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">Engagement metric</div>
-      <div class="insight-value">Each point is a bootstrap geometric mean on log1p view-count engagement, which is more robust than raw arithmetic means for skewed web data.</div>
+      <div class="insight-label"><span class="th-text">คะแนนการมีส่วนร่วม</span><span class="en-text">Engagement Score</span></div>
+      <div class="insight-value">
+        <span class="th-text">แต่ละจุดคือค่าเฉลี่ยเรขาคณิต (Bootstrap) ซึ่งทนต่อข้อมูลที่มีค่าสุดขีดได้ดีกว่าค่าเฉลี่ยธรรมดา</span>
+        <span class="en-text">Each point uses a robust average designed for uneven engagement data, so outliers do less damage.</span>
+      </div>
     </div>
     <div class="insight-card">
-      <div class="insight-label">Community clusters</div>
-      <div class="insight-value">Community labels below each chart are drawn from the same graph structure that powers the Concept Network page. Click any concept tag to explore it there.</div>
+      <div class="insight-label"><span class="th-text">กลุ่มหัวข้อ</span><span class="en-text">Topic Groups</span></div>
+      <div class="insight-value">
+        <span class="th-text">กลุ่มด้านล่างกราฟมาจากโครงสร้างกราฟเดียวกับ Concept Network คลิก tag เพื่อสำรวจ</span>
+        <span class="en-text">These groups come from the same structure as the network view. Click a tag to inspect it there.</span>
+      </div>
     </div>
   </div>
 
   <div class="empty-state" id="empty-state">
     <div>
-      <div class="state-title">No yearly analytics available</div>
+      <div class="state-title">Not enough trend data yet</div>
       <div class="state-copy">The current database does not yet have enough topic or production taxonomy coverage to render these views.</div>
     </div>
   </div>
 
   <div class="error-state" id="error-state">
     <div>
-      <div class="state-title">Analytics request failed</div>
+      <div class="state-title">Could not load trends</div>
       <div class="state-copy" id="error-message">The page could not load the current analytics payload.</div>
     </div>
   </div>
 
   <div class="charts-grid" id="charts-grid">
     <div class="card">
-      <h3>Yearly Quantum Topic Engagement</h3>
-      <p>Fine-grained yearly engagement by quantum subject area. The chart only uses the most stable topic labels in the current corpus window so the lines stay interpretable.</p>
+      <h3><span class="th-text">การมีส่วนร่วมตามหัวข้อควอนตัมรายปี</span><span class="en-text">Topic Trends by Year</span></h3>
+      <p>
+        <span class="th-text">แสดงแนวโน้มการมีส่วนร่วมตามหัวข้อย่อยของควอนตัมในแต่ละปี</span>
+        <span class="en-text">Yearly engagement trends by quantum subject area, using the most consistent topic labels in the dataset.</span>
+      </p>
       <canvas id="topic-chart"></canvas>
       <div class="validation-list" id="topic-validation"></div>
     </div>
 
     <div class="card">
-      <h3>Yearly Production Engagement</h3>
-      <p>Yearly engagement by production form. When the source rows carry fine format detail, this separates article, podcast, vlog, course, academic paper, film, game, digital art, and related forms.</p>
+      <h3><span class="th-text">การมีส่วนร่วมตามรูปแบบเนื้อหารายปี</span><span class="en-text">Format Trends by Year</span></h3>
+      <p>
+        <span class="th-text">แสดงแนวโน้มตามรูปแบบเนื้อหา เช่น บทความ พอดแคสต์ วิดีโอ งานวิชาการ</span>
+        <span class="en-text">Yearly trends by content form — separating articles, podcasts, videos, academic papers, and more.</span>
+      </p>
       <canvas id="production-chart"></canvas>
       <div class="validation-list" id="production-validation"></div>
     </div>
 
     <div class="card wide-card">
-      <h3>Topic Community Clusters</h3>
-      <p>These clusters are derived from the same corpus that powers the Concept Network. Each concept tag links directly to the Network page where the full graph can be explored interactively.</p>
+      <h3><span class="th-text">กลุ่มหัวข้อที่เชื่อมโยงกัน</span><span class="en-text">Topic Groups</span></h3>
+      <p>
+        <span class="th-text">กลุ่มเหล่านี้มาจากโครงสร้างกราฟเดียวกับ Concept Network คลิก tag เพื่อสำรวจในหน้า Network</span>
+        <span class="en-text">These groups come from the same graph as the network view. Click any tag to inspect it interactively.</span>
+      </p>
       <div class="community-strip" id="topic-communities"></div>
     </div>
 
     <div class="card wide-card">
-      <h3>Production Community Clusters</h3>
-      <p>Community structure drawn from the production-form graph within the same corpus. Explore co-occurrence patterns and format clusters in the Concept Network page.</p>
+      <h3><span class="th-text">กลุ่มรูปแบบเนื้อหาที่เชื่อมโยงกัน</span><span class="en-text">Content Format Groups</span></h3>
+      <p>
+        <span class="th-text">โครงสร้างกลุ่มจากกราฟรูปแบบเนื้อหา สำรวจรูปแบบการปรากฏร่วมกันได้ใน Concept Network</span>
+        <span class="en-text">These format groups show which content types tend to appear together in the network view.</span>
+      </p>
       <div class="community-strip" id="production-communities"></div>
     </div>
   </div>
@@ -576,8 +648,8 @@
       host.innerHTML = `
         <div class="community-card">
           <strong>${escapeHtml(title)}</strong>
-          <span>No stable community structure yet. The current graph is still sparse on this axis.</span>
-          <div><a href="/network" class="network-nav-btn">Explore Concept Network →</a></div>
+          <span>No stable group structure yet. This slice of the graph is still sparse.</span>
+          <div><a href="/network" class="network-nav-btn">Open Topic Network →</a></div>
         </div>`;
       return;
     }
@@ -592,9 +664,9 @@
         </div>`;
     }).join("");
     host.innerHTML = `
-      <p class="community-intro">These clusters reflect co-occurrence structure from the same corpus that drives the Concept Network. Click any tag to explore the graph.</p>
+      <p class="community-intro">These clusters come from the same co-occurrence structure used in the network view. Click any tag to inspect it there.</p>
       ${cards}
-      <div><a href="/network" class="network-nav-btn">Explore full Concept Network →</a></div>`;
+      <div><a href="/network" class="network-nav-btn">Open Topic Network →</a></div>`;
   }
 
   function countSignificant(axisPayload) {
@@ -652,14 +724,24 @@
       const totalSources = years.reduce((sum, year) => sum + Number((counts[year] || {}).total || 0), 0);
       elements.years.textContent = String(topicAxis.years.length);
       elements.sources.textContent = String(totalSources);
-      elements.significance.textContent = String(countSignificant(topicAxis) + countSignificant(productionAxis));
+      const sigCount = countSignificant(topicAxis) + countSignificant(productionAxis);
+      elements.significance.textContent = String(sigCount);
+
+      const yearsBadge = document.getElementById("kpi-years-badge");
+      if (yearsBadge) yearsBadge.textContent = "n=" + totalSources;
+      const yearsSub = document.getElementById("kpi-years-sub");
+      if (yearsSub) yearsSub.innerHTML = '<span>' + copyForLang("ปีที่มีข้อมูล: " + topicAxis.years.length, "Years with data: " + topicAxis.years.length) + '</span>';
+      const sigBadgeEl = document.getElementById("kpi-sig-badge");
+      if (sigBadgeEl) sigBadgeEl.textContent = sigCount > 0 ? "p < 0.05" : "α=0.05";
+      const sigSub = document.getElementById("kpi-sig-sub");
+      if (sigSub) sigSub.innerHTML = '<span>' + copyForLang("หัวข้อและรูปแบบ " + (topicAxis.labels || []).length + " กลุ่ม", (topicAxis.labels || []).length + " label groups tested") + '</span>';
 
       renderLineChart("topic-chart", topicAxis);
       renderLineChart("production-chart", productionAxis);
       renderValidation(elements.topicValidation, topicAxis, "Topic");
       renderValidation(elements.productionValidation, productionAxis, "Production");
-      renderCommunities(elements.topicCommunities, topicAxis.graph || {}, "Topic communities");
-      renderCommunities(elements.productionCommunities, productionAxis.graph || {}, "Production communities");
+      renderCommunities(elements.topicCommunities, topicAxis.graph || {}, "Topic groups");
+      renderCommunities(elements.productionCommunities, productionAxis.graph || {}, "Format groups");
 
       setStatus(copyForLang(
         `โหลดข้อมูล ${topicAxis.years.length} ปี พร้อมหัวข้อและรูปแบบการผลิต`,

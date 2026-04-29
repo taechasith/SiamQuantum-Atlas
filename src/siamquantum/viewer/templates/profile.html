@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% block title %}Profile | SiamQuantum Atlas{% endblock %}
+{% set active = 'profile' %}
+
+{% block page_title %}
+  <span class="th-text">Profile</span>
+  <span class="en-text">Profile</span>
+{% endblock %}
+
+{% block head %}
+<style>
+  .profile-shell { display: grid; gap: 1rem; }
+  .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 1rem;
+  }
+  .profile-card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: 1.2rem 1.25rem;
+  }
+  .profile-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.9rem;
+    margin-bottom: 0.6rem;
+  }
+  .profile-copy {
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 0.9rem;
+  }
+  .auth-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .field { margin-top: 0.9rem; }
+  .field label {
+    display: block;
+    color: var(--muted-strong);
+    font-size: 0.82rem;
+    margin-bottom: 0.4rem;
+  }
+  .field input,
+  .field textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.78rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .field textarea { min-height: 110px; resize: vertical; }
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+  }
+  .avatar-panel {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .avatar-preview {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary), var(--tertiary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1rem;
+  }
+  .primary-btn,
+  .secondary-btn,
+  .danger-btn {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .primary-btn { color: #04111e; background: linear-gradient(135deg, #7ad7ff, #34baf0); }
+  .secondary-btn { color: var(--primary); background: rgba(56, 189, 248, 0.09); }
+  .danger-btn { color: #fecaca; border-color: rgba(248,113,113,0.25); background: rgba(248,113,113,0.08); }
+  .status-box {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .status-box.show { display: block; }
+  .status-box.success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.22); color: #6ee7b7; }
+  .status-box.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22); color: #fda4af; }
+  .status-box.warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.22); color: #fcd34d; }
+  .meta-list { display: grid; gap: 0.55rem; margin-top: 1rem; color: var(--muted); font-size: 0.86rem; }
+  .submission-list { display: grid; gap: 0.8rem; margin-top: 1rem; }
+  .submission-item {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    padding: 0.9rem;
+  }
+  .submission-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: flex-start;
+  }
+  .submission-title { color: var(--text); font-size: 0.95rem; font-weight: 600; }
+  .submission-copy, .submission-meta {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-top: 0.3rem;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 0.72rem;
+    color: var(--muted-strong);
+    white-space: nowrap;
+  }
+  .hidden { display: none !important; }
+  @media (max-width: 980px) {
+    .profile-grid, .auth-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="profile-shell">
+  <article class="profile-card">
+    <div class="profile-title">Profile</div>
+    <div class="profile-copy">Sign in with Google or email/password, edit your public profile fields, and review your own submitted data queue.</div>
+  </article>
+
+  <div class="profile-grid">
+    <article class="profile-card">
+      <div id="logged-out-view">
+        <div class="profile-title" style="font-size:1.4rem;">Login or Create Account</div>
+        <div class="profile-copy">Supabase Auth handles the account session. Google OAuth uses the publishable key in the browser, while protected profile updates remain server-side.</div>
+
+        <div class="auth-grid">
+          <form id="login-form">
+            <div class="field">
+              <label for="login-email">Email</label>
+              <input id="login-email" type="email" required>
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <input id="login-password" type="password" required>
+            </div>
+            <div class="button-row">
+              <button class="primary-btn" id="login-btn" type="submit">Login</button>
+            </div>
+          </form>
+
+          <form id="signup-form">
+            <div class="field">
+              <label for="signup-email">Email</label>
+              <input id="signup-email" type="email" required>
+            </div>
+            <div class="field">
+              <label for="signup-password">Password</label>
+              <input id="signup-password" type="password" minlength="6" required>
+            </div>
+            <div class="button-row">
+              <button class="secondary-btn" id="signup-btn" type="submit">Create Account</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="button-row">
+          <button class="secondary-btn" id="google-login-btn" type="button">Continue with Google</button>
+        </div>
+      </div>
+
+      <div id="logged-in-view" class="hidden">
+        <div class="profile-title" style="font-size:1.4rem;">Your Profile</div>
+        <div class="profile-copy">Editable profile data is stored in the Supabase <code>profiles</code> table. If your Google account provides an avatar, it is used as the default until you override it.</div>
+
+        <div class="avatar-panel">
+          <div class="avatar-preview" id="profile-avatar-preview">PR</div>
+          <div>
+            <div id="profile-display-heading" style="color:var(--text);font-size:1rem;font-weight:600;">Profile</div>
+            <div id="profile-email" class="profile-copy" style="margin-top:0.2rem;">No email loaded.</div>
+            <div class="meta-list">
+              <div id="profile-created-at">Account created: —</div>
+            </div>
+          </div>
+        </div>
+
+        <form id="profile-form">
+          <div class="field">
+            <label for="display_name">Display Name</label>
+            <input id="display_name" name="display_name" type="text">
+          </div>
+          <div class="field">
+            <label for="bio">Bio / Description</label>
+            <textarea id="bio" name="bio"></textarea>
+          </div>
+          <div class="field">
+            <label for="website_url">Website / Social Link</label>
+            <input id="website_url" name="website_url" type="url" placeholder="https://">
+          </div>
+          <div class="field">
+            <label for="avatar_url">Profile Image URL</label>
+            <input id="avatar_url" name="avatar_url" type="url" placeholder="https://example.com/avatar.png">
+          </div>
+          <div class="button-row">
+            <button class="primary-btn" id="profile-save-btn" type="submit">Save Profile</button>
+            <button class="danger-btn" id="logout-btn" type="button">Logout</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="status-box" id="profile-status"></div>
+    </article>
+
+    <aside class="profile-card">
+      <div class="profile-title" style="font-size:1.3rem;">Your Submitted Data</div>
+      <div class="profile-copy">Private submissions remain visible here even while they are still pending review or processing.</div>
+      <div class="submission-list" id="submission-list">
+        <div class="submission-item"><div class="submission-copy">Login to load your submissions.</div></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script type="module">
+  import {
+    apiFetch,
+    loadAuthState,
+    loginWithGoogle,
+    loginWithPassword,
+    logoutUser,
+    registerWithPassword,
+  } from "/static/js/auth.js";
+
+  const loggedOutView = document.getElementById("logged-out-view");
+  const loggedInView = document.getElementById("logged-in-view");
+  const profileStatus = document.getElementById("profile-status");
+  const submissionList = document.getElementById("submission-list");
+  const profileForm = document.getElementById("profile-form");
+  const profileAvatarPreview = document.getElementById("profile-avatar-preview");
+  const profileDisplayHeading = document.getElementById("profile-display-heading");
+  const profileEmail = document.getElementById("profile-email");
+  const profileCreatedAt = document.getElementById("profile-created-at");
+  const googleLoginButton = document.getElementById("google-login-btn");
+
+  function showStatus(message, kind) {
+    profileStatus.textContent = message;
+    profileStatus.className = `status-box show ${kind}`;
+  }
+
+  function renderAvatar(url, displayName) {
+    if (url) {
+      profileAvatarPreview.innerHTML = `<img src="${url}" alt="${displayName || "Profile"}">`;
+      return;
+    }
+    const initials = String(displayName || "Profile")
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || "PR";
+    profileAvatarPreview.textContent = initials;
+  }
+
+  function renderSubmissions(items) {
+    if (!items?.length) {
+      submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">No submissions yet.</div></div>';
+      return;
+    }
+    submissionList.innerHTML = items.map((item) => `
+      <article class="submission-item">
+        <div class="submission-top">
+          <div class="submission-title">${item.title}</div>
+          <span class="pill">${item.status} / ${item.analysis_status}</span>
+        </div>
+        <div class="submission-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        <div class="submission-copy">${item.description || item.source_url || "No extra description."}</div>
+      </article>
+    `).join("");
+  }
+
+  function fillProfile(profile, user) {
+    const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || "Profile";
+    const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
+    profileDisplayHeading.textContent = displayName;
+    profileEmail.textContent = profile?.email || user?.email || "No email";
+    profileCreatedAt.textContent = `Account created: ${profile?.created_at || user?.created_at || "—"}`;
+    document.getElementById("display_name").value = profile?.display_name || "";
+    document.getElementById("bio").value = profile?.bio || "";
+    document.getElementById("website_url").value = profile?.website_url || "";
+    document.getElementById("avatar_url").value = profile?.avatar_url || avatarUrl;
+    renderAvatar(avatarUrl, displayName);
+  }
+
+  async function refreshPage() {
+    try {
+      const authState = await loadAuthState();
+      if (authState?.localMode) {
+        googleLoginButton.classList.add("hidden");
+      } else {
+        googleLoginButton.classList.remove("hidden");
+      }
+      if (!authState?.enabled) {
+        loggedOutView.classList.remove("hidden");
+        loggedInView.classList.add("hidden");
+        submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">Supabase is not configured for this environment yet.</div></div>';
+        showStatus("Supabase is not configured on the server.", "warning");
+        return;
+      }
+
+      if (!authState?.user) {
+        loggedOutView.classList.remove("hidden");
+        loggedInView.classList.add("hidden");
+        submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">Login to load your submissions.</div></div>';
+        if (authState?.degraded) {
+          showStatus("Authentication state could not be verified. Refresh the page and try again.", "warning");
+        }
+        return;
+      }
+
+      loggedOutView.classList.add("hidden");
+      loggedInView.classList.remove("hidden");
+
+      const profileData = await apiFetch("/api/profile");
+      const mineData = await apiFetch("/api/submitted-data/mine");
+      fillProfile(profileData?.profile, authState.user);
+      renderSubmissions(mineData?.items || []);
+    } catch (error) {
+      showStatus(error.message, "error");
+    }
+  }
+
+  document.getElementById("login-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = document.getElementById("login-btn");
+    button.disabled = true;
+    try {
+      await loginWithPassword(
+        document.getElementById("login-email").value.trim(),
+        document.getElementById("login-password").value
+      );
+      showStatus("Logged in successfully.", "success");
+      await refreshPage();
+    } catch (error) {
+      showStatus(error.message, "error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById("signup-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = document.getElementById("signup-btn");
+    button.disabled = true;
+    try {
+      await registerWithPassword(
+        document.getElementById("signup-email").value.trim(),
+        document.getElementById("signup-password").value
+      );
+      showStatus("Signup complete. Check your email if confirmation is required.", "success");
+      await refreshPage();
+    } catch (error) {
+      showStatus(error.message, "error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById("google-login-btn").addEventListener("click", async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      showStatus(error.message, "error");
+    }
+  });
+
+  profileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const saveButton = document.getElementById("profile-save-btn");
+    saveButton.disabled = true;
+    try {
+      const data = await apiFetch("/api/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          display_name: document.getElementById("display_name").value.trim(),
+          bio: document.getElementById("bio").value.trim(),
+          website_url: document.getElementById("website_url").value.trim(),
+          avatar_url: document.getElementById("avatar_url").value.trim(),
+        }),
+      });
+      const authState = await loadAuthState();
+      fillProfile(data?.profile, authState?.user);
+      showStatus("Profile updated.", "success");
+    } catch (error) {
+      showStatus(error.message, "error");
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    try {
+      await logoutUser();
+      showStatus("Logged out.", "warning");
+      await refreshPage();
+    } catch (error) {
+      showStatus(error.message, "error");
+    }
+  });
+
+  refreshPage();
+</script>
+{% endblock %}

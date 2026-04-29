@@ -1,104 +1,122 @@
-# SiamQuantum Atlas: Developer Architecture Notes
+# SiamQuantum Atlas: Current Architecture Notes
 
 ## Overview
 
-We maintain SiamQuantum Atlas as a Python-first research platform for collecting, enriching, analyzing, and presenting Thai-relevant quantum discourse. We keep the implementation grounded in the existing stack instead of treating the repo like a speculative front-end rewrite target.
+SiamQuantum Atlas is a Python-first research platform for collecting, enriching, analyzing, and presenting Thai-relevant quantum discourse. The current app keeps the existing FastAPI + Jinja + SQLite architecture and adds Supabase for user accounts, profile storage, categories, and user-owned submitted data.
 
-At the moment, we use:
+Current stack:
 
-- FastAPI for the application and API layer
-- Jinja2 templates for the viewer pages
-- SQLite as the default local and demo data store
-- plain JavaScript plus CDN-delivered libraries for interactive UI behavior
-- Typer for the CLI and operator workflow
+- FastAPI for page routes and JSON APIs
+- Jinja2 templates for the viewer UI
+- SQLite for corpus, analytics cache, and local pipeline state
+- Supabase Auth + PostgREST for accounts, profiles, categories, and submitted data
+- plain JavaScript with CDN-delivered browser libraries
+- Typer for ingestion, analysis, and local serve commands
 
-The current product direction is a more polished research-platform UI, but we are still intentionally building on the same backend, template, and database architecture.
+## Application Layers
 
-## How We Structure The System
-
-We divide the repo into four practical layers:
+We currently structure the repo into four practical layers:
 
 1. ingestion and analysis workflows
-2. persistence and schema management
+2. SQLite persistence and local analytics state
 3. viewer/API delivery
-4. deployment shims and environment-specific behavior
+4. deployment and auth integrations
 
-This lets us keep the local research workflow, the public/demo viewer, and the analysis pipeline aligned without introducing a second application stack.
+This keeps the research pipeline and the user-facing viewer in one codebase without introducing a second frontend stack.
 
-## Runtime Stack
+## Runtime Entry Points
 
-### Backend
-
-We use FastAPI as the runtime web server and API surface. The main viewer app lives in:
+Primary viewer runtime:
 
 - `src/siamquantum/viewer/server.py`
 
-That module handles:
+That module now owns:
 
-- HTML page routes
+- page routes
 - JSON API routes
-- response envelopes and error handling
-- demo/read-only gating
+- Supabase-backed auth/profile/category/submitted-data APIs
+- local SQLite-backed analytics and corpus APIs
 - template rendering
-- viewer-specific aggregation queries
+- demo/read-only gating
 
-### Templates
-
-We render the UI with Jinja2 templates stored in:
-
-- `src/siamquantum/viewer/templates/`
-
-The current viewer follows a shared shell pattern:
-
-- `base.html` defines the global design system, navigation, live page panel, ambient visual layer, bilingual toggle behavior, and floating cat guide interaction
-- page templates extend `base.html` and add page-specific layout, CSS, and JavaScript
-
-This means we do not need React, Vue, or Tailwind to ship the current UI. We keep interaction logic close to the page that owns it and reuse the shared shell where it improves consistency.
-
-### Frontend Libraries
-
-We intentionally keep frontend dependencies narrow and page-specific:
-
-- Leaflet and MarkerCluster on `/dashboard`
-- `3d-force-graph` and Three.js on `/network`
-- Chart.js on `/analytics`
-- plain JavaScript for filtering, polling, drawers, forms, and bilingual UI state
-
-We currently load these libraries from CDNs inside the template files. That keeps the app simple to run in local research environments and avoids adding a separate frontend build step.
-
-### CLI
-
-We use Typer-based CLI commands to run ingestion and analysis workflows. The entrypoints live under:
+CLI entrypoint:
 
 - `src/siamquantum/cli.py`
 
-We use the CLI for:
+## Pages
 
-- seed ingestion
-- RSS / GDELT / YouTube ingestion paths
-- NLP analysis
-- taxonomy and statistical analysis
-- graph metric refresh
-- serving the viewer locally
+Current page model:
 
-## Data Layer
+- `/` landing page
+- `/dashboard` main in-app entry page
+- `/network`
+- `/analytics`
+- `/database`
+- `/submit-data`
+- `/profile`
+- `/admin/submitted-data`
 
-### Primary Database
+Compatibility redirects:
 
-We use SQLite as the source of truth for local development, local research use, and read-only demo deployment. The configured database URL is resolved through the project settings layer and typically points at the processed project database.
+- `/overview` -> `/dashboard`
+- `/community` -> `/submit-data`
 
-SQLite is the right tradeoff for the current phase because:
+## UI Structure
 
-- the platform is primarily operator-driven
-- the analysis workflow is batch-oriented
-- the demo deployment is read-heavy
-- the repo benefits from minimal infrastructure overhead
+Templates live in:
 
-SQLite is not positioned here as a multi-writer production database.
+- `src/siamquantum/viewer/templates/`
 
-### Core Tables
+Shared shell:
 
-We currently rely on these key tables:
+- `base.html`
+
+The base shell currently owns:
+
+- sidebar and topbar layout
+- language toggle
+- shared live-data panel
+- auth-aware profile link and avatar state
+- global ambient visual background
+
+Important page templates:
+
+- `landing.html` for the public landing page
+- `dashboard.html` for the primary research dashboard
+- `community.html` for the Submit Data workflow
+- `profile.html` for login, signup, and editable user profile
+- `admin_submitted_data.html` for admin review
+
+## Frontend Behavior
+
+We still avoid a frontend build pipeline. Browser code is plain JavaScript loaded from templates or static JS files.
+
+New shared auth files:
+
+- `src/siamquantum/viewer/static/js/supabase-client.js`
+- `src/siamquantum/viewer/static/js/auth.js`
+
+Behavior:
+
+- Supabase publishable key is exposed to browser code
+- Supabase secret key is server-only
+- browser auth uses Supabase Auth
+- protected data operations go through FastAPI endpoints with bearer-token forwarding
+
+## Data Model
+
+### Local SQLite
+
+SQLite remains the local source of truth for:
+
+- corpus rows
+- geo rows
+- entities
+- triplets
+- stats cache
+- local queue and pipeline state
+
+Key SQLite tables still include:
 
 - `sources`
 - `geo`
@@ -106,250 +124,181 @@ We currently rely on these key tables:
 - `triplets`
 - `stats_cache`
 - `community_submissions`
-- `nlp_abstentions`
 - `denstream_state`
 
-In practice:
+These support the corpus analytics and existing local pipeline behavior.
 
-- `sources` stores the base corpus rows
-- `geo` stores geolocation or hosting-origin rows
-- `entities` stores classification and taxonomy-level enrichment
-- `triplets` stores extracted relation triples used by the graph view
-- `stats_cache` stores expensive or reusable analysis outputs
-- `community_submissions` stores the local intake queue
-- `nlp_abstentions` tracks skipped or unresolved NLP cases
-- `denstream_state` stores streaming or clustering state where applicable
+### Supabase
 
-### Schema And DB Utilities
+Supabase now owns user-facing account and submission data:
 
-We keep schema and connection utilities in:
+- `profiles`
+- `categories`
+- `submitted_data`
 
-- `src/siamquantum/db/`
+Migration:
 
-That area owns:
+- `supabase/migrations/20260429_auth_profiles_submitted_data.sql`
 
-- initialization
-- migrations
-- connection helpers
-- DB-facing repository logic used by the viewer and pipeline
+Security model:
 
-## Analysis Layer
+- Row Level Security enabled on all three tables
+- users can only read or write their own profile rows
+- users can only manage their own pending submitted data
+- public reads only see approved and completed submitted data
+- admin actions depend on `profiles.role = 'admin'`
 
-We treat analysis as a separate concern from viewer delivery. The viewer reads from analysis outputs, but the viewer is not responsible for recomputing the entire research pipeline on every request.
+## Authentication Model
 
-### NLP And Extraction
+Supabase env vars are read in:
 
-We use the pipeline modules under:
+- `src/siamquantum/config.py`
 
-- `src/siamquantum/pipeline/`
+Required env vars:
 
-These modules handle:
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
 
-- source text preparation
-- entity extraction
-- triplet extraction
-- abstention tracking
-- downstream enrichment steps
+Important rules:
 
-### Statistical Outputs
+- publishable key may be used in client code
+- secret key must only be used server-side
+- `.env`, `.env.local`, and `.env.*.local` are gitignored
 
-We use the stats modules under:
+Browser auth flow:
 
-- `src/siamquantum/stats/`
+- email/password login
+- email/password signup
+- Google OAuth login
+- logout
+- persistent Supabase session
 
-The current approach is intentionally conservative. We favor:
+Profile bootstrap behavior:
 
-- log-oriented handling of heavy-tailed engagement metrics
-- bootstrap-based geometric summaries where appropriate
-- nonparametric comparison methods
-- taxonomy-aware subgroup interpretation
+- on first authenticated load, the app syncs the logged-in Supabase user into `profiles`
+- initial profile fields use Supabase Auth metadata where available
+- Google avatar URL is used as the default profile image when present
 
-We explicitly avoid overstating raw-view comparisons as if they were automatically trustworthy scientific conclusions.
+## Submitted Data Flow
 
-### Graph Analytics
+User submissions now flow through Supabase instead of the old public unauthenticated link form.
 
-The network experience depends on:
+Current flow:
 
-- extracted triplets from the corpus
-- graph assembly for `/api/graph`
-- cached graph metrics for `/api/graph/metrics`
-- per-node detail interpretation for `/api/graph/node`
+1. user signs in
+2. user visits `/submit-data`
+3. categories load from Supabase
+4. user can choose an existing category or create a new one
+5. submitted row is written to `submitted_data`
+6. new rows start with:
+   - `status = 'pending'`
+   - `analysis_status = 'queued'`
+7. background follow-up can update:
+   - `queued`
+   - `processing`
+   - `completed`
+   - `failed`
+8. public pages only read rows where:
+   - `status = 'approved'`
+   - `analysis_status = 'completed'`
 
-We use these outputs to support:
+The existing local `community_submissions` queue is still present for backward compatibility and local workflow bridging, but the active UI now points at Supabase-backed submitted data.
 
-- connected component summaries
-- top degree and betweenness rankings
-- hub interpretation
-- community summaries
-- node-level contextual explanation
+## Admin Review
 
-## Viewer And Route Architecture
+Admin review page:
 
-### Pages
+- `/admin/submitted-data`
 
-We currently serve six primary pages:
+Admin APIs:
 
-- `/`
-- `/dashboard`
-- `/network`
-- `/analytics`
-- `/database`
-- `/community`
+- `GET /api/admin/submitted-data`
+- `PATCH /api/admin/submitted-data/{id}`
 
-### Home
+Current capabilities:
 
-We use `/` as the landing page for the research platform. It combines:
+- view all submitted rows
+- filter by status
+- filter by category
+- approve or reject
+- mark analysis status
+- inspect saved `analysis_result`
 
-- project framing
-- live corpus overview
-- real pipeline status
-- entry points into each major workflow page
+## Analytics and Existing Viewer APIs
 
-The home page reads real data from:
+The main analytics and corpus views remain SQLite-backed.
+
+Important existing APIs still include:
 
 - `/api/stats/summary`
 - `/api/pipeline/live`
-
-### Shared Live Page Panel
-
-We now use a shared live-data panel in `base.html` across the viewer. That panel is route-aware and reads different real APIs depending on the current page.
-
-Examples:
-
-- `/dashboard` reads from `/api/geo/list` and `/api/pipeline/live`
-- `/network` reads from `/api/graph` and `/api/graph/metrics`
-- `/analytics` reads from `/api/stats/yearly` and `/api/taxonomy/stats`
-- `/database` reads from `/api/sources` and `/api/taxonomy/summary`
-- `/community` reads from `/api/community/submissions`
-
-We also let the user collapse and reopen this panel. The state is stored in `localStorage`, and the floating cat button can reopen it when hidden.
-
-### Dashboard
-
-The map page remains Leaflet-based and uses real geo rows from `/api/geo/list`. We bias the UI toward origin and provenance interpretation instead of presenting the map like a popularity surface.
-
-### Network
-
-The network page remains based on `3d-force-graph`. We have upgraded the UX without changing the stack:
-
-- lazy graph launch
-- clearer graph framing
-- detail drawer with richer explanation
-- neighbor jump-through interactions
-- graph metrics panel
-- shared-shell live panel above the page
-
-We describe the page as a 3D concept network, not as a “Three.js-style” demo.
-
-### Analytics
-
-The analytics page continues to render data from:
-
+- `/api/geo/list`
+- `/api/graph`
+- `/api/graph/metrics`
+- `/api/sources`
+- `/api/taxonomy/summary`
 - `/api/stats/yearly`
 - `/api/taxonomy/stats`
 
-We keep the scientific wording cautious and preserve the meaning of the statistical outputs while improving readability and hierarchy.
-
-### Database
-
-The database page remains a filtered browser over `/api/sources`, with taxonomy metadata loaded from `/api/taxonomy/summary`. We currently support:
-
-- year filtering
-- platform filtering
-- content-type filtering
-- taxonomy filters
-- XLSX export
-
-### Community
-
-The community page is a real local intake queue, not a mocked form. It writes to `community_submissions` in local mode and exposes queue state through:
-
-- `POST /api/community/submit`
-- `GET /api/community/submissions`
-
-In demo mode we clearly disable writes.
-
-## UI System Notes
-
-We are deliberately evolving the viewer into a more polished research product without replacing the architecture.
-
-Current UI characteristics:
-
-- shared premium dark shell
-- Thai-friendly unified typography
-- ambient lightweight Three.js background particles
-- shared live data panel
-- floating cat guide interaction
-- bilingual Thai/English toggle
-- page-specific interaction layers built with plain JavaScript
-
-We currently preserve the server-rendered structure and keep enhancement incremental.
-
-## Settings And Environment Behavior
-
-The app behavior depends on runtime settings, especially for:
-
-- database URL resolution
-- deployment mode
-- read-only demo mode
-
-In particular, demo-safe behavior is important for Vercel and similar environments where SQLite should not be treated as a writable production store.
+The shared live panel in `base.html` remains route-aware and reads the correct API set for each page.
 
 ## Deployment Notes
 
 ### Local
 
-We normally run the app locally with editable install plus the built-in serve command:
+Standard local run:
 
 ```bash
 python -m pip install -e .[dev]
 python -m siamquantum serve
 ```
 
+Default viewer URL:
+
+```text
+http://127.0.0.1:8765/dashboard
+```
+
+### Supabase
+
+Manual external setup is still required:
+
+1. run the SQL migration in the Supabase project
+2. enable Google under `Authentication -> Providers`
+3. configure OAuth client ID and secret
+4. add redirect URLs for local and production use
+5. create an admin profile row or promote an existing profile row with `role = 'admin'`
+
 ### Vercel Demo
 
-We keep Vercel support constrained to a read-only demo model.
+The repo still supports a read-only demo deployment pattern, but write-enabled user flows now require both:
 
-Current deployment pieces:
+- a stateful runtime for local SQLite behavior where applicable
+- Supabase connectivity for auth/profile/submitted-data features
 
-- `api/index.py` as the Vercel entry shim
-- `vercel.json` routing all requests to that entrypoint
-- a committed demo database bundle
-- read-only or demo-mode guards for write-sensitive features
-
-Important constraints:
-
-- Vercel is not the place for durable SQLite writes
-- community submission must be disabled or clearly gated in demo mode
-- ingestion and analysis should run in a stateful environment, not in the Vercel request lifecycle
-
-## How We Think About This Repo
-
-We treat this repository as the working research-platform baseline, not as a throwaway prototype.
-
-That means:
-
-- we preserve the current stack
-- we improve UX incrementally rather than rewriting the app
-- we keep scientific wording accurate
-- we keep route and data behavior honest
-- we document current reality rather than aspirational features
-
-## Current Limitations
+## Current Constraints
 
 We should keep these constraints explicit:
 
-- SQLite does not give us high-concurrency write behavior
-- some NLP and enrichment steps remain best-effort
-- relevance semantics are still corpus-operational defaults in some areas
-- graph structure is interpretive, not ontological truth
-- demo deployment is read-only by design
+- SQLite is still not a concurrent multi-writer production database
+- some NLP and enrichment work remains best-effort
+- some analysis outputs are cache-driven rather than real-time
+- graph outputs are interpretive, not ontological truth
+- demo environments should not expose write flows unless the backend and Supabase integration are actually configured for them
 
-## Next Development Direction
+## Current Direction
 
-Our next stage is not a stack rewrite. Our next stage is continued UI refinement based on real usage and user feedback while preserving:
+The current direction is still incremental refinement, not a stack rewrite. We keep:
 
-- the FastAPI backend
-- the Jinja template structure
-- the current route model
-- the existing research and analytics pipeline
+- FastAPI
+- Jinja2 templates
+- the local research pipeline
+- SQLite-backed analytics behavior
+
+And we layer in:
+
+- Supabase Auth
+- editable user profiles
+- authenticated submitted data
+- admin review and approval workflow

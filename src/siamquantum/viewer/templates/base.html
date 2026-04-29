@@ -1,5 +1,10 @@
-<!DOCTYPE html>
-<html lang="th" data-lang="th">
+﻿<!DOCTYPE html>
+<html
+  lang="th"
+  data-lang="th"
+  data-supabase-url="{{ supabase_url }}"
+  data-supabase-publishable-key="{{ supabase_publishable_key }}"
+>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,61 +14,43 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #02040a;
-      --bg-soft: #07101d;
-      --surface: rgba(7, 13, 24, 0.82);
-      --surface-strong: rgba(9, 17, 31, 0.92);
-      --surface-glass: rgba(10, 19, 36, 0.58);
-      --border: rgba(122, 168, 255, 0.18);
-      --border-strong: rgba(132, 208, 255, 0.34);
-      --text: #eff5ff;
-      --muted: #9cb0d0;
-      --muted-strong: #c6d3ea;
-      --accent: #84cfff;
-      --accent-2: #6c89ff;
-      --accent-3: #6be6ff;
-      --accent-4: #8d7dff;
-      --success: #53d8b3;
-      --danger: #ff7f96;
-      --shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
-      --ring: rgba(132, 207, 255, 0.42);
-      --font-body: "Sarabun", system-ui, sans-serif;
-      --font-heading: "Sarabun", system-ui, sans-serif;
-      --font-mono: "Sarabun", system-ui, sans-serif;
-      --content-max: 1240px;
+      --bg:            #070B17;
+      --sidebar:       #060A15;
+      --surface:       #131B2E;
+      --surface-2:     #192338;
+      --surface-hover: #202D46;
+      --border:        rgba(114, 143, 198, 0.16);
+      --border-strong: rgba(93, 182, 255, 0.34);
+      --text:          #F1F5F9;
+      --muted:         #94A3B8;
+      --muted-strong:  #CBD5E1;
+      --primary:       #38BDF8;
+      --secondary:     #10B981;
+      --tertiary:      #60A5FA;
+      --warning:       #F59E0B;
+      --danger:        #F87171;
+      --shadow:        0 18px 48px rgba(0, 0, 0, 0.42);
+      --ring:          rgba(56, 189, 248, 0.4);
+      --font-body:     "Sarabun", system-ui, sans-serif;
+      --font-heading:  "Sarabun", system-ui, sans-serif;
+      --font-mono:     "Sarabun", monospace;
+      --sidebar-w:     248px;
+      --header-h:      72px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+
     body {
       font-family: var(--font-body);
       background:
-        radial-gradient(circle at 14% 10%, rgba(132, 207, 255, 0.14), transparent 18%),
-        radial-gradient(circle at 84% 18%, rgba(108, 137, 255, 0.12), transparent 18%),
-        radial-gradient(circle at 52% 78%, rgba(107, 230, 255, 0.10), transparent 20%),
-        linear-gradient(180deg, #02040a 0%, #040814 42%, #02050c 100%);
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
+        linear-gradient(180deg, #09101f 0%, var(--bg) 24%, #060a15 100%);
       color: var(--text);
       min-height: 100vh;
-      line-height: 1.62;
+      line-height: 1.6;
       overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(180deg, rgba(2, 4, 10, 0.06), rgba(2, 4, 10, 0.28)),
-        repeating-linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.015) 0,
-          rgba(255, 255, 255, 0.015) 1px,
-          transparent 1px,
-          transparent 120px
-        );
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 84%);
-      z-index: -1;
+      display: flex;
     }
 
     a, button, input, select, textarea { font: inherit; }
@@ -71,9 +58,8 @@
     a:focus-visible,
     button:focus-visible,
     input:focus-visible,
-    select:focus-visible,
-    textarea:focus-visible {
-      outline: 3px solid var(--ring);
+    select:focus-visible {
+      outline: 2px solid var(--ring);
       outline-offset: 2px;
     }
 
@@ -83,144 +69,259 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      opacity: 0.72;
-      z-index: -2;
+      opacity: 0.18;
+      z-index: -1;
     }
 
-    .page-shell {
-      width: min(100%, var(--content-max));
-      margin: 0 auto;
-      padding: 0 1rem 1.25rem;
+    /* â”€â”€ SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: linear-gradient(180deg, rgba(6, 10, 21, 0.98), rgba(5, 8, 17, 0.98));
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
-    nav {
+    .sidebar-brand {
+      padding: 1.4rem 1.15rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      width: 5.4rem;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-name {
+      font-family: var(--font-heading);
+      font-size: 1.08rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .sidebar-brand-sub {
+      font-size: 0.67rem;
+      color: var(--muted);
+      font-family: var(--font-body);
+      margin-top: 0.1rem;
+    }
+
+    .sidebar-brand-name,
+    .sidebar-brand-sub,
+    .sidebar-brand > div {
+      display: none;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .nav-section-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.65rem 0.6rem 0.3rem;
+      margin-top: 0.35rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.72rem 0.82rem;
+      border-radius: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: background 0.16s, color 0.16s, border-color 0.16s;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-item.active {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--primary);
+      border-color: rgba(56, 189, 248, 0.22);
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-footer {
+      padding: 0.8rem 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      display: grid;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* â”€â”€ MAIN WRAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ TOPBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .topbar {
       position: sticky;
       top: 0;
-      z-index: 110;
-      padding: 1rem 1rem 0.85rem;
-      background: linear-gradient(180deg, rgba(2, 4, 10, 0.86), rgba(2, 4, 10, 0.18));
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    .nav-shell {
-      width: min(100%, var(--content-max));
-      margin: 0 auto;
+      z-index: 90;
+      height: var(--header-h);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(6, 12, 22, 0.76);
-      box-shadow: var(--shadow);
+      padding: 0 1.7rem;
+      background: rgba(8, 12, 24, 0.86);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
     }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      text-decoration: none;
+    .topbar-title {
+      font-family: var(--font-heading);
+      font-size: 1.18rem;
+      font-weight: 400;
       color: var(--text);
-      min-height: 44px;
-      cursor: pointer;
     }
 
-    .brand-mark,
-    .brand-copy {
-      display: none;
-    }
-
-    .brand-logo {
-      display: block;
-      width: min(11vw, 6.5rem);
-      min-width: 4rem;
-    }
-
-    .brand-logo img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .nav-right {
+    .topbar-right {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 0.55rem;
     }
 
     .lang-toggle {
       display: inline-flex;
       align-items: center;
-      gap: 0.15rem;
-      padding: 0.2rem;
-      border-radius: 999px;
+      gap: 0.1rem;
+      padding: 0.18rem;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--surface-2);
     }
 
     .lang-btn {
       background: transparent;
       border: 0;
       color: var(--muted);
-      font-size: 0.76rem;
-      font-family: var(--font-mono);
-      letter-spacing: 0.08em;
-      min-height: 34px;
-      padding: 0 0.85rem;
-      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      height: 26px;
+      padding: 0 0.65rem;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background .18s ease, color .18s ease, transform .18s ease;
+      transition: background 0.14s, color 0.14s;
     }
 
     .lang-btn.active {
       color: var(--text);
-      background: linear-gradient(135deg, rgba(132, 207, 255, 0.18), rgba(108, 137, 255, 0.16));
+      background: var(--surface-hover);
     }
 
-    .lang-btn:hover:not(.active) {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      justify-content: flex-end;
-    }
-
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.86rem;
-      min-height: 42px;
+    .topbar-icon-btn {
       display: inline-flex;
       align-items: center;
-      padding: 0.5rem 0.92rem;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
       cursor: pointer;
+      transition: background 0.14s, color 0.14s, border-color 0.14s;
     }
 
-    .nav-links a:hover {
+    .topbar-icon-btn:hover {
+      background: var(--surface-hover);
       color: var(--text);
-      background: rgba(132, 207, 255, 0.08);
-      border-color: var(--border);
-      transform: translateY(-1px);
-    }
-
-    .nav-links a.active {
-      color: var(--text);
-      background: linear-gradient(135deg, rgba(132, 207, 255, 0.12), rgba(108, 137, 255, 0.12));
       border-color: var(--border-strong);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
-    /* ── FAB floating live panel ─────────────────────────────────────────── */
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.25rem 0.65rem 0.25rem 0.35rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted-strong);
+      font-size: 0.77rem;
+      cursor: default;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .profile-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--primary), var(--tertiary));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* â”€â”€ PAGE CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .page-content {
+      flex: 1;
+      padding: 1.7rem 1.8rem 2rem;
+    }
+
+    /* â”€â”€ LIVE FAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.38; transform: scale(0.68); }
@@ -228,38 +329,33 @@
 
     .live-fab {
       position: fixed;
-      bottom: 1.75rem;
-      right: 1.75rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
       z-index: 200;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 0.65rem;
+      gap: 0.6rem;
       pointer-events: none;
     }
 
     .live-fab-panel,
-    .live-fab-btn {
-      pointer-events: auto;
-    }
+    .live-fab-btn { pointer-events: auto; }
 
     .live-fab-panel {
-      width: min(370px, calc(100vw - 3rem));
+      width: min(360px, calc(100vw - 3rem));
       max-height: 72vh;
       overflow-y: auto;
       overflow-x: hidden;
-      border-radius: 20px;
+      border-radius: 14px;
       border: 1px solid var(--border-strong);
-      background: rgba(4, 8, 18, 0.97);
+      background: rgba(11, 17, 32, 0.97);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      box-shadow:
-        0 28px 80px rgba(0, 0, 0, 0.68),
-        0 0 0 1px rgba(132, 207, 255, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      padding: 1.1rem;
+      box-shadow: var(--shadow), 0 0 0 1px rgba(56, 189, 248, 0.06);
+      padding: 1rem;
       display: grid;
-      gap: 0.85rem;
+      gap: 0.75rem;
       transform-origin: bottom right;
       transform: scale(0.86) translateY(12px);
       opacity: 0;
@@ -280,10 +376,7 @@
         visibility 0s linear 0s;
     }
 
-    .live-fab-panel-head {
-      display: grid;
-      gap: 0.35rem;
-    }
+    .live-fab-panel-head { display: grid; gap: 0.3rem; }
 
     .live-fab-panel-top {
       display: flex;
@@ -295,153 +388,135 @@
     .live-fab-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.52rem;
-      height: 46px;
-      padding: 0 1.1rem;
-      border-radius: 999px;
+      gap: 0.5rem;
+      height: 40px;
+      padding: 0 1rem;
+      border-radius: 10px;
       border: 1px solid var(--border-strong);
-      background: rgba(4, 8, 18, 0.95);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.48),
-        0 0 28px rgba(132, 207, 255, 0.08);
+      background: rgba(11, 17, 32, 0.95);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
       cursor: pointer;
-      color: var(--accent);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      color: var(--muted-strong);
+      transition: transform 0.18s, box-shadow 0.18s;
     }
 
     .live-fab-btn:hover {
       transform: translateY(-2px);
-      box-shadow:
-        0 14px 44px rgba(0, 0, 0, 0.56),
-        0 0 40px rgba(132, 207, 255, 0.16);
-      background: rgba(6, 12, 26, 0.98);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
     }
 
     .live-fab-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 10px var(--accent), 0 0 22px rgba(132, 207, 255, 0.45);
+      background: var(--secondary);
+      box-shadow: 0 0 8px var(--secondary);
       animation: pulse-dot 2s ease-in-out infinite;
       flex-shrink: 0;
     }
 
     .live-fab-label {
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.13em;
-      color: var(--accent);
     }
 
     .live-fab-chevron {
-      font-size: 0.6rem;
+      font-size: 0.58rem;
       color: var(--muted);
       transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
-      line-height: 1;
     }
 
-    .live-fab.is-open .live-fab-chevron {
-      transform: rotate(180deg);
-    }
+    .live-fab.is-open .live-fab-chevron { transform: rotate(180deg); }
 
     .global-live-title {
       color: var(--text);
-      font-family: var(--font-heading);
-      font-size: 0.94rem;
+      font-size: 0.88rem;
       font-weight: 600;
-      line-height: 1.3;
     }
 
     .global-live-copy {
       color: var(--muted);
-      font-size: 0.81rem;
-      line-height: 1.55;
+      font-size: 0.76rem;
+      line-height: 1.5;
     }
 
     .global-live-status {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.28rem 0.68rem;
-      border-radius: 999px;
+      gap: 0.35rem;
+      padding: 0.2rem 0.58rem;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      background: rgba(132, 207, 255, 0.07);
-      color: var(--accent);
+      background: rgba(56, 189, 248, 0.07);
+      color: var(--primary);
       white-space: nowrap;
-      font-size: 0.72rem;
+      font-size: 0.67rem;
       flex-shrink: 0;
     }
 
     .global-live-status::before {
       content: "";
-      width: 0.44rem;
-      height: 0.44rem;
-      border-radius: 999px;
-      background: currentColor;
-      box-shadow: 0 0 10px currentColor;
+      width: 0.38rem;
+      height: 0.38rem;
+      border-radius: 50%;
+      background: var(--secondary);
       animation: pulse-dot 2s ease-in-out infinite;
     }
 
     .global-live-metrics {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.55rem;
+      gap: 0.45rem;
     }
 
     .global-live-metric {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 14px;
-      padding: 0.72rem 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.6rem 0.7rem;
     }
 
     .global-live-metric-label {
       color: var(--muted);
-      font-size: 0.68rem;
-      letter-spacing: 0.08em;
+      font-size: 0.63rem;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
     }
 
     .global-live-metric-value {
       color: var(--text);
-      font-family: var(--font-heading);
-      font-size: 1.08rem;
+      font-size: 0.98rem;
       font-weight: 600;
-      margin-top: 0.28rem;
-      line-height: 1.2;
+      margin-top: 0.18rem;
       word-break: break-word;
     }
 
-    .global-live-feed {
-      display: grid;
-      gap: 0.48rem;
-    }
+    .global-live-feed { display: grid; gap: 0.38rem; }
 
     .global-live-row {
       display: flex;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: 0.55rem;
       align-items: flex-start;
-      padding: 0.7rem 0.8rem;
-      border-radius: 13px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
     }
 
     .global-live-row-copy {
       color: var(--text);
-      font-size: 0.82rem;
-      line-height: 1.45;
+      font-size: 0.76rem;
+      line-height: 1.4;
       word-break: break-word;
       flex: 1;
     }
 
     .global-live-row-meta {
       color: var(--muted);
-      font-size: 0.72rem;
+      font-size: 0.66rem;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -449,25 +524,29 @@
     .live-placeholder {
       position: relative;
       overflow: hidden;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 16px;
-      min-height: 84px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      min-height: 70px;
     }
+
+    .live-placeholder.line { min-height: 50px; }
 
     .live-placeholder::after {
       content: "";
       position: absolute;
       inset: 0;
       transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
-      animation: live-shimmer 1.35s ease-in-out infinite;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+      animation: live-shimmer 1.4s ease-in-out infinite;
     }
 
-    .live-placeholder.line {
-      min-height: 58px;
+    @keyframes live-shimmer {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
     }
 
+    /* â”€â”€ DESKTOP MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .desktop-modal {
       position: fixed;
       inset: 0;
@@ -476,110 +555,79 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(2, 4, 10, 0.68);
+      background: rgba(15, 23, 42, 0.72);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
 
-    .desktop-modal.is-open {
-      display: flex;
-    }
+    .desktop-modal.is-open { display: flex; }
 
     .desktop-modal-card {
-      width: min(520px, 100%);
-      padding: 1.15rem 1.15rem 1rem;
-      border-radius: 24px;
-      border: 1px solid var(--border);
-      background: rgba(6, 12, 22, 0.96);
+      width: min(500px, 100%);
+      padding: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
       box-shadow: var(--shadow);
     }
 
     .desktop-modal-title {
       color: var(--text);
       font-family: var(--font-heading);
-      font-size: 1.08rem;
-      font-weight: 600;
-      margin-bottom: 0.45rem;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
     }
 
     .desktop-modal-copy {
       color: var(--muted);
       line-height: 1.65;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
 
     .desktop-modal-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 0.65rem;
-      margin-top: 1rem;
+      margin-top: 1.25rem;
     }
 
     .desktop-modal-btn {
-      min-height: 40px;
-      padding: 0.45rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text);
+      min-height: 38px;
+      padding: 0.4rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--primary);
       cursor: pointer;
-      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: background 0.14s;
     }
 
-    .desktop-modal-btn:hover {
-      background: rgba(132, 207, 255, 0.1);
-      border-color: var(--border-strong);
-      transform: translateY(-1px);
-    }
+    .desktop-modal-btn:hover { background: rgba(56, 189, 248, 0.18); }
 
-    @keyframes live-shimmer {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(100%); }
-    }
-
+    /* â”€â”€ LANGUAGE VISIBILITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     html[data-lang="en"] .th-text { display: none !important; }
     html[data-lang="th"] .en-text { display: none !important; }
 
-    @media (max-width: 980px) {
-      .nav-shell {
-        border-radius: 28px;
-        align-items: flex-start;
-        flex-direction: column;
+    /* â”€â”€ MOBILE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
       }
-
-      .nav-right,
-      .nav-links {
-        width: 100%;
-        justify-content: flex-start;
-      }
+      .sidebar.is-open { transform: translateX(0); }
+      .main-wrap { margin-left: 0; }
+      .topbar { padding: 0 1rem; }
     }
 
     @media (max-width: 640px) {
-      nav {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-
-      .page-shell {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-
-      .live-fab {
-        bottom: 1rem;
-        right: 1rem;
-      }
-
-      .live-fab-panel {
-        max-height: 65vh;
-      }
+      .page-content { padding: 1rem 1rem 1.4rem; }
+      .live-fab { bottom: 1rem; right: 1rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      *,
-      *::before,
-      *::after {
+      *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
@@ -591,61 +639,109 @@
 <body>
   <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
 
-  <nav>
-    <div class="nav-shell">
-      <a class="brand" href="/" aria-label="SiamQuantum Atlas">
-        <span class="brand-logo" aria-hidden="true">
-          <img src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas logo">
-        </span>
-        <span class="brand-mark">SQ</span>
-        <span class="brand-copy">
-          <span class="brand-title">SiamQuantum Atlas</span>
-          <span class="brand-subtitle">
-            <span class="th-text">แพลตฟอร์มสำรวจสัญญาณควอนตัมไทย</span>
-            <span class="en-text">Thai Quantum Research Signal Platform</span>
-          </span>
-        </span>
+  <!-- â”€â”€ SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/" aria-label="SiamQuantum Atlas">
+      <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="">
+      <div>
+        <div class="sidebar-brand-name">SiamQuantum Atlas</div>
+        <div class="sidebar-brand-sub">
+          <span class="th-text">à¹à¸žà¸¥à¸•à¸Ÿà¸­à¸£à¹Œà¸¡à¸§à¸´à¸ˆà¸±à¸¢à¸„à¸§à¸­à¸™à¸•à¸±à¸¡à¹„à¸—à¸¢</span>
+          <span class="en-text">Thai Quantum Research Platform</span>
+        </div>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <div class="nav-section-label">
+        <span class="th-text">à¹€à¸¡à¸™à¸¹à¸«à¸¥à¸±à¸</span>
+        <span class="en-text">Main</span>
+      </div>
+
+      <a class="nav-item {% if active == 'overview' %}active{% endif %}" href="/overview">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5Z"/><path d="M9 21V12h6v9"/></svg>
+        <span class="th-text">à¸ à¸²à¸žà¸£à¸§à¸¡</span><span class="en-text">Overview</span>
       </a>
-      <div class="nav-right">
+
+      <a class="nav-item {% if active == 'dashboard' %}active{% endif %}" href="/dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20Z"/><path d="M9 4v13.5"/><path d="M15 6.5V20"/></svg>
+        <span class="th-text">à¹à¸œà¸™à¸—à¸µà¹ˆ</span><span class="en-text">Source Map</span>
+      </a>
+
+      <a class="nav-item {% if active == 'network' %}active{% endif %}" href="/network">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="17" r="2.2"/><path d="M8 8.2L10.5 15"/><path d="M16 7.2L13.5 15"/><path d="M8.2 7h7.6"/></svg>
+        <span class="th-text">à¹€à¸„à¸£à¸·à¸­à¸‚à¹ˆà¸²à¸¢</span><span class="en-text">Topic Network</span>
+      </a>
+
+      <a class="nav-item {% if active == 'analytics' %}active{% endif %}" href="/analytics">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="th-text">à¸ªà¸–à¸´à¸•à¸´</span><span class="en-text">Trends</span>
+      </a>
+
+      <a class="nav-item {% if active == 'database' %}active{% endif %}" href="/database">
+        <svg class="nav-icon" viewBox="0 0 24 24"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"/><path d="M5 11.5v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"/></svg>
+        <span class="th-text">à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥</span><span class="en-text">Source Library</span>
+      </a>
+
+      <a class="nav-item {% if active == 'community' %}active{% endif %}" href="/submit-data">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="th-text">Submit Data</span><span class="en-text">Submit Data</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="profile-badge" data-profile-link href="/profile" style="width:100%;justify-content:flex-start;">
+        <div class="profile-avatar" data-profile-avatar>PR</div>
+        <span class="th-text" data-profile-name>Profile</span>
+        <span class="en-text" data-profile-name>Profile</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- â”€â”€ MAIN WRAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div class="main-wrap">
+
+    <!-- TOP HEADER -->
+    <header class="topbar">
+      <div class="topbar-title">
+        {% block page_title %}
+          <span class="th-text">SiamQuantum Atlas</span>
+          <span class="en-text">SiamQuantum Atlas</span>
+        {% endblock %}
+      </div>
+      <div class="topbar-right">
         <div class="lang-toggle" role="group" aria-label="Language">
           <button class="lang-btn" id="btn-th" type="button" aria-pressed="true" onclick="setLang('th')">TH</button>
           <button class="lang-btn" id="btn-en" type="button" aria-pressed="false" onclick="setLang('en')">EN</button>
         </div>
-        <div class="nav-links">
-          <a href="/" {% if active == 'home' %}class="active"{% endif %}>
-            <span class="th-text">หน้าแรก</span><span class="en-text">Home</span>
-          </a>
-          <a href="/dashboard" {% if active == 'dashboard' %}class="active"{% endif %}>
-            <span class="th-text">แผนที่</span><span class="en-text">Map</span>
-          </a>
-          <a href="/network" {% if active == 'network' %}class="active"{% endif %}>
-            <span class="th-text">เครือข่าย</span><span class="en-text">Network</span>
-          </a>
-          <a href="/analytics" {% if active == 'analytics' %}class="active"{% endif %}>
-            <span class="th-text">สถิติ</span><span class="en-text">Analytics</span>
-          </a>
-          <a href="/database" {% if active == 'database' %}class="active"{% endif %}>
-            <span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span>
-          </a>
-          <a href="/community" {% if active == 'community' %}class="active"{% endif %}>
-            <span class="th-text">ชุมชน</span><span class="en-text">Community</span>
-          </a>
-        </div>
+        <button class="topbar-icon-btn" type="button" aria-label="Notifications">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
+        <a class="profile-badge" data-profile-link href="/profile">
+          <div class="profile-avatar" data-profile-avatar>PR</div>
+          <span class="th-text" data-profile-name>Profile</span>
+          <span class="en-text" data-profile-name>Profile</span>
+        </a>
       </div>
-    </div>
-  </nav>
+    </header>
 
-  {% block body %}{% endblock %}
+    <!-- PAGE BODY -->
+    <main class="page-content">
+      {% block body %}{% endblock %}
+    </main>
+  </div>
 
-  <!-- Floating live-data panel ──────────────────────────────────────────── -->
+  <!-- â”€â”€ LIVE FAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div class="live-fab" id="live-fab">
     <div class="live-fab-panel" id="live-fab-panel" role="region" aria-label="Live page data" aria-hidden="true">
       <div class="live-fab-panel-head">
         <div class="live-fab-panel-top">
-          <div class="global-live-title" id="global-live-title">Live page data</div>
+          <div class="global-live-title" id="global-live-title">Page Status</div>
           <div class="global-live-status" id="global-live-status">Loading</div>
         </div>
-        <div class="global-live-copy" id="global-live-copy">Reading the real backend state for this page.</div>
+        <div class="global-live-copy" id="global-live-copy">Reading the latest data for this page.</div>
       </div>
       <div class="global-live-metrics" id="global-live-metrics">
         <div class="live-placeholder" aria-hidden="true"></div>
@@ -660,30 +756,39 @@
     </div>
     <button class="live-fab-btn" id="global-live-toggle" type="button" aria-expanded="false" aria-controls="live-fab-panel" aria-label="Toggle live data panel">
       <span class="live-fab-dot"></span>
-      <span class="live-fab-label">LIVE</span>
-      <span class="live-fab-chevron">▲</span>
+      <span class="live-fab-label">STATUS</span>
+      <span class="live-fab-chevron">â–²</span>
     </button>
   </div>
 
+  <!-- â”€â”€ DESKTOP MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div class="desktop-modal" id="desktop-modal" role="dialog" aria-modal="true" aria-labelledby="desktop-modal-title">
     <div class="desktop-modal-card">
       <div class="desktop-modal-title" id="desktop-modal-title">
-        <span class="th-text">แนะนำให้เปิดบนคอมพิวเตอร์</span>
+        <span class="th-text">à¹à¸™à¸°à¸™à¸³à¹ƒà¸«à¹‰à¹€à¸›à¸´à¸”à¸šà¸™à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œ</span>
         <span class="en-text">Best Viewed On Desktop</span>
       </div>
       <div class="desktop-modal-copy">
-        <span class="th-text">เว็บนี้ออกแบบมาให้เห็นเครือข่าย แผนที่ และแผงวิเคราะห์ได้ชัดที่สุดบนคอมพิวเตอร์หรือหน้าจอขนาดใหญ่</span>
-        <span class="en-text">This site is recommended on a computer or larger screen for the clearest map, network, and analysis experience.</span>
+        <span class="th-text">à¹€à¸§à¹‡à¸šà¸™à¸µà¹‰à¸­à¸­à¸à¹à¸šà¸šà¸¡à¸²à¹ƒà¸«à¹‰à¹€à¸«à¹‡à¸™à¹€à¸„à¸£à¸·à¸­à¸‚à¹ˆà¸²à¸¢ à¹à¸œà¸™à¸—à¸µà¹ˆ à¹à¸¥à¸°à¹à¸œà¸‡à¸§à¸´à¹€à¸„à¸£à¸²à¸°à¸«à¹Œà¹„à¸”à¹‰à¸Šà¸±à¸”à¸—à¸µà¹ˆà¸ªà¸¸à¸”à¸šà¸™à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¸«à¸£à¸·à¸­à¸«à¸™à¹‰à¸²à¸ˆà¸­à¸‚à¸™à¸²à¸”à¹ƒà¸«à¸à¹ˆ</span>
+        <span class="en-text">This platform is optimized for desktop or larger screens to display maps, network graphs, and analysis panels at their best.</span>
       </div>
       <div class="desktop-modal-actions">
         <button class="desktop-modal-btn" id="desktop-modal-close" type="button">
-          <span class="th-text">เข้าเว็บต่อ</span>
-          <span class="en-text">Continue</span>
+          <span class="th-text">à¹€à¸‚à¹‰à¸²à¹€à¸§à¹‡à¸šà¸•à¹ˆà¸­</span>
+          <span class="en-text">Continue Anyway</span>
         </button>
       </div>
     </div>
   </div>
 
+  <script type="module">
+    import { loadAuthState, subscribeAuthChanges } from "/static/js/auth.js";
+
+    await loadAuthState();
+    subscribeAuthChanges(async () => {
+      await loadAuthState();
+    });
+  </script>
   <script>
     function setLang(lang) {
       document.documentElement.dataset.lang = lang;
@@ -723,17 +828,17 @@
       }
 
       function relTime(value) {
-        if (!value) return copyForLang("ไม่พบเวลา", "No timestamp");
+        if (!value) return copyForLang("à¹„à¸¡à¹ˆà¸žà¸šà¹€à¸§à¸¥à¸²", "No timestamp");
         var ms = Date.now() - new Date(value).getTime();
         if (!isFinite(ms)) return value;
         var seconds = Math.max(Math.round(ms / 1000), 0);
-        if (seconds < 60) return copyForLang("เมื่อสักครู่", "just now");
+        if (seconds < 60) return copyForLang("à¹€à¸¡à¸·à¹ˆà¸­à¸ªà¸±à¸à¸„à¸£à¸¹à¹ˆ", "just now");
         var minutes = Math.round(seconds / 60);
-        if (minutes < 60) return copyForLang(minutes + " นาทีที่แล้ว", minutes + " min ago");
+        if (minutes < 60) return copyForLang(minutes + " à¸™à¸²à¸—à¸µà¸—à¸µà¹ˆà¹à¸¥à¹‰à¸§", minutes + " min ago");
         var hours = Math.round(minutes / 60);
-        if (hours < 24) return copyForLang(hours + " ชั่วโมงที่แล้ว", hours + " hr ago");
+        if (hours < 24) return copyForLang(hours + " à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡à¸—à¸µà¹ˆà¹à¸¥à¹‰à¸§", hours + " hr ago");
         var days = Math.round(hours / 24);
-        return copyForLang(days + " วันที่แล้ว", days + " day ago");
+        return copyForLang(days + " à¸§à¸±à¸™à¸—à¸µà¹ˆà¹à¸¥à¹‰à¸§", days + " day ago");
       }
 
       function fmt(n) {
@@ -779,7 +884,7 @@
 
       function setLoadingPanel() {
         if (!els.metrics || !els.feed || !els.status) return;
-        els.status.textContent = copyForLang("กำลังโหลด", "Loading");
+        els.status.textContent = copyForLang("à¸à¸³à¸¥à¸±à¸‡à¹‚à¸«à¸¥à¸”", "Loading");
         els.metrics.innerHTML = new Array(4).fill('<div class="live-placeholder" aria-hidden="true"></div>').join("");
         els.feed.innerHTML = new Array(2).fill('<div class="live-placeholder line" aria-hidden="true"></div>').join("");
       }
@@ -792,6 +897,7 @@
 
       function maybeOpenDesktopModal() {
         if (!els.desktopModal) return;
+        if (window.location.pathname !== "/") return;
         if (sessionStorage.getItem("sq-desktop-hint-seen") === "true") return;
         els.desktopModal.classList.add("is-open");
       }
@@ -814,7 +920,7 @@
               '</article>';
             }).join("")
           : '<article class="global-live-row"><div class="global-live-row-copy">' +
-              escapeHtml(copyForLang("ยังไม่มีสัญญาณข้อมูลสดสำหรับหน้านี้", "No live backend signal is available for this page yet.")) +
+              escapeHtml(copyForLang("à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸”à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹‰à¸²à¸™à¸µà¹‰", "No live data available for this page yet.")) +
             '</div></article>';
       }
 
@@ -835,20 +941,17 @@
           var geo = await geoPayload.json();
           var pipeline = await fetchJson("/api/pipeline/live");
           return {
-            title: copyForLang("สถานะข้อมูลของหน้าแผนที่", "Live map data pull"),
-            copy: copyForLang("หน้านี้อ่านข้อมูลพิกัดจริงจาก /api/geo/list และเทียบกับ intake ล่าสุดในฐานข้อมูล", "This page reads real geolocation rows from /api/geo/list and compares them with the latest intake state."),
-            status: copyForLang("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¹à¸œà¸™à¸—à¸µà¹ˆ", "Map Status"),
+            copy: copyForLang("à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸žà¸´à¸à¸±à¸”à¸ˆà¸£à¸´à¸‡à¹à¸¥à¸°à¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸£à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹ˆà¸²à¸ªà¸¸à¸”", "Live location data and latest collection state."),
+            status: copyForLang("à¸£à¸µà¹€à¸Ÿà¸£à¸Š " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
             metrics: [
-              { label: copyForLang("พิกัดพร้อมใช้", "Geo rows"), value: fmt(geo.count || 0) },
-              { label: copyForLang("ดึงเข้าคอร์ปัส", "Fetched"), value: fmt(pipeline.overview.total_sources || 0) },
-              { label: copyForLang("ผูกพิกัดแล้ว", "Geocoded"), value: fmt(pipeline.overview.geocoded_sources || 0) },
-              { label: copyForLang("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+              { label: copyForLang("à¸ˆà¸¸à¸”à¸žà¸´à¸à¸±à¸”", "Locations"), value: fmt(geo.count || 0) },
+              { label: copyForLang("à¹€à¸à¹‡à¸šà¹à¸¥à¹‰à¸§", "Collected"), value: fmt(pipeline.overview.total_sources || 0) },
+              { label: copyForLang("à¸œà¸¹à¸à¸žà¸´à¸à¸±à¸”", "Mapped"), value: fmt(pipeline.overview.geocoded_sources || 0) },
+              { label: copyForLang("à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
             ],
             feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
-              return {
-                copy: item.title || item.url,
-                meta: (item.platform || "?") + " · " + relTime(item.fetched_at)
-              };
+              return { copy: item.title || item.url, meta: (item.platform || "?") + " Â· " + relTime(item.fetched_at) };
             })
           };
         }
@@ -858,20 +961,17 @@
           var metrics = await fetchJson("/api/graph/metrics");
           var pipelineNet = await fetchJson("/api/pipeline/live");
           return {
-            title: copyForLang("สถานะข้อมูลของหน้าเครือข่าย", "Live network data pull"),
-            copy: copyForLang("หน้าเครือข่ายดึงโหนดและความสัมพันธ์จริงจาก /api/graph พร้อมตัวชี้วัดจาก /api/graph/metrics", "The network page pulls real nodes and relations from /api/graph with graph metrics from /api/graph/metrics."),
-            status: copyForLang("อัปเดตกราฟ " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at), "Graph updated " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at)),
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¹€à¸„à¸£à¸·à¸­à¸‚à¹ˆà¸²à¸¢", "Network Status"),
+            copy: copyForLang("à¹‚à¸«à¸™à¸”à¹à¸¥à¸°à¸„à¸§à¸²à¸¡à¸ªà¸±à¸¡à¸žà¸±à¸™à¸˜à¹Œà¸ˆà¸£à¸´à¸‡à¸ˆà¸²à¸à¸à¸£à¸²à¸Ÿ Concept Network", "Live topic and connection counts from the network view."),
+            status: copyForLang("à¸­à¸±à¸›à¹€à¸”à¸• " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at), "Updated " + relTime(pipelineNet.overview.latest_analysis_at || pipelineNet.overview.latest_fetch_at)),
             metrics: [
-              { label: copyForLang("โหนด", "Nodes"), value: fmt(safeArray(graph.nodes).length) },
-              { label: copyForLang("เส้นเชื่อม", "Links"), value: fmt(safeArray(graph.links).length) },
-              { label: copyForLang("คอมโพเนนต์", "Components"), value: fmt(metrics.components || 0) },
-              { label: copyForLang("ฮับหลัก", "Top hub"), value: (metrics.hub_interpretation && metrics.hub_interpretation.degree_hub && metrics.hub_interpretation.degree_hub.label) || "-" }
+              { label: copyForLang("à¹‚à¸«à¸™à¸”", "Nodes"), value: fmt(safeArray(graph.nodes).length) },
+              { label: copyForLang("à¹€à¸ªà¹‰à¸™à¹€à¸Šà¸·à¹ˆà¸­à¸¡", "Links"), value: fmt(safeArray(graph.links).length) },
+              { label: copyForLang("à¸à¸¥à¸¸à¹ˆà¸¡", "Clusters"), value: fmt(metrics.components || 0) },
+              { label: copyForLang("à¹‚à¸«à¸™à¸”à¸«à¸¥à¸±à¸", "Top Node"), value: (metrics.hub_interpretation && metrics.hub_interpretation.degree_hub && metrics.hub_interpretation.degree_hub.label) || "-" }
             ],
             feed: safeArray(metrics.top_degree).slice(0, 3).map(function (item) {
-              return {
-                copy: item.label || "-",
-                meta: copyForLang("degree centrality ", "degree centrality ") + fmt(item.score)
-              };
+              return { copy: item.label || "-", meta: "score " + fmt(item.score) };
             })
           };
         }
@@ -880,20 +980,17 @@
           var yearly = await fetchJson("/api/stats/yearly");
           var tax = await fetchJson("/api/taxonomy/stats");
           return {
-            title: copyForLang("สถานะข้อมูลของหน้า analytics", "Live analytics data pull"),
-            copy: copyForLang("หน้านี้ใช้ผลวิเคราะห์รายปีจาก /api/stats/yearly และชั้น taxonomy จาก /api/taxonomy/stats", "This page uses yearly analysis from /api/stats/yearly and taxonomy detail from /api/taxonomy/stats."),
-            status: copyForLang("รีเฟรชข้อมูลวิเคราะห์แล้ว", "Analytics data refreshed"),
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¸ªà¸–à¸´à¸•à¸´", "Analytics Status"),
+            copy: copyForLang("à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸™à¸§à¹‚à¸™à¹‰à¸¡à¸£à¸²à¸¢à¸›à¸µà¹à¸¥à¸°à¸à¸²à¸£à¸ˆà¸±à¸”à¸à¸¥à¸¸à¹ˆà¸¡à¸«à¸±à¸§à¸‚à¹‰à¸­", "Yearly trend data and topic group status."),
+            status: copyForLang("à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸žà¸£à¹‰à¸­à¸¡à¹à¸¥à¹‰à¸§", "Data ready"),
             metrics: [
-              { label: copyForLang("ปีที่มีข้อมูล", "Years"), value: fmt(safeArray(yearly.years).length) },
-              { label: copyForLang("คู่เปรียบเทียบ", "Pairwise"), value: fmt(safeArray(yearly.pairwise).length) },
-              { label: copyForLang("แนวโน้ม", "Trend"), value: (yearly.trend && yearly.trend.mannkendall_trend) || "-" },
-              { label: "Taxonomy", value: tax["insight:strongest_trend"] ? "ready" : "partial" }
+              { label: copyForLang("à¸›à¸µà¸—à¸µà¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥", "Years"), value: fmt(safeArray(yearly.years).length) },
+              { label: copyForLang("à¸„à¸¹à¹ˆà¹€à¸›à¸£à¸µà¸¢à¸šà¹€à¸—à¸µà¸¢à¸š", "Pairs"), value: fmt(safeArray(yearly.pairwise).length) },
+              { label: copyForLang("à¹à¸™à¸§à¹‚à¸™à¹‰à¸¡", "Trend"), value: (yearly.trend && yearly.trend.mannkendall_trend) || "-" },
+              { label: "Topics", value: tax["insight:strongest_trend"] ? "ready" : "partial" }
             ],
             feed: safeArray(yearly.pairwise).slice(0, 3).map(function (item) {
-              return {
-                copy: item.year_a + " vs " + item.year_b,
-                meta: "ratio " + fmt(item.ratio)
-              };
+              return { copy: item.year_a + " vs " + item.year_b, meta: "ratio " + fmt(item.ratio) };
             })
           };
         }
@@ -902,42 +999,36 @@
           var sources = await fetchJson("/api/sources?page=1&page_size=5");
           var taxonomy = await fetchJson("/api/taxonomy/summary");
           return {
-            title: copyForLang("สถานะข้อมูลของหน้าฐานข้อมูล", "Live database data pull"),
-            copy: copyForLang("หน้าฐานข้อมูลอ่านแถวจริงจาก /api/sources และตัวเลือกกรองจาก /api/taxonomy/summary", "The database page reads real rows from /api/sources and filter options from /api/taxonomy/summary."),
-            status: copyForLang("รีเฟรชรายการล่าสุดแล้ว", "Latest rows refreshed"),
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥", "Library Status"),
+            copy: copyForLang("à¸£à¸²à¸¢à¸à¸²à¸£à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¸°à¸•à¸±à¸§à¹€à¸¥à¸·à¸­à¸à¸à¸£à¸­à¸‡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”", "Latest saved sources and filter options."),
+            status: copyForLang("à¸­à¸±à¸›à¹€à¸”à¸•à¹à¸¥à¹‰à¸§", "Updated"),
             metrics: [
-              { label: copyForLang("แถวทั้งหมด", "Total rows"), value: fmt(sources.total || 0) },
-              { label: copyForLang("โหลดรอบนี้", "Loaded"), value: fmt(safeArray(sources.items).length) },
-              { label: "Media formats", value: fmt(safeArray(taxonomy.media_format).length) },
-              { label: "User intents", value: fmt(safeArray(taxonomy.user_intent).length) }
+              { label: copyForLang("à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”", "Total"), value: fmt(sources.total || 0) },
+              { label: copyForLang("à¹‚à¸«à¸¥à¸”à¹à¸¥à¹‰à¸§", "Loaded"), value: fmt(safeArray(sources.items).length) },
+              { label: "Formats", value: fmt(safeArray(taxonomy.media_format).length) },
+              { label: "Intent types", value: fmt(safeArray(taxonomy.user_intent).length) }
             ],
             feed: safeArray(sources.items).slice(0, 3).map(function (item) {
-              return {
-                copy: item.title || item.url,
-                meta: (item.platform || "?") + " · " + fmt(item.published_year)
-              };
+              return { copy: item.title || item.url, meta: (item.platform || "?") + " Â· " + fmt(item.published_year) };
             })
           };
         }
 
-        if (path === "/community") {
-          var submissions = await fetchJson("/api/community/submissions");
+        if (path === "/community" || path === "/submit-data") {
+          var submissions = await fetchJson("/api/submitted-data/public");
           var queueItems = safeArray(submissions.items);
           return {
-            title: copyForLang("สถานะข้อมูลของหน้าชุมชน", "Live community queue pull"),
-            copy: copyForLang("หน้าชุมชนอ่านคิวจริงจาก /api/community/submissions และแสดงสถานะ intake ล่าสุด", "The community page reads the real queue from /api/community/submissions and shows the latest intake states."),
-            status: copyForLang("รีเฟรชคิวแล้ว", "Queue refreshed"),
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¸„à¸´à¸§", "Queue Status"),
+            copy: copyForLang("à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¹ˆà¸‡à¸ˆà¸²à¸à¸Šà¸¸à¸¡à¸Šà¸™à¹à¸¥à¸°à¸ªà¸–à¸²à¸™à¸°à¸¥à¹ˆà¸²à¸ªà¸¸à¸”", "Community submissions and current processing status."),
+            status: copyForLang("à¸­à¸±à¸›à¹€à¸”à¸•à¸„à¸´à¸§à¹à¸¥à¹‰à¸§", "Queue updated"),
             metrics: [
-              { label: copyForLang("รายการล่าสุด", "Recent items"), value: fmt(queueItems.length) },
-              { label: "Queued", value: fmt(queueItems.filter(function (item) { return String(item.status).indexOf("queued") === 0 || item.status === "pending"; }).length) },
-              { label: "Processed", value: fmt(queueItems.filter(function (item) { return item.status === "processed"; }).length) },
-              { label: "Failed", value: fmt(queueItems.filter(function (item) { return item.status === "failed"; }).length) }
+              { label: copyForLang("à¸£à¸²à¸¢à¸à¸²à¸£à¸¥à¹ˆà¸²à¸ªà¸¸à¸”", "Recent"), value: fmt(queueItems.length) },
+              { label: "Approved", value: fmt(queueItems.filter(function (i) { return i.status === "approved"; }).length) },
+              { label: "Done", value: fmt(queueItems.filter(function (i) { return i.analysis_status === "completed"; }).length) },
+              { label: "Targeted", value: fmt(queueItems.filter(function (i) { return !!i.page_target; }).length) }
             ],
             feed: queueItems.slice(0, 3).map(function (item) {
-              return {
-                copy: item.url,
-                meta: item.status || "-"
-              };
+              return { copy: item.title || item.source_url || "-", meta: (item.category || "-") + " Ã‚Â· " + (item.page_target || "general") };
             })
           };
         }
@@ -945,20 +1036,17 @@
         var summary = await fetchJson("/api/stats/summary");
         var pipeline = await fetchJson("/api/pipeline/live");
         return {
-          title: copyForLang("สถานะข้อมูลของหน้าแรก", "Live home data pull"),
-          copy: copyForLang("หน้าแรกอ่านภาพรวมคอร์ปัสจาก /api/stats/summary และ intake ล่าสุดจาก /api/pipeline/live", "The home page reads the live corpus summary from /api/stats/summary and recent intake from /api/pipeline/live."),
-          status: copyForLang("รีเฟรช " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
+          title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¸ à¸²à¸žà¸£à¸§à¸¡", "Overview Status"),
+          copy: copyForLang("à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸£à¸¸à¸›à¸„à¸¥à¸±à¸‡à¹à¸¥à¸°à¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸£à¹€à¸à¹‡à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸¥à¹ˆà¸²à¸ªà¸¸à¸”", "Archive summary and latest collection pipeline state."),
+          status: copyForLang("à¸£à¸µà¹€à¸Ÿà¸£à¸Š " + relTime(pipeline.overview.latest_fetch_at), "Refreshed " + relTime(pipeline.overview.latest_fetch_at)),
           metrics: [
-            { label: copyForLang("แหล่งข้อมูล", "Sources"), value: fmt(summary.total_sources || 0) },
-            { label: "Triplets", value: fmt(summary.total_triplets || 0) },
-            { label: "Geo", value: fmt(summary.geo_count || 0) },
-            { label: copyForLang("รอวิเคราะห์", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
+            { label: copyForLang("à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥", "Sources"), value: fmt(summary.total_sources || 0) },
+            { label: copyForLang("à¸¥à¸´à¸‡à¸à¹Œà¹à¸™à¸§à¸„à¸´à¸”", "Connections"), value: fmt(summary.total_triplets || 0) },
+            { label: copyForLang("à¸žà¸´à¸à¸±à¸”", "Mapped"), value: fmt(summary.geo_count || 0) },
+            { label: copyForLang("à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£", "Pending"), value: fmt(pipeline.overview.pending_sources || 0) }
           ],
           feed: safeArray(pipeline.recent_sources).slice(0, 3).map(function (item) {
-            return {
-              copy: item.title || item.url,
-              meta: (item.stage_label || "-") + " · " + relTime(item.fetched_at)
-            };
+            return { copy: item.title || item.url, meta: (item.stage_label || "-") + " Â· " + relTime(item.fetched_at) };
           })
         };
       }
@@ -969,28 +1057,20 @@
           setPanel(await loadPageLive());
         } catch (error) {
           setPanel({
-            title: copyForLang("สถานะข้อมูลสดของหน้านี้", "Live page data"),
-            copy: copyForLang("ระบบไม่สามารถอ่านสถานะข้อมูลจริงของหน้านี้ได้ในขณะนี้", "The app could not read the real backend state for this page right now."),
-            status: copyForLang("โหลดไม่สำเร็จ", "Unavailable"),
-            metrics: [
-              { label: "error", value: error && error.message ? error.message : "request failed" }
-            ],
+            title: copyForLang("à¸ªà¸–à¸²à¸™à¸°à¸«à¸™à¹‰à¸²à¸™à¸µà¹‰", "Page Status"),
+            copy: copyForLang("à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸­à¹ˆà¸²à¸™à¸ªà¸–à¸²à¸™à¸°à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ˆà¸£à¸´à¸‡à¸‚à¸­à¸‡à¸«à¸™à¹‰à¸²à¸™à¸µà¹‰à¹„à¸”à¹‰à¹ƒà¸™à¸‚à¸“à¸°à¸™à¸µà¹‰", "Could not read live backend state for this page right now."),
+            status: copyForLang("à¹„à¸¡à¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™", "Unavailable"),
+            metrics: [{ label: "error", value: error && error.message ? error.message : "request failed" }],
             feed: []
           });
         }
       }
 
-      if (els.liveToggle) {
-        els.liveToggle.addEventListener("click", toggleLivePanel);
-      }
-      if (els.desktopModalClose) {
-        els.desktopModalClose.addEventListener("click", closeDesktopModal);
-      }
+      if (els.liveToggle) els.liveToggle.addEventListener("click", toggleLivePanel);
+      if (els.desktopModalClose) els.desktopModalClose.addEventListener("click", closeDesktopModal);
       if (els.desktopModal) {
         els.desktopModal.addEventListener("click", function (event) {
-          if (event.target === els.desktopModal) {
-            closeDesktopModal();
-          }
+          if (event.target === els.desktopModal) closeDesktopModal();
         });
       }
 
@@ -1014,18 +1094,17 @@
           var camera = new window.THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
           camera.position.set(0, 0, 100);
 
-          var TOTAL = 320;
-          var HUB_COUNT = 40;
-          var REPEL_DIST = 58;
-          var REPEL_FORCE = 0.17;
+          var TOTAL = 280;
+          var HUB_COUNT = 36;
+          var REPEL_DIST = 52;
+          var REPEL_FORCE = 0.16;
           var fieldBounds = { x: 78, y: 46, z: 26 };
 
-          // Brand colors: Siam(blue) Quantum(violet) Atlas(cyan)
           var palette = [
-            [0.376, 0.647, 0.980],  // #60a5fa — Siam blue
-            [0.545, 0.510, 1.000],  // #8b82ff — Quantum violet
-            [0.310, 0.843, 1.000],  // #4fd7ff — Atlas cyan
-            [0.440, 0.730, 1.000],  // mid blue-cyan blend
+            [0.220, 0.745, 0.973],  // #38BDF8 primary blue
+            [0.376, 0.647, 0.980],  // #60A5FA tertiary blue
+            [0.063, 0.722, 0.506],  // #10B981 secondary green
+            [0.310, 0.843, 1.000],  // cyan blend
           ];
 
           var positions = new Float32Array(TOTAL * 3);
@@ -1036,7 +1115,6 @@
             var halfFov = (camera.fov * Math.PI / 180) * 0.5;
             var halfHeight = Math.tan(halfFov) * camera.position.z;
             var halfWidth = halfHeight * camera.aspect;
-
             fieldBounds.x = Math.max(halfWidth - 18, 42);
             fieldBounds.y = Math.max(halfHeight - 18, 28);
             fieldBounds.z = Math.min(Math.max(Math.min(fieldBounds.x, fieldBounds.y) * 0.52, 18), 34);
@@ -1049,7 +1127,7 @@
             positions[ix]     = (Math.random() * 2 - 1) * fieldBounds.x;
             positions[ix + 1] = (Math.random() * 2 - 1) * fieldBounds.y;
             positions[ix + 2] = (Math.random() * 2 - 1) * fieldBounds.z;
-            var spd = isHub ? 0.032 : 0.014;
+            var spd = isHub ? 0.030 : 0.013;
             velocities[ix]     = (Math.random() - 0.5) * spd;
             velocities[ix + 1] = (Math.random() - 0.5) * spd;
             velocities[ix + 2] = (Math.random() - 0.5) * 0.006;
@@ -1063,30 +1141,22 @@
           geo.setAttribute("position", new window.THREE.BufferAttribute(positions, 3));
           geo.setAttribute("color",    new window.THREE.BufferAttribute(pColors, 3));
 
-          // Hub particles (larger)
           var hubPositions = new Float32Array(HUB_COUNT * 3);
           var hubColors    = new Float32Array(HUB_COUNT * 3);
-          for (var i = 0; i < HUB_COUNT; i++) {
-            hubPositions[i * 3]     = positions[i * 3];
-            hubPositions[i * 3 + 1] = positions[i * 3 + 1];
-            hubPositions[i * 3 + 2] = positions[i * 3 + 2];
-            hubColors[i * 3]     = pColors[i * 3];
-            hubColors[i * 3 + 1] = pColors[i * 3 + 1];
-            hubColors[i * 3 + 2] = pColors[i * 3 + 2];
+          for (var j = 0; j < HUB_COUNT; j++) {
+            hubPositions[j * 3]     = positions[j * 3];
+            hubPositions[j * 3 + 1] = positions[j * 3 + 1];
+            hubPositions[j * 3 + 2] = positions[j * 3 + 2];
+            hubColors[j * 3]     = pColors[j * 3];
+            hubColors[j * 3 + 1] = pColors[j * 3 + 1];
+            hubColors[j * 3 + 2] = pColors[j * 3 + 2];
           }
           var hubGeo = new window.THREE.BufferGeometry();
           hubGeo.setAttribute("position", new window.THREE.BufferAttribute(hubPositions, 3));
           hubGeo.setAttribute("color",    new window.THREE.BufferAttribute(hubColors, 3));
 
-          var dotMat = new window.THREE.PointsMaterial({
-            vertexColors: true, size: 3.8, transparent: true,
-            opacity: 0.72, depthWrite: false, sizeAttenuation: false
-          });
-          var hubMat = new window.THREE.PointsMaterial({
-            vertexColors: true, size: 7.2, transparent: true,
-            opacity: 0.92, depthWrite: false, sizeAttenuation: false
-          });
-
+          var dotMat = new window.THREE.PointsMaterial({ vertexColors: true, size: 3.4, transparent: true, opacity: 0.65, depthWrite: false, sizeAttenuation: false });
+          var hubMat = new window.THREE.PointsMaterial({ vertexColors: true, size: 6.8, transparent: true, opacity: 0.88, depthWrite: false, sizeAttenuation: false });
           var dots = new window.THREE.Points(geo, dotMat);
           var hubs = new window.THREE.Points(hubGeo, hubMat);
           scene.add(dots);
@@ -1103,82 +1173,58 @@
           resize();
           window.addEventListener("resize", resize);
 
-          // Mouse tracking
           var mViewX = 0, mViewY = 0, mWorldX = 0, mWorldY = 0;
           window.addEventListener("mousemove", function (e) {
-            mViewX = e.clientX;
-            mViewY = e.clientY;
+            mViewX = e.clientX; mViewY = e.clientY;
             mWorldX = (e.clientX / window.innerWidth  - 0.5) * fieldBounds.x * 2;
             mWorldY = -(e.clientY / window.innerHeight - 0.5) * fieldBounds.y * 2;
           });
 
           function animate() {
             var arr = geo.attributes.position.array;
-
-            // Update particle physics
-            for (var i = 0; i < TOTAL; i++) {
-              var ix = i * 3;
-
-              // Mouse repulsion
-              var mdx = arr[ix]     - mWorldX;
-              var mdy = arr[ix + 1] - mWorldY;
+            for (var k = 0; k < TOTAL; k++) {
+              var kx = k * 3;
+              var mdx = arr[kx] - mWorldX, mdy = arr[kx + 1] - mWorldY;
               var md2 = mdx * mdx + mdy * mdy;
               if (md2 < REPEL_DIST * REPEL_DIST && md2 > 0.01) {
                 var md = Math.sqrt(md2);
                 var f  = REPEL_FORCE * (1 - md / REPEL_DIST);
-                velocities[ix]     += (mdx / md) * f;
-                velocities[ix + 1] += (mdy / md) * f;
+                velocities[kx]     += (mdx / md) * f;
+                velocities[kx + 1] += (mdy / md) * f;
               }
-
-              // Damping
-              velocities[ix]     *= 0.980;
-              velocities[ix + 1] *= 0.980;
-              velocities[ix + 2] *= 0.988;
-
-              // Velocity cap — prevents repulsion from launching particles off-screen
-              if (velocities[ix]     >  1.6) velocities[ix]     =  1.6;
-              if (velocities[ix]     < -1.6) velocities[ix]     = -1.6;
-              if (velocities[ix + 1] >  1.6) velocities[ix + 1] =  1.6;
-              if (velocities[ix + 1] < -1.6) velocities[ix + 1] = -1.6;
-
-              // Integrate
-              arr[ix]     += velocities[ix];
-              arr[ix + 1] += velocities[ix + 1];
-              arr[ix + 2] += velocities[ix + 2];
-
-              // Bounce — tighter bounds keep all particles within visible viewport
-              if (arr[ix]     >  fieldBounds.x) { arr[ix]     =  fieldBounds.x; velocities[ix]     *= -0.84; }
-              if (arr[ix]     < -fieldBounds.x) { arr[ix]     = -fieldBounds.x; velocities[ix]     *= -0.84; }
-              if (arr[ix + 1] >  fieldBounds.y) { arr[ix + 1] =  fieldBounds.y; velocities[ix + 1] *= -0.84; }
-              if (arr[ix + 1] < -fieldBounds.y) { arr[ix + 1] = -fieldBounds.y; velocities[ix + 1] *= -0.84; }
-              if (arr[ix + 2] >  fieldBounds.z) { arr[ix + 2] =  fieldBounds.z; velocities[ix + 2] *= -0.8; }
-              if (arr[ix + 2] < -fieldBounds.z) { arr[ix + 2] = -fieldBounds.z; velocities[ix + 2] *= -0.8; }
-
-              // Sync hub positions
-              if (i < HUB_COUNT) {
-                hubGeo.attributes.position.array[ix]     = arr[ix];
-                hubGeo.attributes.position.array[ix + 1] = arr[ix + 1];
-                hubGeo.attributes.position.array[ix + 2] = arr[ix + 2];
+              velocities[kx]     *= 0.980;
+              velocities[kx + 1] *= 0.980;
+              velocities[kx + 2] *= 0.988;
+              if (velocities[kx]     >  1.5) velocities[kx]     =  1.5;
+              if (velocities[kx]     < -1.5) velocities[kx]     = -1.5;
+              if (velocities[kx + 1] >  1.5) velocities[kx + 1] =  1.5;
+              if (velocities[kx + 1] < -1.5) velocities[kx + 1] = -1.5;
+              arr[kx]     += velocities[kx];
+              arr[kx + 1] += velocities[kx + 1];
+              arr[kx + 2] += velocities[kx + 2];
+              if (arr[kx]     >  fieldBounds.x) { arr[kx]     =  fieldBounds.x; velocities[kx]     *= -0.84; }
+              if (arr[kx]     < -fieldBounds.x) { arr[kx]     = -fieldBounds.x; velocities[kx]     *= -0.84; }
+              if (arr[kx + 1] >  fieldBounds.y) { arr[kx + 1] =  fieldBounds.y; velocities[kx + 1] *= -0.84; }
+              if (arr[kx + 1] < -fieldBounds.y) { arr[kx + 1] = -fieldBounds.y; velocities[kx + 1] *= -0.84; }
+              if (arr[kx + 2] >  fieldBounds.z) { arr[kx + 2] =  fieldBounds.z; velocities[kx + 2] *= -0.8; }
+              if (arr[kx + 2] < -fieldBounds.z) { arr[kx + 2] = -fieldBounds.z; velocities[kx + 2] *= -0.8; }
+              if (k < HUB_COUNT) {
+                hubGeo.attributes.position.array[kx]     = arr[kx];
+                hubGeo.attributes.position.array[kx + 1] = arr[kx + 1];
+                hubGeo.attributes.position.array[kx + 2] = arr[kx + 2];
               }
             }
-
-            geo.attributes.position.needsUpdate     = true;
-            hubGeo.attributes.position.needsUpdate  = true;
-
-            // Camera parallax following mouse
+            geo.attributes.position.needsUpdate    = true;
+            hubGeo.attributes.position.needsUpdate = true;
             camera.position.x += ((mViewX / window.innerWidth  - 0.5) * 10 - camera.position.x) * 0.035;
             camera.position.y += (-(mViewY / window.innerHeight - 0.5) * 7  - camera.position.y) * 0.035;
-
-            // Keep the field screen-locked so bounce matches the visible viewport.
             dots.rotation.y *= 0.96;
             dots.rotation.x *= 0.96;
             hubs.rotation.y = dots.rotation.y;
             hubs.rotation.x = dots.rotation.x;
-
             renderer.render(scene, camera);
             window.requestAnimationFrame(animate);
           }
-
           animate();
         });
       }
@@ -1186,3 +1232,4 @@
   </script>
 </body>
 </html>
+

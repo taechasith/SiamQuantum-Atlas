@@ -19,13 +19,20 @@ This repository is not a speculative product shell. It is the live baseline used
 - Stores source, geo, entity, triplet, cache, and community-submission data in SQLite.
 - Runs NLP extraction and classification in a resumable pipeline.
 - Builds taxonomy-aware statistics and graph metrics caches.
-- Serves six working pages:
-  - `/`: home and live platform overview
+- Serves the current viewer pages:
+  - `/`: landing page
   - `/dashboard`: geographic and source-overview view
   - `/network`: 3D concept network with click-through node research detail
   - `/analytics`: engagement and taxonomy analysis
   - `/database`: filtered source browser
-  - `/community`: local submission queue workflow
+  - `/submit-data`: authenticated submission and review queue entrypoint
+  - `/profile`: login, signup, and editable user profile
+  - `/admin/submitted-data`: admin review queue
+
+Compatibility redirects:
+
+- `/overview` -> `/dashboard`
+- `/community` -> `/submit-data`
 
 ## Local run
 
@@ -47,6 +54,37 @@ Run on another port:
 ```bash
 python -m siamquantum serve --port 9000
 ```
+
+## Supabase auth setup
+
+The app can use Supabase Auth for browser login, profile management, categories, and user-owned submitted data.
+
+Required local environment variables:
+
+```text
+SUPABASE_URL=...
+SUPABASE_PUBLISHABLE_KEY=...
+SUPABASE_SECRET_KEY=...
+```
+
+Notes:
+
+- `SUPABASE_PUBLISHABLE_KEY` is exposed to browser code by design.
+- `SUPABASE_SECRET_KEY` is server-only and must never be placed in templates or client-side JavaScript.
+- `.env`, `.env.local`, and `.env.*.local` are gitignored.
+
+SQL migration:
+
+- `supabase/migrations/20260429_auth_profiles_submitted_data.sql`
+
+Manual Supabase dashboard steps:
+
+1. Open the Supabase dashboard for the project.
+2. Run the SQL migration above in the SQL editor or your migration workflow.
+3. Go to `Authentication -> Providers -> Google` and enable Google.
+4. Add the Google OAuth client ID and client secret there.
+5. Add local and production redirect URLs that land back on `/profile`.
+6. In local development, make sure the app origin you use in the browser matches the redirect URL registered in Supabase.
 
 ## Operator workflow
 
@@ -72,8 +110,23 @@ Not every run needs the full sequence. The current system supports incremental o
 - Taxonomy-aware engagement summaries using nonparametric or bootstrap-oriented methods.
 - Concept graph metrics including connected components, hub interpretation, and community summaries.
 - Clickable network node detail with neighbor, relation, source, and taxonomy context.
-- Community submission persistence for local workflow use.
+- User-owned submitted data with Supabase-backed auth, profile, and review flow.
 - XLSX export for source/entity review.
+
+## Auth and submitted data
+
+Current auth and user-data behavior:
+
+- Supabase Auth handles email/password login, signup, Google login, session persistence, and logout.
+- The browser only receives `SUPABASE_PUBLISHABLE_KEY`.
+- The FastAPI server is the only place that may use `SUPABASE_SECRET_KEY`.
+- First authenticated load auto-creates a `profiles` row when needed.
+- `/submit-data` writes authenticated user-owned rows into `submitted_data`.
+- public visibility is limited to rows with:
+  - `status = 'approved'`
+  - `analysis_status = 'completed'`
+- `/profile` shows the user profile plus their own private submitted data queue.
+- `/admin/submitted-data` is intended for users whose `profiles.role = 'admin'`.
 
 ## Known limitations
 
@@ -97,8 +150,8 @@ The repo ships a read-only Vercel configuration suitable for demo use.
 
 **Demo-safe behavior:**
 
-- All read pages and APIs work normally (`/dashboard`, `/network`, `/analytics`, `/database`, `/community`, all `/api/*` endpoints).
-- Community submission (`POST /api/community/submit`) returns HTTP 503 with a clear error message — writes are not persisted on Vercel's ephemeral filesystem.
+- All read pages and APIs work normally (`/dashboard`, `/network`, `/analytics`, `/database`, `/submit-data`, all `/api/*` endpoints).
+- Submitted data writes require a stateful runtime and Supabase connectivity; read-only demo environments should not expose write-enabled submit flows.
 - SQLite is opened in read-only URI mode (`?mode=ro`) so no write lock is acquired.
 - The bundled dataset (`data/processed/siamquantum_atlas.db`) is committed to the repo and served from `/var/task`.
 

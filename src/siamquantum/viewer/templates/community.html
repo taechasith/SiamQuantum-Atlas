@@ -1,421 +1,479 @@
 {% extends "base.html" %}
-{% block title %}ชุมชนและการส่งลิงก์ | SiamQuantum Atlas{% endblock %}
+{% block title %}Submit Data | SiamQuantum Atlas{% endblock %}
 {% set active = 'community' %}
+
+{% block page_title %}
+  <span class="th-text">Submit Data</span>
+  <span class="en-text">Submit Data</span>
+{% endblock %}
 
 {% block head %}
 <style>
-  :root {
-    --panel: rgba(10, 16, 35, 0.84);
-    --panel-border: rgba(112, 147, 255, 0.24);
-    --text: #f3f7ff;
-    --muted: #99a7d3;
-    --accent: #70e1ff;
-    --accent-2: #c79bff;
-    --success: #56f39a;
-    --danger: #ff7a90;
-    --warning: #ffb347;
+  .submit-shell { display: grid; gap: 1rem; }
+  .submit-card, .submit-side, .submit-list-card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
   }
-
-  body {
-    background:
-      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
-      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
-      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
-  }
-
-  .community-shell {
-    padding: 1.5rem;
-  }
-
-  .hero-card,
-  .form-card,
-  .note-card,
-  .queue-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  .hero-card {
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .hero-grid {
+  .submit-card, .submit-side, .submit-list-card { padding: 1.2rem 1.25rem; }
+  .submit-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.95fr);
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
+    gap: 1rem;
   }
-
-  .eyebrow {
-    color: var(--accent);
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+  .submit-eyebrow {
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    margin-bottom: 0.65rem;
+  }
+  .submit-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.7rem, 3vw, 2.55rem);
+    line-height: 1.08;
     margin-bottom: 0.8rem;
   }
-
-  .hero-card h1 {
-    color: var(--text);
-    font-size: clamp(1.7rem, 3vw, 2.8rem);
-    line-height: 1.08;
-    margin-bottom: 0.75rem;
-  }
-
-  .hero-card p {
+  .submit-copy {
     color: var(--muted);
-    max-width: 68ch;
-    line-height: 1.6;
+    line-height: 1.7;
+    max-width: 64ch;
   }
-
-  .community-grid {
+  .submit-grid {
     display: grid;
-    grid-template-columns: minmax(320px, 540px) minmax(260px, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.95fr);
+    gap: 1rem;
   }
-
-  .form-card,
-  .note-card,
-  .queue-card {
-    padding: 1.25rem;
-  }
-
-  .form-card h2,
-  .note-card h2,
-  .queue-card h2 {
-    color: var(--text);
+  .submit-section-title {
     font-size: 1rem;
-    margin-bottom: 0.45rem;
+    color: var(--text);
+    margin-bottom: 0.35rem;
   }
-
-  .form-card p,
-  .note-card p,
-  .note-card li,
-  .queue-card p {
+  .submit-section-copy {
     color: var(--muted);
+    font-size: 0.88rem;
     line-height: 1.6;
+    margin-bottom: 0.95rem;
   }
-
-  .field {
-    margin-top: 1rem;
-  }
-
+  .field { margin-top: 0.9rem; }
   .field label {
     display: block;
-    color: var(--muted);
-    font-size: 0.84rem;
-    margin-bottom: 0.45rem;
+    color: var(--muted-strong);
+    font-size: 0.82rem;
+    margin-bottom: 0.4rem;
   }
-
-  .field input {
+  .field input,
+  .field select,
+  .field textarea {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 44px;
+    padding: 0.78rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
     color: var(--text);
-    border-radius: 12px;
-    padding: 0.8rem 0.9rem;
-    font-size: 0.94rem;
-    min-height: 44px;
   }
-
-  .field input:focus {
+  .field textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
     outline: none;
-    border-color: rgba(112, 225, 255, 0.55);
-    box-shadow: 0 0 0 3px rgba(112, 225, 255, 0.12);
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
   }
-
-  .actions {
-    margin-top: 1.1rem;
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
   }
-
-  .submit-btn {
-    border-radius: 12px;
-    padding: 0.82rem 1.1rem;
-    font-size: 0.94rem;
-    cursor: pointer;
-    border: 1px solid rgba(112, 225, 255, 0.34);
-    background: rgba(112, 225, 255, 0.14);
-    color: var(--accent);
+  .inline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  .primary-btn,
+  .secondary-btn {
     min-height: 44px;
-    transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
   }
-
-  .submit-btn:hover {
-    transform: translateY(-1px);
+  .primary-btn {
+    color: #04111e;
+    background: linear-gradient(135deg, #7ad7ff, #34baf0);
   }
-
-  .submit-btn:disabled {
-    opacity: 0.55;
+  .secondary-btn {
+    color: var(--primary);
+    background: rgba(56, 189, 248, 0.09);
+  }
+  .secondary-btn[disabled],
+  .primary-btn[disabled] {
+    opacity: 0.65;
     cursor: not-allowed;
   }
-
   .status-box {
     display: none;
     margin-top: 1rem;
-    padding: 0.9rem 1rem;
-    border-radius: 16px;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
     border: 1px solid transparent;
+    font-size: 0.88rem;
     line-height: 1.6;
   }
-
-  .status-box.is-visible {
-    display: block;
+  .status-box.show { display: block; }
+  .status-box.success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.22); color: #6ee7b7; }
+  .status-box.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22); color: #fda4af; }
+  .status-box.warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.22); color: #fcd34d; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 0.72rem;
+    color: var(--muted-strong);
   }
-
-  .status-success {
-    background: rgba(86, 243, 154, 0.08);
-    color: var(--success);
-    border-color: rgba(86, 243, 154, 0.28);
-  }
-
-  .status-error {
-    background: rgba(255, 122, 144, 0.08);
-    color: var(--danger);
-    border-color: rgba(255, 122, 144, 0.28);
-  }
-
-  .status-warning {
-    background: rgba(255, 179, 71, 0.08);
-    color: var(--warning);
-    border-color: rgba(255, 179, 71, 0.28);
-  }
-
-  .note-list {
-    margin: 0.75rem 0 0;
-    padding-left: 1.1rem;
-  }
-
-  .queue-list {
-    display: grid;
-    gap: 0.75rem;
-    margin-top: 0.85rem;
-  }
-
-  .queue-item {
+  .queue-list, .public-list { display: grid; gap: 0.8rem; margin-top: 0.9rem; }
+  .queue-item, .public-item {
     border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.03);
     border-radius: 14px;
-    padding: 0.85rem 0.95rem;
+    padding: 0.9rem;
+    background: rgba(255,255,255,0.03);
   }
-
-  .queue-top {
+  .item-top {
     display: flex;
     justify-content: space-between;
     gap: 0.75rem;
-    align-items: center;
-    margin-bottom: 0.35rem;
+    align-items: flex-start;
   }
-
-  .queue-status {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    padding: 0.2rem 0.65rem;
-    border-radius: 999px;
-    font-size: 0.76rem;
-    border: 1px solid rgba(255,255,255,0.12);
+  .item-title {
     color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
   }
-
-  .queue-url {
+  .item-meta,
+  .item-copy {
     color: var(--muted);
-    font-size: 0.84rem;
-    word-break: break-all;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-top: 0.3rem;
   }
-
-  @media (max-width: 920px) {
-    .community-shell {
-      padding: 1rem;
-    }
-
-    .hero-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .community-grid {
-      grid-template-columns: 1fr;
-    }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+  .hidden { display: none !important; }
+  @media (max-width: 980px) {
+    .submit-hero, .submit-grid, .field-row { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block body %}
-<section class="community-shell">
-  <div class="hero-grid">
-  <div class="hero-card" style="margin-bottom:0;">
-    <div class="eyebrow">Community Submission</div>
-    <h1>
-      <span class="th-text">ส่งลิงก์จากชุมชนเข้าสู่ระบบ</span>
-      <span class="en-text">Thai Quantum Community Submission</span>
-    </h1>
-    <p>
-      <span class="th-text">หากคุณพบบทความ ข่าว หรือวิดีโอเกี่ยวกับเทคโนโลยีควอนตัมที่เชื่อมกับประเทศไทย
-      คุณสามารถส่งลิงก์เข้ามาเพื่อให้ระบบบันทึกลงฐานข้อมูลท้องถิ่นและจัดคิว best-effort processing ได้จากหน้านี้.</span>
-      <span class="en-text">If you find an article, news item, or video about quantum technology linked to Thailand, submit the URL here to have it stored in the local database and queued for best-effort processing.</span>
-    </p>
-    <div style="margin-top:1rem;padding:0.75rem 1rem;border-radius:12px;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.28);color:#ffb347;font-size:0.85rem;display:flex;gap:0.6rem;align-items:flex-start;">
-      <span><b>Local workflow:</b> submissions persist immediately in SQLite, then move through a local queue. Automation is best-effort only and does not pretend to be fully hands-free.</span>
-    </div>
-  </div>
-  <div class="side-card">
-    <h2>Workflow states</h2>
-    <p>This page is now a real local intake workflow. It records the submission immediately, then exposes queue state instead of pretending the downstream pipeline is always automatic.</p>
-    <ul class="side-list">
-      <li><strong>queued</strong>: stored and accepted</li>
-      <li><strong>processed</strong>: follow-up work completed</li>
-      <li><strong>queued_no_source</strong> or <strong>queued_no_text</strong>: stored, but enrichment could not proceed</li>
-      <li><strong>failed</strong>: request persisted, background follow-up failed</li>
-    </ul>
-  </div>
+<section class="submit-shell">
+  <div class="submit-hero">
+    <article class="submit-card">
+      <div class="submit-eyebrow">User-Owned Intake</div>
+      <h1 class="submit-title">Submit Data into the SiamQuantum analysis queue.</h1>
+      <p class="submit-copy">Authenticated users can submit source data, assign it to a target page, and track its queue state. Public pages only surface items after review approval and completed analysis.</p>
+    </article>
+    <aside class="submit-side">
+      <div class="submit-section-title">Queue model</div>
+      <p class="submit-section-copy">New submissions start as <strong>pending</strong> with <strong>analysis_status=queued</strong>. They can progress through processing, completion, or failure, and require admin approval before they appear publicly.</p>
+      <div class="badge-row">
+        <span class="pill">queued</span>
+        <span class="pill">processing</span>
+        <span class="pill">completed</span>
+        <span class="pill">failed</span>
+      </div>
+    </aside>
   </div>
 
-  <div class="community-grid">
-    <div class="form-card">
-      <h2><span class="th-text">ฟอร์มส่งลิงก์</span><span class="en-text">Submission form</span></h2>
-      <p><span class="th-text">กรอก url และ handle ตามต้องการ ระบบจะบันทึกรายการก่อน แล้วจึงประมวลผลเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</span><span class="en-text">Fill in the URL and optional handle. The system stores the row first, then processes it in the background where the environment allows.</span></p>
+  <div class="submit-grid">
+    <article class="submit-card">
+      <div class="submit-section-title">Submit Data</div>
+      <div class="submit-section-copy">You must be logged in to create a submission. Categories come from Supabase and can be extended inline.</div>
 
-      <div class="status-box status-warning is-visible">
-        <span class="th-text">ฟีเจอร์นี้อยู่ระหว่างพัฒนา — การส่งลิงก์อาจไม่ถูกบันทึกถาวรในขณะนี้</span><span class="en-text">This feature is under active development — submissions may not persist permanently yet.</span>
+      <div id="auth-required" class="status-box warning show">
+        Login is required before you can submit data. Use the Profile page to sign in or create an account.
       </div>
 
-      <form id="community-form">
+      <div class="inline-actions" id="auth-actions">
+        <a class="secondary-btn" href="/profile">Open Profile / Login</a>
+      </div>
+
+      <form id="submit-data-form" class="hidden">
         <div class="field">
-          <label for="url">URL *</label>
-          <input id="url" name="url" type="url" placeholder="https://example.com/article-or-video" required>
+          <label for="title">Title *</label>
+          <input id="title" name="title" type="text" required>
         </div>
 
         <div class="field">
-          <label for="handle"><span class="th-text">ชื่อผู้ส่ง</span><span class="en-text">Handle</span></label>
-          <input id="handle" name="handle" type="text" placeholder="@username">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Context, findings, or relevance notes"></textarea>
         </div>
 
-        <div class="actions">
-          <button class="submit-btn" type="submit"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit</span></button>
+        <div class="field-row">
+          <div class="field">
+            <label for="source_url">Source URL</label>
+            <input id="source_url" name="source_url" type="url" placeholder="https://example.com/source">
+          </div>
+          <div class="field">
+            <label for="page_target">Page Target</label>
+            <select id="page_target" name="page_target">
+              <option value="overview">Research Atlas</option>
+              <option value="dashboard">Dashboard</option>
+              <option value="network">Discourse Map</option>
+              <option value="analytics">Temporal Analysis</option>
+              <option value="database">Source Library</option>
+              <option value="submit-data">Submit Data</option>
+            </select>
+          </div>
         </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="new-category">Add New Category</label>
+            <input id="new-category" name="new-category" type="text" placeholder="Optional new category name">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="metadata">Optional Notes / Metadata</label>
+          <textarea id="metadata" name="metadata" placeholder='JSON optional, e.g. {"priority":"high"}'></textarea>
+        </div>
+
+        <div class="inline-actions">
+          <button class="primary-btn" id="submit-data-btn" type="submit">Submit Data</button>
+          <button class="secondary-btn" id="create-category-btn" type="button">Create Category Only</button>
+        </div>
+
+        <div class="status-box" id="submit-status"></div>
       </form>
+    </article>
 
-      <div class="status-box" id="status-box"></div>
-    </div>
-
-    <div class="note-card">
-      <h2><span class="th-text">สถานะหลังส่ง</span><span class="en-text">What happens next</span></h2>
-      <p>
-        <span class="th-text">เมื่อรับ submission แล้ว ระบบจะบันทึกแถวใน community_submissions และจัดคิวทำงานเบื้องหลังเท่าที่สภาพแวดล้อมรองรับ.</span>
-        <span class="en-text">On receipt, the system saves a row in community_submissions and queues background work where the environment allows.</span>
-      </p>
-      <ul class="note-list">
-        <li><span class="th-text">รับค่า handle และ url แล้วตั้งสถานะเริ่มต้นเป็น queued</span><span class="en-text">Stores handle + URL, initial status = queued</span></li>
-        <li><span class="th-text">พยายามเรียก claude.extract_triplets หากมี source text พร้อมใช้งาน</span><span class="en-text">Attempts claude.extract_triplets if source text is available</span></li>
-        <li><span class="th-text">รีเฟรชเส้นทางวิเคราะห์ที่มีอยู่เพื่ออัปเดต stat state เท่าที่ทำได้</span><span class="en-text">Refreshes existing analysis paths to update stat state where possible</span></li>
-        <li><span class="th-text">ล้างเฉพาะ cache กลุ่ม ttest: โดยไม่กระทบ cache อื่น</span><span class="en-text">Invalidates only the ttest: cache group, leaving others intact</span></li>
-      </ul>
-    </div>
+    <aside class="submit-side">
+      <div class="submit-section-title">Your Queue Snapshot</div>
+      <div class="submit-section-copy">Recent submissions owned by the current user. Pending and failed items stay private here and on the Profile page.</div>
+      <div class="queue-list" id="my-submissions">
+        <div class="queue-item"><div class="item-copy">Login to load your submissions.</div></div>
+      </div>
+    </aside>
   </div>
 
-  <div class="queue-card" style="margin-top:1.25rem;">
-    <h2>Local Review Queue</h2>
-    <p>Recent submissions stored in SQLite. This turns the page into a real local review queue instead of a dead-end form.</p>
-    <div class="queue-list" id="queue-list">
-      <div class="queue-item"><div class="queue-url">Loading recent submissions…</div></div>
+  <article class="submit-list-card">
+    <div class="submit-section-title">Approved Public Contributions</div>
+    <div class="submit-section-copy">Only submissions with <strong>status=approved</strong> and <strong>analysis_status=completed</strong> appear here.</div>
+    <div class="public-list" id="public-submissions">
+      <div class="public-item"><div class="item-copy">Loading public contributions...</div></div>
     </div>
-  </div>
+  </article>
 </section>
 
-<script>
-  const communityDemoMode = {{ "true" if demo_mode else "false" }};
-  const form = document.getElementById("community-form");
-  const statusBox = document.getElementById("status-box");
-  const submitButton = form.querySelector("button[type='submit']");
-  const queueList = document.getElementById("queue-list");
+<script type="module">
+  import { apiFetch, loadAuthState, loginWithGoogle } from "/static/js/auth.js";
 
-  function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
+  const form = document.getElementById("submit-data-form");
+  const authRequired = document.getElementById("auth-required");
+  const authActions = document.getElementById("auth-actions");
+  const statusBox = document.getElementById("submit-status");
+  const categorySelect = document.getElementById("category");
+  const newCategoryInput = document.getElementById("new-category");
+  const metadataInput = document.getElementById("metadata");
+  const createCategoryButton = document.getElementById("create-category-btn");
+  const submitButton = document.getElementById("submit-data-btn");
+  const mySubmissions = document.getElementById("my-submissions");
+  const publicSubmissions = document.getElementById("public-submissions");
 
-  function showStatus(text, kind) {
-    statusBox.textContent = text;
-    statusBox.className = `status-box is-visible ${kind}`;
+  function showStatus(message, kind) {
+    statusBox.textContent = message;
+    statusBox.className = `status-box show ${kind}`;
   }
 
-  function renderQueue(items) {
-    if (!items.length) {
-      queueList.innerHTML = `<div class="queue-item"><div class="queue-url">No submissions stored yet.</div></div>`;
+  function renderMine(items) {
+    if (!items?.length) {
+      mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">No private submissions yet.</div></div>';
       return;
     }
-    queueList.innerHTML = items.map((item) => `
+    mySubmissions.innerHTML = items.map((item) => `
       <article class="queue-item">
-        <div class="queue-top">
-          <strong>#${item.id}</strong>
-          <span class="queue-status">${item.status}</span>
+        <div class="item-top">
+          <div class="item-title">${item.title}</div>
+          <span class="pill">${item.status} / ${item.analysis_status}</span>
         </div>
-        <div class="queue-url">${item.url}</div>
+        <div class="item-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
       </article>
     `).join("");
   }
 
-  async function loadQueue() {
+  function renderPublic(items) {
+    if (!items?.length) {
+      publicSubmissions.innerHTML = '<div class="public-item"><div class="item-copy">No approved public submissions yet.</div></div>';
+      return;
+    }
+    publicSubmissions.innerHTML = items.map((item) => `
+      <article class="public-item">
+        <div class="item-top">
+          <div class="item-title">${item.title}</div>
+          <span class="pill">${item.category}</span>
+        </div>
+        <div class="item-meta">${item.page_target || "general"} · ${item.status} / ${item.analysis_status}</div>
+        <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
+      </article>
+    `).join("");
+  }
+
+  async function loadCategories() {
     try {
-      const response = await fetch("/api/community/submissions");
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload?.error?.message || "Queue load failed");
-      renderQueue(payload.data?.items || []);
+      const data = await apiFetch("/api/categories");
+      const items = data?.items || [];
+      if (!items.length) {
+        categorySelect.innerHTML = '<option value="">No categories yet</option>';
+        return;
+      }
+      categorySelect.innerHTML = '<option value="">Select category</option>' + items.map((item) => `
+        <option value="${item.name}">${item.name}</option>
+      `).join("");
     } catch (error) {
-      queueList.innerHTML = `<div class="queue-item"><div class="queue-url">Queue unavailable: ${error.message}</div></div>`;
+      categorySelect.innerHTML = '<option value="">Categories unavailable</option>';
+      throw error;
     }
   }
 
-  if (communityDemoMode) {
-    submitButton.disabled = true;
-    submitButton.textContent = "Demo mode: disabled";
+  async function createCategoryFromInput() {
+    const name = newCategoryInput.value.trim();
+    if (!name) {
+      showStatus("Enter a new category name first.", "warning");
+      return null;
+    }
+    createCategoryButton.disabled = true;
+    try {
+      const data = await apiFetch("/api/categories", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      newCategoryInput.value = "";
+      await loadCategories();
+      if (data?.category?.name) {
+        categorySelect.value = data.category.name;
+      }
+      showStatus("Category created and added to the shared list.", "success");
+      return data?.category || null;
+    } catch (error) {
+      showStatus(error.message, "error");
+      return null;
+    } finally {
+      createCategoryButton.disabled = false;
+    }
   }
+
+  createCategoryButton.addEventListener("click", async () => {
+    await createCategoryFromInput();
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (communityDemoMode) {
-      showStatus("Community submission is disabled in Vercel demo mode because SQLite writes are not persisted there.", "status-warning");
-      return;
-    }
-    const url = document.getElementById("url").value.trim();
-    const handle = document.getElementById("handle").value.trim();
+    statusBox.className = "status-box";
 
-    if (!url) {
-      showStatus(L("กรุณาระบุ URL", "URL is required."), "status-error");
-      return;
+    if (newCategoryInput.value.trim()) {
+      const createdCategory = await createCategoryFromInput();
+      if (!createdCategory && !categorySelect.value) return;
     }
 
-    try {
-      submitButton.disabled = true;
-      submitButton.textContent = L("กำลังส่ง…", "Submitting…");
-      const response = await fetch("/api/community/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, handle: handle || null })
-      });
-
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) {
-        const message = payload && payload.error ? payload.error.message : "Submission failed";
-        showStatus(L(`ส่งข้อมูลไม่สำเร็จ: ${message}`, `Submission failed: ${message}`), "status-error");
+    let metadata = {};
+    const metadataText = metadataInput.value.trim();
+    if (metadataText) {
+      try {
+        metadata = JSON.parse(metadataText);
+      } catch (_error) {
+        showStatus("Metadata must be valid JSON when provided.", "error");
         return;
       }
+    }
 
-      const data = payload.data || {};
-      showStatus(
-        L(`รับรายการแล้ว ID=${data.id} สถานะ=${data.status}`, `Submission accepted · ID=${data.id}, status=${data.status}`),
-        "status-success"
-      );
+    submitButton.disabled = true;
+    submitButton.textContent = "Submitting...";
+    try {
+      await apiFetch("/api/submitted-data", {
+        method: "POST",
+        body: JSON.stringify({
+          title: document.getElementById("title").value.trim(),
+          description: document.getElementById("description").value.trim(),
+          source_url: document.getElementById("source_url").value.trim() || null,
+          category: categorySelect.value,
+          page_target: document.getElementById("page_target").value,
+          metadata,
+        }),
+      });
       form.reset();
-      await loadQueue();
+      await loadCategories();
+      showStatus("Submission accepted and queued for analysis.", "success");
+      const mine = await apiFetch("/api/submitted-data/mine");
+      renderMine(mine?.items || []);
     } catch (error) {
-      showStatus(L(`ระบบส่งข้อมูลล้มเหลว: ${error.message}`, `Submit failed: ${error.message}`), "status-error");
+      showStatus(error.message, "error");
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = L("ส่งข้อมูล", "Submit");
+      submitButton.textContent = "Submit Data";
     }
   });
 
-loadQueue();
+  async function initialize() {
+    try {
+      const publicData = await apiFetch("/api/submitted-data/public");
+      renderPublic(publicData?.items || []);
+    } catch (_error) {
+      renderPublic([]);
+    }
+
+    try {
+      const authState = await loadAuthState();
+      if (!authState?.enabled) {
+        form.classList.add("hidden");
+        authRequired.classList.remove("hidden");
+        authActions.classList.remove("hidden");
+        mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">Supabase is not configured on this server yet.</div></div>';
+        showStatus("Supabase is not configured on the server.", "warning");
+        return;
+      }
+
+      if (!authState?.user) {
+        form.classList.add("hidden");
+        authRequired.classList.remove("hidden");
+        authActions.classList.remove("hidden");
+        mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">Login to load your submissions.</div></div>';
+        if (authState?.degraded) {
+          showStatus("Authentication state could not be verified. Refresh the page and try again.", "warning");
+        }
+        return;
+      }
+
+      authRequired.classList.add("hidden");
+      authActions.classList.add("hidden");
+      form.classList.remove("hidden");
+
+      await loadCategories();
+      const mine = await apiFetch("/api/submitted-data/mine");
+      renderMine(mine?.items || []);
+    } catch (error) {
+      showStatus(error.message, "error");
+    }
+  }
+
+  initialize();
 </script>
 {% endblock %}

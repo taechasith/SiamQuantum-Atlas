@@ -1,74 +1,58 @@
 {% extends "base.html" %}
-{% block title %}ฐานข้อมูลแหล่งข้อมูล | SiamQuantum Atlas{% endblock %}
+{% block title %}Source Library | SiamQuantum Atlas{% endblock %}
 {% set active = 'database' %}
+
+{% block page_title %}
+  <span class="th-text">ฐานข้อมูลแหล่งข้อมูล</span>
+  <span class="en-text">Source Library</span>
+{% endblock %}
 
 {% block head %}
 <style>
   :root {
-    --panel: rgba(10, 16, 35, 0.84);
-    --panel-border: rgba(112, 147, 255, 0.24);
-    --text: #f3f7ff;
-    --muted: #99a7d3;
-    --accent: #70e1ff;
-    --accent-2: #c79bff;
-    --success: #56f39a;
-    --danger: #ff7a90;
+    --panel: var(--surface);
+    --panel-border: var(--border);
+    --accent: var(--primary);
+    --accent-2: var(--tertiary);
+    --success: var(--secondary);
   }
 
-  body {
-    background:
-      radial-gradient(circle at top left, rgba(112, 225, 255, 0.16), transparent 26%),
-      radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 22%),
-      linear-gradient(180deg, #040611 0%, #090d1c 54%, #060811 100%);
+  .database-shell { display: grid; gap: 1.35rem; }
+
+  .hero-card, .panel-card, .source-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
   }
 
-  .database-shell {
-    padding: 1.5rem;
-  }
-
-  .hero-card,
-  .panel-card,
-  .source-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  .hero-card {
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
+  .hero-card { padding: 1.45rem; min-height: 100%; }
 
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.95fr);
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: minmax(0, 1.48fr) minmax(320px, 0.94fr);
+    gap: 1.3rem;
+    align-items: stretch;
   }
 
   .eyebrow {
-    color: var(--accent);
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.65rem;
   }
 
   .hero-card h1 {
+    font-family: var(--font-heading);
     color: var(--text);
-    font-size: clamp(1.7rem, 3vw, 2.8rem);
-    line-height: 1.08;
-    margin-bottom: 0.75rem;
+    font-size: clamp(1.5rem, 2.8vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.7rem;
   }
 
-  .hero-card p {
-    color: var(--muted);
-    max-width: 68ch;
-    line-height: 1.6;
-  }
+  .hero-card p { color: var(--muted); max-width: 68ch; line-height: 1.65; font-size: 0.9rem; }
 
   .panel-card {
     padding: 1.25rem;
@@ -83,6 +67,7 @@
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     padding: 1.25rem;
+    min-height: 100%;
   }
 
   .side-card h2 {
@@ -250,6 +235,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
+    align-items: start;
   }
 
   .source-card.is-entering {
@@ -271,6 +257,7 @@
     padding: 1rem;
     position: relative;
     overflow: hidden;
+    min-height: 100%;
   }
 
   .source-card::before {
@@ -440,35 +427,35 @@
 <section class="database-shell">
   <div class="hero-grid">
   <div class="hero-card" style="margin-bottom:0;">
-    <div class="eyebrow">Source Database View</div>
+    <div class="eyebrow">Source Library</div>
     <h1>
       <span class="th-text">ฐานข้อมูลแหล่งข้อมูลควอนตัมไทย</span>
-      <span class="en-text">Thai Quantum Source Database</span>
+      <span class="en-text">Thai Quantum Source Library</span>
     </h1>
     <p>
       <span class="th-text">หน้านี้ใช้สำหรับไล่ดูแหล่งข้อมูลที่อยู่ในฐานข้อมูลแบบรวดเร็ว พร้อมตัวกรองตามปี แพลตฟอร์ม และ content type
       และสามารถส่งออกผลลัพธ์ที่กรองแล้วเป็นไฟล์ .xlsx ได้โดยตรง.</span>
-      <span class="en-text">Browse corpus sources quickly with filters by year, platform, and content type. Export filtered results to .xlsx directly.</span>
+      <span class="en-text">Browse saved sources by year, platform, and content type, then export the filtered view to `.xlsx`.</span>
     </p>
     <p style="margin-top:0.85rem;font-size:0.9rem;">
-      Scope note: current relevance flags are operational corpus defaults for Thai-quantum coverage. They are not yet a completed per-row relevance backfill.
+      Scope note: the current relevance flags use the project’s working archive rules and should be treated as review aids, not final labels.
     </p>
   </div>
   <div class="side-card">
-    <h2>Filter strategy</h2>
-    <p>Use this page as a review workspace, not just a raw dump. Start broad, then narrow by taxonomy tags to see how specific discourse segments differ in platform mix and source quality.</p>
+    <h2>Filter tips</h2>
+    <p>Start broad, then narrow by platform, year, and content labels to compare how different slices of the archive behave.</p>
     <ul class="side-list">
-      <li>Year and platform for acquisition slices</li>
-      <li>Content type for editorial mode</li>
-      <li>Format, intent, and domain for taxonomy inspection</li>
-      <li>XLSX export mirrors the active filter state</li>
+      <li>Use year and platform to compare collection periods</li>
+      <li>Use content type to review editorial patterns</li>
+      <li>Use format, intent, and domain to inspect topic slices</li>
+      <li>Export keeps the current filters</li>
     </ul>
   </div>
   </div>
 
   <div class="panel-card">
     <h2>Filter Workspace</h2>
-    <p class="panel-lead">Use the filters to narrow the corpus by year, platform, entity type, and taxonomy tags. Export respects the same active filters.</p>
+    <p class="panel-lead">Use the filters to narrow the library by year, platform, source type, and topic labels. Export respects the same active filters.</p>
     <div class="quick-filters">
       <div class="segmented-toggle" role="group" aria-label="Platform quick filters">
         <button class="segment-btn is-active" data-platform-segment="" type="button">All</button>

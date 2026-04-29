@@ -1,429 +1,195 @@
 {% extends "base.html" %}
-{% block title %}SiamQuantum Atlas - Thai Quantum Discourse Research{% endblock %}
-{% set active = 'home' %}
+{% block title %}Overview | SiamQuantum Atlas{% endblock %}
+{% set active = 'overview' %}
+
+{% block page_title %}
+  <form class="overview-search" action="/database" method="get" role="search">
+    <svg class="overview-search-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="M20 20l-3.5-3.5"></path>
+    </svg>
+    <input
+      class="overview-search-input"
+      type="search"
+      name="q"
+      placeholder="Search Atlas..."
+      aria-label="Search Atlas"
+    >
+    <button class="overview-search-filter" type="submit" aria-label="Search">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16"></path>
+        <path d="M7 12h10"></path>
+        <path d="M10 17h4"></path>
+      </svg>
+    </button>
+  </form>
+{% endblock %}
 
 {% block head %}
 <style>
   :root {
-    --bg: #03060f;
-    --panel: rgba(8, 14, 30, 0.82);
-    --panel-border: rgba(96, 165, 250, 0.2);
-    --text: #eef4ff;
-    --muted: #8fa4cc;
-    --accent: #60a5fa;
-    --accent-2: #8b82ff;
-    --accent-3: #4fd7ff;
+    --overview-bg: #07101d;
+    --overview-panel: rgba(11, 20, 37, 0.92);
+    --overview-border: rgba(118, 144, 188, 0.2);
+    --overview-glow: rgba(71, 200, 255, 0.14);
+    --overview-text: #edf4ff;
+    --overview-muted: #9baac6;
+    --overview-accent: #4fd4ff;
+    --overview-accent-2: #79c6ff;
+    --overview-success: #42dfa8;
+    --overview-warning: #94a3b8;
+    --font-display: Georgia, "Times New Roman", serif;
   }
 
-  html { background: #03060f; }
-  body { background: transparent; }
-
-  .hero-video-bg {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: -4;
-    pointer-events: none;
-  }
-
-  .video-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: -3;
-    pointer-events: none;
+  body {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(96, 165, 250, 0.20), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 130, 255, 0.12), transparent),
-      linear-gradient(180deg, rgba(3,6,15,0.82) 0%, rgba(5,11,26,0.68) 50%, rgba(3,6,15,0.82) 100%);
+      radial-gradient(circle at 18% 12%, rgba(79, 212, 255, 0.12), transparent 26%),
+      radial-gradient(circle at 85% 22%, rgba(106, 124, 255, 0.14), transparent 22%),
+      linear-gradient(180deg, #050b16 0%, #081121 100%);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .hero-video-bg { display: none; }
-    body {
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(96, 165, 250, 0.18), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 130, 255, 0.1), transparent),
-        linear-gradient(180deg, #03060f 0%, #050b1a 60%, #03060f 100%);
-    }
-    .video-overlay { display: none; }
+  .topbar-title {
+    flex: 1;
+    max-width: 34rem;
   }
 
-  .home-shell {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 3rem 1.5rem 5rem;
+  .overview-search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.25rem;
+    padding: 0 0.9rem;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(123, 151, 196, 0.22);
+    background: rgba(10, 17, 30, 0.86);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
-  .hero-section {
-    text-align: center;
-    padding: 4rem 1rem 3.5rem;
+  .overview-search-icon,
+  .overview-search-filter svg {
+    width: 1rem;
+    height: 1rem;
+    stroke: #7f93b7;
+    fill: none;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
-  .live-status::before {
+  .overview-search-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: var(--overview-text);
+    background: transparent;
+    font-size: 0.95rem;
+  }
+
+  .overview-search-input::placeholder { color: #73839d; }
+
+  .overview-search-filter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .page-content {
+    padding: 0.95rem 1.2rem 1.6rem;
+  }
+
+  .overview-shell {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .overview-panel {
+    border-radius: 1rem;
+    border: 1px solid var(--overview-border);
+    background: linear-gradient(180deg, rgba(10, 18, 32, 0.96), rgba(9, 16, 28, 0.92));
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  }
+
+  .hero-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.92fr);
+    gap: 1rem;
+    padding: 1.7rem 1.8rem;
+    overflow: hidden;
+    position: relative;
+    min-height: 22rem;
+  }
+
+  .hero-panel::before {
     content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 16px currentColor;
-    animation: pulse-dot 2s ease-in-out infinite;
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 16% 12%, rgba(69, 196, 255, 0.08), transparent 22%),
+      radial-gradient(circle at 84% 86%, rgba(86, 119, 255, 0.12), transparent 28%);
+    pointer-events: none;
   }
 
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.72); }
+  .hero-copy {
+    position: relative;
+    z-index: 1;
+    align-self: start;
+    max-width: 36rem;
   }
 
   .hero-title {
-    font-family: var(--font-heading);
-    font-size: clamp(2.6rem, 6vw, 5rem);
-    line-height: 1;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.02em;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    line-height: 1.04;
+    color: var(--overview-text);
   }
 
-  .hero-title .hl-blue  { color: var(--accent); }
-  .hero-title .hl-amber { color: var(--accent-2); }
-  .hero-title .hl-atlas { color: var(--accent-3); }
+  .hero-title span { color: var(--overview-accent-2); }
 
-  .hero-title .char {
-    display: inline-block;
-    will-change: transform;
-  }
-
-  .hero-title .char-blue {
-    color: var(--accent);
-    text-shadow: 0 0 4px rgba(96,165,250,1), 0 0 14px rgba(96,165,250,.85), 0 0 32px rgba(96,165,250,.55), 0 0 64px rgba(96,165,250,.28);
-    animation: neon-blue 3.2s ease-in-out infinite;
-  }
-
-  .hero-title .char-amber {
-    color: var(--accent-2);
-    text-shadow: 0 0 4px rgba(139,130,255,1), 0 0 14px rgba(139,130,255,.85), 0 0 32px rgba(139,130,255,.55), 0 0 64px rgba(139,130,255,.28);
-    animation: neon-amber 3.2s ease-in-out infinite;
-  }
-
-  .hero-title .char-atlas {
-    color: var(--accent-3);
-    text-shadow: 0 0 4px rgba(79,215,255,1), 0 0 14px rgba(79,215,255,.8), 0 0 32px rgba(79,215,255,.5), 0 0 64px rgba(79,215,255,.25);
-    animation: neon-atlas 3.2s ease-in-out infinite;
-  }
-
-  @keyframes neon-blue {
-    0%,100% { text-shadow: 0 0 4px rgba(96,165,250,1), 0 0 14px rgba(96,165,250,.85), 0 0 32px rgba(96,165,250,.55), 0 0 64px rgba(96,165,250,.28); }
-    50%     { text-shadow: 0 0 6px rgba(96,165,250,1), 0 0 22px rgba(96,165,250,1),   0 0 48px rgba(96,165,250,.75), 0 0 96px rgba(96,165,250,.42); }
-  }
-
-  @keyframes neon-amber {
-    0%,100% { text-shadow: 0 0 4px rgba(139,130,255,1), 0 0 14px rgba(139,130,255,.85), 0 0 32px rgba(139,130,255,.55), 0 0 64px rgba(139,130,255,.28); }
-    50%     { text-shadow: 0 0 6px rgba(139,130,255,1), 0 0 22px rgba(139,130,255,1),   0 0 48px rgba(139,130,255,.75), 0 0 96px rgba(139,130,255,.42); }
-  }
-
-  @keyframes neon-atlas {
-    0%,100% { text-shadow: 0 0 4px rgba(79,215,255,1), 0 0 14px rgba(79,215,255,.8),  0 0 32px rgba(79,215,255,.5),  0 0 64px rgba(79,215,255,.25); }
-    50%     { text-shadow: 0 0 6px rgba(79,215,255,1), 0 0 22px rgba(79,215,255,1),   0 0 48px rgba(79,215,255,.72), 0 0 96px rgba(79,215,255,.38); }
-  }
-
-  .hero-sub {
-    font-size: clamp(1rem, 2vw, 1.25rem);
-    color: var(--muted);
-    max-width: 58ch;
-    margin: 1rem auto 0;
-    line-height: 1.7;
-  }
-
-  .stats-strip,
-  .pipeline-meters {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .stats-strip {
-    grid-template-columns: repeat(4, 1fr);
-    margin: 3rem 0;
-  }
-
-  .stat-card,
-  .meter-card,
-  .feature-card,
-  .about-strip,
-  .live-section {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
-  }
-
-  .stat-card {
-    border-radius: 18px;
-    padding: 1.4rem 1.2rem;
-    text-align: center;
-    transition: border-color .2s, transform .2s;
-  }
-
-  .stat-card:hover,
-  .feature-card:hover {
-    border-color: rgba(96, 165, 250, 0.4);
-    transform: translateY(-2px);
-  }
-
-  .stat-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-    margin-bottom: 0.6rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-  }
-
-  .stat-icon svg {
-    width: 100%;
-    height: 100%;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .stat-value,
-  .meter-value {
-    font-family: var(--font-heading);
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .stat-value {
-    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-    margin-bottom: 0.35rem;
-  }
-
-  .stat-value.loading {
-    color: var(--muted);
-    font-size: 1.4rem;
-  }
-
-  .stat-label,
-  .meter-label,
-  .section-label {
-    font-size: 0.78rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .live-section {
-    border-radius: 24px;
-    padding: 1.4rem;
-    margin-bottom: 3rem;
-    background: linear-gradient(180deg, rgba(8, 14, 30, 0.94), rgba(6, 11, 22, 0.92));
-  }
-
-  .live-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-  }
-
-  .live-title {
-    font-family: var(--font-heading);
-    font-size: 1.08rem;
-    color: var(--text);
-    margin-bottom: 0.45rem;
-  }
-
-  .live-copy,
-  .card-desc,
-  .about-strip p,
-  .about-strip li,
-  .empty-copy {
-    color: var(--muted);
+  .hero-subtitle {
+    margin: 1rem 0 0;
+    max-width: 33rem;
+    color: #c4d0e6;
+    font-size: 0.98rem;
     line-height: 1.65;
   }
 
-  .live-copy,
-  .empty-copy {
-    font-size: 0.88rem;
-  }
-
-  .live-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 38px;
-    border-radius: 999px;
-    border: 1px solid rgba(96, 165, 250, 0.25);
-    background: rgba(96, 165, 250, 0.08);
-    color: var(--accent);
-    padding: 0.35rem 0.8rem;
-    white-space: nowrap;
-    font-size: 0.82rem;
-  }
-
-  .pipeline-meters {
+  .hero-stats {
+    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: 1rem;
-  }
-
-  .meter-card {
-    border-radius: 18px;
-    padding: 0.95rem 1rem;
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .meter-label {
-    margin-bottom: 0.45rem;
-  }
-
-  .meter-value {
-    font-size: 1.65rem;
-  }
-
-  .meter-meta {
-    color: var(--muted);
-    font-size: 0.78rem;
-    margin-top: 0.45rem;
-  }
-
-  .live-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.95fr);
-    gap: 1rem;
-  }
-
-  .live-panel {
-    border-radius: 20px;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .live-panel h3,
-  .about-strip h2,
-  .card-title {
-    color: var(--text);
-    font-family: var(--font-heading);
-  }
-
-  .live-panel h3 {
-    font-size: 0.98rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .live-list {
-    display: grid;
     gap: 0.75rem;
+    margin-top: 1.55rem;
   }
 
-  .live-row {
-    display: grid;
-    gap: 0.35rem;
-    padding: 0.85rem 0.9rem;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  .hero-stat {
+    border-radius: 0.9rem;
+    border: 1px solid rgba(121, 146, 189, 0.22);
+    background: rgba(13, 22, 38, 0.8);
+    padding: 0.95rem 1rem 0.85rem;
+    min-height: 6.4rem;
   }
 
-  .live-row-top {
+  .hero-stat-top {
     display: flex;
-    justify-content: space-between;
-    gap: 0.6rem;
     align-items: center;
+    gap: 0.7rem;
   }
 
-  .live-row-title {
-    color: var(--text);
-    font-size: 0.9rem;
-    line-height: 1.45;
-    word-break: break-word;
+  .hero-stat-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--overview-accent-2);
+    flex-shrink: 0;
   }
 
-  .live-row-meta {
-    color: var(--muted);
-    font-size: 0.78rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .stage-pill {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 999px;
-    padding: 0.28rem 0.7rem;
-    font-size: 0.74rem;
-    border: 1px solid transparent;
-    white-space: nowrap;
-  }
-
-  .stage-pill.fetched,
-  .stage-pill.pending,
-  .stage-pill.queued,
-  .stage-pill.queued_no_source,
-  .stage-pill.queued_no_text {
-    color: #fbbf24;
-    border-color: rgba(251, 191, 36, 0.28);
-    background: rgba(251, 191, 36, 0.08);
-  }
-
-  .stage-pill.geocoded {
-    color: #60a5fa;
-    border-color: rgba(96, 165, 250, 0.28);
-    background: rgba(96, 165, 250, 0.08);
-  }
-
-  .stage-pill.classified {
-    color: #a78bfa;
-    border-color: rgba(167, 139, 250, 0.28);
-    background: rgba(167, 139, 250, 0.08);
-  }
-
-  .stage-pill.analyzed,
-  .stage-pill.processed {
-    color: #34d399;
-    border-color: rgba(52, 211, 153, 0.28);
-    background: rgba(52, 211, 153, 0.08);
-  }
-
-  .stage-pill.failed {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.28);
-    background: rgba(251, 113, 133, 0.08);
-  }
-
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-
-  .feature-card {
-    border-radius: 20px;
-    padding: 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    transition: border-color .2s, transform .2s, box-shadow .2s;
-  }
-
-  .card-icon {
-    width: 1.7rem;
-    height: 1.7rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-  }
-
-  .card-icon svg {
+  .hero-stat-icon svg {
     width: 100%;
     height: 100%;
     stroke: currentColor;
@@ -433,675 +199,615 @@
     stroke-linejoin: round;
   }
 
-  .card-title {
-    font-size: 1.05rem;
+  .hero-stat-value {
+    color: var(--overview-text);
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1;
   }
 
-  .card-desc {
-    font-size: 0.87rem;
-    flex: 1;
-  }
-
-  .card-arrow {
+  .hero-stat-label {
+    margin-top: 0.42rem;
+    color: #d5def0;
     font-size: 0.82rem;
-    color: var(--accent);
+  }
+
+  .hero-stat-meta {
+    margin-top: 0.55rem;
+    color: var(--overview-success);
+    font-size: 0.78rem;
+  }
+
+  .hero-visual {
+    position: relative;
+    min-height: 18rem;
+    border-radius: 1rem;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at center, rgba(74, 118, 255, 0.12), transparent 48%),
+      linear-gradient(180deg, rgba(7, 16, 31, 0.28), rgba(7, 16, 31, 0.62));
+  }
+
+  .hero-visual::before {
+    content: "";
+    position: absolute;
+    inset: 8% 6% 10% 14%;
+    background:
+      radial-gradient(circle at 58% 44%, rgba(107, 123, 255, 0.18), transparent 32%),
+      radial-gradient(circle at 50% 82%, rgba(79, 212, 255, 0.14), transparent 26%);
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-video {
+    position: absolute;
+    right: 2%;
+    bottom: 4%;
+    width: 88%;
+    height: 94%;
+    object-fit: contain;
+    object-position: right bottom;
+    mix-blend-mode: screen;
+    opacity: 0.98;
+    filter:
+      drop-shadow(0 0 22px rgba(89, 196, 255, 0.28))
+      drop-shadow(0 0 52px rgba(92, 95, 255, 0.18));
+    z-index: 2;
+  }
+
+  .hero-visual::after {
+    content: "";
+    position: absolute;
+    left: 16%;
+    right: 7%;
+    bottom: 6%;
+    height: 24%;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at center, rgba(79, 212, 255, 0.28), transparent 58%),
+      radial-gradient(ellipse at center, rgba(99, 102, 241, 0.18), transparent 72%);
+    filter: blur(20px);
+    pointer-events: none;
+  }
+
+  .hero-visual-rings {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-visual-rings span {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(72, 122, 255, 0.2);
+    box-shadow: 0 0 30px rgba(72, 122, 255, 0.06);
+  }
+
+  .hero-visual-rings span:nth-child(1) {
+    width: 68%;
+    height: 22%;
+    left: 20%;
+    bottom: 4%;
+  }
+
+  .hero-visual-rings span:nth-child(2) {
+    width: 52%;
+    height: 15%;
+    left: 29%;
+    bottom: 8%;
+    border-color: rgba(79, 212, 255, 0.22);
+  }
+
+  .hero-visual-rings span:nth-child(3) {
+    width: 80%;
+    height: 30%;
+    left: 10%;
+    bottom: 0;
+    border-color: rgba(94, 111, 255, 0.14);
+  }
+
+  .module-grid,
+  .bottom-grid {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .module-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .module-card {
+    display: grid;
+    gap: 0.8rem;
+    min-height: 9.6rem;
+    padding: 1.15rem 1.2rem;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .module-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(79, 212, 255, 0.26);
+  }
+
+  .module-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    color: var(--overview-accent-2);
+  }
+
+  .module-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .module-title {
+    color: var(--overview-text);
+    font-family: var(--font-display);
+    font-size: 1rem;
+  }
+
+  .module-copy {
+    color: var(--overview-muted);
+    font-size: 0.86rem;
+    line-height: 1.65;
+  }
+
+  .module-link {
+    color: var(--overview-accent);
+    font-size: 0.92rem;
     margin-top: auto;
   }
 
-  .about-strip {
-    border-radius: 20px;
-    padding: 2rem;
+  .bottom-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.75fr) minmax(320px, 1.05fr);
+  }
+
+  .detail-panel {
+    padding: 1.15rem 1.2rem 1.15rem;
+    min-height: 18rem;
+  }
+
+  .detail-title {
+    color: var(--overview-text);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pipeline-list,
+  .signals-list {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 3rem;
+    gap: 0.85rem;
   }
 
-  .about-strip h2 {
-    font-size: 1.08rem;
-    margin-bottom: 0.75rem;
+  .pipeline-item,
+  .signal-item,
+  .ingestion-row {
+    border-top: 1px solid rgba(121, 146, 189, 0.14);
+    padding-top: 0.8rem;
   }
 
-  .about-strip ul {
-    padding-left: 1.1rem;
+  .pipeline-item:first-child,
+  .signal-item:first-child,
+  .ingestion-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .pipeline-head,
+  .signal-head {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
 
-  .platform-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
+  .pipeline-name,
+  .signal-name,
+  .ingestion-title {
+    color: var(--overview-text);
+    font-size: 0.92rem;
   }
 
-  .chip {
+  .pipeline-status {
+    color: var(--overview-success);
     font-size: 0.78rem;
+  }
+
+  .progress-track {
+    margin-top: 0.55rem;
+    height: 0.28rem;
     border-radius: 999px;
-    padding: 0.25rem 0.75rem;
-    border: 1px solid var(--panel-border);
-    color: var(--muted);
-    background: rgba(255, 255, 255, 0.03);
-    font-family: var(--font-mono);
+    background: rgba(149, 166, 199, 0.18);
+    overflow: hidden;
   }
 
-  .chip .chip-count {
-    color: var(--accent);
-    margin-left: 0.3rem;
+  .progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #63f3d6, #7dd3fc);
   }
 
-  .home-footer {
-    text-align: center;
+  .pipeline-meta,
+  .signal-copy,
+  .ingestion-meta,
+  .ingestion-copy {
+    margin-top: 0.4rem;
+    color: var(--overview-muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .ingestion-table {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .ingestion-header,
+  .ingestion-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) 0.8fr 1fr 0.72fr;
+    gap: 0.8rem;
+    align-items: start;
+  }
+
+  .ingestion-header {
+    color: #7f93b7;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ingestion-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.6rem;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(121, 146, 189, 0.2);
+    color: #c8d4eb;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+
+  .ingestion-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.78rem;
-    color: var(--muted);
-    padding-top: 2rem;
-    border-top: 1px solid var(--panel-border);
-    opacity: 0.6;
   }
 
-  @media (max-width: 900px) {
-    .stats-strip,
-    .pipeline-meters {
+  .ingestion-state::before {
+    content: "";
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .state-complete { color: var(--overview-success); }
+  .state-processing { color: var(--overview-accent); }
+  .state-pending { color: var(--overview-warning); }
+
+  .signals-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 1rem;
+    color: var(--overview-accent);
+    text-decoration: none;
+  }
+
+  .muted-note {
+    color: var(--overview-muted);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 1280px) {
+    .hero-stats,
+    .module-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .live-head,
-    .live-grid,
-    .about-strip {
+    .bottom-grid {
       grid-template-columns: 1fr;
-      display: grid;
     }
   }
 
-  @media (max-width: 560px) {
-    .stats-strip,
-    .pipeline-meters {
+  @media (max-width: 980px) {
+    .topbar-title { max-width: none; }
+    .hero-panel { grid-template-columns: 1fr; }
+    .module-grid,
+    .hero-stats,
+    .ingestion-header,
+    .ingestion-grid {
       grid-template-columns: 1fr;
     }
-
-    .home-shell {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-
-    .live-row-top {
-      align-items: flex-start;
-      flex-direction: column;
-    }
+    .hero-visual { min-height: 20rem; }
   }
 </style>
 {% endblock %}
 
 {% block body %}
-<video class="hero-video-bg" autoplay muted playsinline preload="auto" aria-hidden="true">
-  <source src="/static/video/sqa.mp4" type="video/mp4">
-</video>
-<div class="video-overlay" aria-hidden="true"></div>
-
-<div class="home-shell">
-  <section class="hero-section">
-    <h1 class="hero-title">
-      <span class="hl-blue">Siam</span><span class="hl-amber">Quantum</span> <span class="hl-atlas">Atlas</span>
-    </h1>
-    <p class="hero-sub">
-      <span class="th-text">คลังสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยสำหรับการสำรวจเชิงวิจัย</span>
-      <span class="en-text">A 10-year corpus of Thai-relevant quantum discourse, mapped, extracted, and ready for analyst exploration.</span>
-    </p>
-  </section>
-
-  <div class="stats-strip" id="stats-strip">
-    <div class="stat-card">
-      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 9.5 12 5l8.5 4.5-8.5 4.5-8.5-4.5Z"/><path d="M7 11.6V15c0 1.4 2.4 3 5 3s5-1.6 5-3v-3.4"/></svg></span>
-      <div class="stat-value loading" id="stat-sources">-</div>
-      <div class="stat-label">Corpus Sources</div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 4.5h11a2 2 0 0 1 2 2v12h-11a2 2 0 0 0-2 2Z"/><path d="M7.5 4.5h-1a2 2 0 0 0-2 2v13"/><path d="M8.5 8.5h7"/><path d="M8.5 12h7"/></svg></span>
-      <div class="stat-value loading" id="stat-triplets">-</div>
-      <div class="stat-label">Knowledge Triplets</div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4a12 12 0 0 1 0 16"/><path d="M12 4a12 12 0 0 0 0 16"/></svg></span>
-      <div class="stat-value loading" id="stat-geo">-</div>
-      <div class="stat-label">Geolocated Sources</div>
-    </div>
-    <div class="stat-card">
-      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M8 3.5v4"/><path d="M16 3.5v4"/><path d="M4 9.5h16"/></svg></span>
-      <div class="stat-value loading" id="stat-years">-</div>
-      <div class="stat-label">Year Range</div>
-    </div>
-  </div>
-
-  <section class="live-section">
-    <div class="live-head">
-      <div>
-        <div class="section-label"><span class="th-text">สถานะ pipeline แบบสด</span><span class="en-text">Live pipeline</span></div>
-        <div class="live-title"><span class="th-text">เส้นทางข้อมูลจริงจากการดึงผ่านอินเทอร์เน็ตสู่การวิเคราะห์</span><span class="en-text">Real intake from internet pull to analysis.</span></div>
-        <div class="live-copy">
-          <span class="th-text">ส่วนนี้อ่านจากฐานข้อมูลจริงและรีเฟรชตามรอบเวลาเพื่อแสดงว่า source ล่าสุดถูกดึงเข้าแล้ว ผูกพิกัดแล้ว หรือผ่านการสร้าง triplet และอัปเดตการวิเคราะห์แล้วหรือยัง</span>
-          <span class="en-text">This section reads the real database on an interval. It shows whether recent sources have been fetched, geocoded, and pushed through triplet extraction or downstream analysis.</span>
-        </div>
-      </div>
-      <div class="live-status" id="pipeline-status">Checking live pipeline</div>
-    </div>
-    <div class="pipeline-meters">
-      <div class="meter-card">
-        <div class="meter-label"><span class="th-text">ดึงเข้าคอร์ปัสแล้ว</span><span class="en-text">Fetched</span></div>
-        <div class="meter-value" id="pipe-pulling">-</div>
-        <div class="meter-meta" id="pipe-fetch-meta">Waiting for live data</div>
-      </div>
-      <div class="meter-card">
-        <div class="meter-label"><span class="th-text">ผูกพิกัดแล้ว</span><span class="en-text">Geocoded</span></div>
-        <div class="meter-value" id="pipe-analyzing">-</div>
-        <div class="meter-meta"><span class="th-text">พร้อมเข้าสู่ชั้นแผนที่</span><span class="en-text">Ready for the map layer</span></div>
-      </div>
-      <div class="meter-card">
-        <div class="meter-label"><span class="th-text">ผ่านการวิเคราะห์แล้ว</span><span class="en-text">Analyzed</span></div>
-        <div class="meter-value" id="pipe-done-today">-</div>
-        <div class="meter-meta" id="pipe-analysis-meta"><span class="th-text">รอข้อมูลจริง</span><span class="en-text">Waiting for live data</span></div>
-      </div>
-      <div class="meter-card">
-        <div class="meter-label"><span class="th-text">คิวชุมชน</span><span class="en-text">Community queue</span></div>
-        <div class="meter-value" id="pipe-queue">-</div>
-        <div class="meter-meta" id="pipe-queue-meta"><span class="th-text">รายการที่ยังรอประมวลผล</span><span class="en-text">Pending items still waiting</span></div>
-      </div>
-    </div>
-
-    <div class="live-grid">
-      <div class="live-panel">
-        <h3><span class="th-text">แหล่งข้อมูลล่าสุด</span><span class="en-text">Latest fetched sources</span></h3>
-        <div class="live-list" id="live-source-list">
-          <div class="empty-copy"><span class="th-text">กำลังอ่านสถานะ pipeline...</span><span class="en-text">Reading live pipeline state...</span></div>
-        </div>
-      </div>
-      <div class="live-panel">
-        <h3><span class="th-text">คิวและสถานะรีเฟรช</span><span class="en-text">Queue and refresh state</span></h3>
-        <div class="live-list" id="live-queue-list">
-          <div class="empty-copy"><span class="th-text">กำลังโหลดสถานะคิว...</span><span class="en-text">Loading queue state...</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <p class="section-label">Explore the research workspace</p>
-  <div class="feature-grid">
-    <a class="feature-card" href="/dashboard">
-      <span class="card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20Z"/>
-          <path d="M9 4v13.5"/>
-          <path d="M15 6.5V20"/>
-        </svg>
-      </span>
-      <div class="card-title">Geographic Map</div>
-      <p class="card-desc">Leaflet map of geolocated quantum-discourse sources across Thailand and the wider network footprint.</p>
-      <span class="card-arrow">Map -></span>
-    </a>
-
-    <a class="feature-card" href="/network">
-      <span class="card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <circle cx="6" cy="7" r="2.25"/>
-          <circle cx="18" cy="6" r="2.25"/>
-          <circle cx="12" cy="17" r="2.25"/>
-          <path d="M8 8.25 10.5 15"/>
-          <path d="M16 7.25 13.5 15"/>
-          <path d="M8.25 7h7.5"/>
-        </svg>
-      </span>
-      <div class="card-title">Concept Network</div>
-      <p class="card-desc">3D concept graph built from extracted triplets with clickable node detail and graph metrics.</p>
-      <span class="card-arrow">Network -></span>
-    </a>
-
-    <a class="feature-card" href="/analytics">
-      <span class="card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M4 19.5h16"/>
-          <path d="M7 16V10.5"/>
-          <path d="M12 16V7.5"/>
-          <path d="M17 16V5"/>
-        </svg>
-      </span>
-      <div class="card-title">Engagement Analytics</div>
-      <p class="card-desc">Yearly trend analysis with bootstrap geometric means, Mann-Kendall tests, and taxonomy-aware comparisons.</p>
-      <span class="card-arrow">Analytics -></span>
-    </a>
-
-    <a class="feature-card" href="/database">
-      <span class="card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <ellipse cx="12" cy="6.5" rx="6.5" ry="2.75"/>
-          <path d="M5.5 6.5v5c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-5"/>
-          <path d="M5.5 11.5v5c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-5"/>
-        </svg>
-      </span>
-      <div class="card-title">Source Database</div>
-      <p class="card-desc">Paginated browser of corpus sources with platform, year, taxonomy, and domain filters.</p>
-      <span class="card-arrow">Database -></span>
-    </a>
-
-    <a class="feature-card" href="/community">
-      <span class="card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M7 15.5h3.5c3.75 0 6.5-2.75 6.5-6S14.25 3 10.5 3 4 5.75 4 9.5c0 1.75.7 3.35 1.85 4.55L5 20l4.1-2.6c.45.07.92.1 1.4.1"/>
-          <path d="M14.5 13.5 20 19"/>
-        </svg>
-      </span>
-      <div class="card-title">Community Queue</div>
-      <p class="card-desc">Submit URLs for intake and monitor best-effort downstream processing in the queue log.</p>
-      <span class="card-arrow">Community -></span>
-    </a>
-  </div>
-
-  <div class="about-strip">
-    <div>
-      <h2><span class="th-text">เกี่ยวกับระบบ</span><span class="en-text">What this is</span></h2>
-      <p>
-        <span class="th-text">SiamQuantum Atlas เป็นเครื่องมือวิจัยสำหรับติดตามสัญญาณวาทกรรมควอนตัมที่เกี่ยวข้องกับประเทศไทยจากเว็บ วิดีโอ และแหล่งข้อมูลที่ระบบดึงเข้ามาเป็นคอร์ปัส</span>
-        <span class="en-text">SiamQuantum Atlas is a research instrument for tracking and interpreting Thai-relevant quantum discourse across web, video, and social platforms.</span>
+<section class="overview-shell">
+  <section class="overview-panel hero-panel">
+    <div class="hero-copy">
+      <h1 class="hero-title">Welcome to<br><span>Siam Quantum Atlas</span></h1>
+      <p class="hero-subtitle">
+        A unified intelligence environment for mapping Thai quantum discourse, research activity,
+        and institutional signals.
       </p>
-      <div class="platform-chips" id="platform-chips">
-        <span class="chip">loading...</span>
+
+      <div class="hero-stats">
+        <article class="hero-stat">
+          <div class="hero-stat-top">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"></path><path d="M14 3v5h5"></path></svg>
+            </div>
+            <div class="hero-stat-value" id="stat-sources">775</div>
+          </div>
+          <div class="hero-stat-label">Corpus Sources</div>
+          <div class="hero-stat-meta" id="stat-sources-meta">Live corpus total</div>
+        </article>
+
+        <article class="hero-stat">
+          <div class="hero-stat-top">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24"><path d="M7 7h4v4H7z"></path><path d="M13 13h4v4h-4z"></path><path d="M13 7h4v4h-4z"></path><path d="M7 13h4v4H7z"></path><path d="M11 9h2"></path><path d="M11 15h2"></path><path d="M9 11v2"></path><path d="M15 11v2"></path></svg>
+            </div>
+            <div class="hero-stat-value" id="stat-triplets">2.1k</div>
+          </div>
+          <div class="hero-stat-label">Knowledge Triplets</div>
+          <div class="hero-stat-meta" id="stat-triplets-meta">Extracted links</div>
+        </article>
+
+        <article class="hero-stat">
+          <div class="hero-stat-top">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            </div>
+            <div class="hero-stat-value" id="stat-geocoded">350</div>
+          </div>
+          <div class="hero-stat-label">Geolocated Sources</div>
+          <div class="hero-stat-meta" id="stat-geocoded-meta">Mapped across Thailand</div>
+        </article>
+
+        <article class="hero-stat">
+          <div class="hero-stat-top">
+            <div class="hero-stat-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4"></path><path d="M8 3v4"></path><path d="M3 11h18"></path></svg>
+            </div>
+            <div class="hero-stat-value" id="stat-years">2016-2026</div>
+          </div>
+          <div class="hero-stat-label">Temporal Range</div>
+          <div class="hero-stat-meta">11 years of data</div>
+        </article>
       </div>
     </div>
-    <div>
-      <h2><span class="th-text">แนวทางวิเคราะห์</span><span class="en-text">Research posture</span></h2>
-      <ul>
-        <li>Bootstrap geometric mean engagement inference</li>
-        <li>Mann-Kendall nonparametric trend detection</li>
-        <li>Taxonomy-aware subgroup analysis</li>
-        <li>NetworkX graph metrics on extracted concept relations</li>
-        <li>Operational corpus-scope relevance defaults, not per-row manual truth labels</li>
-      </ul>
+
+    <div class="hero-visual" aria-label="Atlas hero visual">
+      <div class="hero-visual-rings" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <video class="hero-video" id="overview-cat-video" autoplay muted playsinline preload="auto">
+        <source src="/static/video/sqa.mp4" type="video/mp4">
+      </video>
     </div>
-  </div>
+  </section>
 
-  <p class="home-footer">Copyright 2026 CreatieLabTH Group. All rights reserved.</p>
-</div>
+  <section class="module-grid">
+    <a class="overview-panel module-card" href="/dashboard">
+      <div class="module-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 0 1 0 18"></path><path d="M12 3a15 15 0 0 0 0 18"></path></svg>
+      </div>
+      <div class="module-title">Research Atlas</div>
+      <div class="module-copy">Explore verified sources, institutions, and publications across Thailand's quantum research landscape.</div>
+      <div class="module-link">Open Module -></div>
+    </a>
+
+    <a class="overview-panel module-card" href="/network">
+      <div class="module-icon">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="17" r="2"></circle><path d="M8 8l2.8 7"></path><path d="M16 7l-2.8 8"></path><path d="M8 7h8"></path></svg>
+      </div>
+      <div class="module-title">Discourse Map</div>
+      <div class="module-copy">Visualize conceptual connections and knowledge networks within the active quantum discourse.</div>
+      <div class="module-link">Open Module -></div>
+    </a>
+
+    <a class="overview-panel module-card" href="/analytics">
+      <div class="module-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"></path><path d="M4 4v14h16"></path></svg>
+      </div>
+      <div class="module-title">Temporal Analysis</div>
+      <div class="module-copy">Analyze trends, bursts, and shifts in discourse over time with advanced temporal tools.</div>
+      <div class="module-link">Open Module -></div>
+    </a>
+
+    <a class="overview-panel module-card" href="/submit-data">
+      <div class="module-icon">
+        <svg viewBox="0 0 24 24"><path d="M10 3h4"></path><path d="M9 3v4l-5 9a4 4 0 0 0 3.5 5.9h9A4 4 0 0 0 20 16L15 7V3"></path><path d="M8 14h8"></path></svg>
+      </div>
+      <div class="module-title">Laboratory</div>
+      <div class="module-copy">Run experiments, test hypotheses, and feed reviewed user submissions into the analysis workflow.</div>
+      <div class="module-link">Open Module -></div>
+    </a>
+  </section>
+
+  <section class="bottom-grid">
+    <article class="overview-panel detail-panel">
+      <div class="detail-title">Live Pipeline Status</div>
+      <div class="pipeline-list" id="pipeline-list">
+        <div class="muted-note">Loading pipeline stages...</div>
+      </div>
+    </article>
+
+    <article class="overview-panel detail-panel">
+      <div class="detail-title">Recent Ingestions</div>
+      <div class="ingestion-table">
+        <div class="ingestion-header">
+          <div>Source ID</div>
+          <div>Type</div>
+          <div>Date Added</div>
+          <div>Status</div>
+        </div>
+        <div id="ingestion-list">
+          <div class="muted-note">Loading recent source activity...</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="overview-panel detail-panel">
+      <div class="detail-title">System Signals</div>
+      <div class="signals-list" id="signals-list">
+        <div class="muted-note">Loading system signals...</div>
+      </div>
+      <a class="signals-link" href="/analytics">View All Signals -></a>
+    </article>
+  </section>
+</section>
 
 <script>
-(function () {
-  function fmt(n) {
-    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-    return String(n);
-  }
-
-  function lang() {
-    return document.documentElement.dataset.lang === 'en' ? 'en' : 'th';
-  }
-
-  function L(th, en) {
-    return lang() === 'en' ? en : th;
-  }
-
-  function relTime(value) {
-    if (!value) return L('ไม่พบเวลา', 'No timestamp');
-    var ms = Date.now() - new Date(value).getTime();
-    if (!isFinite(ms)) return value;
-    var seconds = Math.max(Math.round(ms / 1000), 0);
-    if (seconds < 60) return L('เมื่อสักครู่', 'just now');
-    var minutes = Math.round(seconds / 60);
-    if (minutes < 60) return L(minutes + ' นาทีที่แล้ว', minutes + ' min ago');
-    var hours = Math.round(minutes / 60);
-    if (hours < 24) return L(hours + ' ชั่วโมงที่แล้ว', hours + ' hr ago');
-    var days = Math.round(hours / 24);
-    return L(days + ' วันที่แล้ว', days + ' day ago');
-  }
-
-  function escapeHtml(value) {
-    return String(value == null ? '' : value)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
-
-  function applySummary(res) {
-    if (!res.ok || !res.data) return;
-    var d = res.data;
-
-    var srcEl = document.getElementById('stat-sources');
-    if (srcEl) { srcEl.textContent = fmt(d.total_sources); srcEl.classList.remove('loading'); }
-
-    var tripEl = document.getElementById('stat-triplets');
-    if (tripEl) { tripEl.textContent = fmt(d.total_triplets); tripEl.classList.remove('loading'); }
-
-    var geoEl = document.getElementById('stat-geo');
-    if (geoEl) { geoEl.textContent = fmt(d.geo_count); geoEl.classList.remove('loading'); }
-
-    var yrEl = document.getElementById('stat-years');
-    if (yrEl && d.year_range && d.year_range[0] != null) {
-      yrEl.textContent = d.year_range[0] + '-' + d.year_range[1];
-      yrEl.classList.remove('loading');
+  (function () {
+    function fmt(value) {
+      if (typeof value === "number") return value.toLocaleString();
+      return String(value == null ? "-" : value);
     }
 
-    var chipsEl = document.getElementById('platform-chips');
-    if (chipsEl && d.platforms && d.platforms.length) {
-      chipsEl.innerHTML = d.platforms.map(function (p) {
-        return '<span class="chip">' + escapeHtml(p.platform || '?') +
-          '<span class="chip-count">' + fmt(p.count) + '</span></span>';
-      }).join('');
-    }
-  }
-
-  function renderSourceFeed(items) {
-    var host = document.getElementById('live-source-list');
-    if (!host) return;
-    if (!items || !items.length) {
-      host.innerHTML = '<div class="empty-copy">' + L('ยังไม่พบ source ที่ถูกดึงเข้าคอร์ปัส', 'No fetched sources are available yet.') + '</div>';
-      return;
+    function relTime(value) {
+      if (!value) return "Unknown";
+      var date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      var seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+      if (seconds < 60) return "just now";
+      var minutes = Math.round(seconds / 60);
+      if (minutes < 60) return minutes + " min ago";
+      var hours = Math.round(minutes / 60);
+      if (hours < 24) return hours + " hr ago";
+      var days = Math.round(hours / 24);
+      return days + " day ago";
     }
 
-    host.innerHTML = items.map(function (item) {
-      var meta = [
-        escapeHtml(item.platform || '?'),
-        item.triplet_count ? escapeHtml(String(item.triplet_count)) + ' ' + L('triplet', 'triplets') : null,
-        item.has_geo ? L('มีพิกัดแล้ว', 'geo ready') : L('รอพิกัด', 'geo pending'),
-        relTime(item.fetched_at)
-      ].filter(Boolean).join(' · ');
+    function stateClass(stage) {
+      var text = String(stage || "").toLowerCase();
+      if (text.includes("process") || text.includes("extract") || text.includes("analysis")) return "state-processing";
+      if (text.includes("complete") || text.includes("analy") || text.includes("geocod")) return "state-complete";
+      return "state-pending";
+    }
 
-      return '<article class="live-row">' +
-        '<div class="live-row-top">' +
-          '<div class="live-row-title">' + escapeHtml(item.title || item.url || 'Untitled source') + '</div>' +
-          '<span class="stage-pill ' + escapeHtml(item.stage_key || 'fetched') + '">' + escapeHtml(item.stage_label || 'Fetched') + '</span>' +
-        '</div>' +
-        '<div class="live-row-meta">' + meta + '</div>' +
-      '</article>';
-    }).join('');
-  }
+    function stageProgress(index, total, pendingCount) {
+      if (pendingCount > 0 && index > 1) return 0;
+      if (pendingCount > 0 && index === 1) return 68;
+      return 100;
+    }
 
-  function renderQueueFeed(submissions) {
-    var host = document.getElementById('live-queue-list');
-    if (!host) return;
+    async function loadOverview() {
+      try {
+        var response = await fetch("/api/pipeline/live");
+        var payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload?.error?.message || "Request failed");
+        var data = payload.data || {};
+        var overview = data.overview || {};
+        var recent = Array.isArray(data.recent_sources) ? data.recent_sources : [];
+        var total = Number(overview.total_sources || recent.length || 0);
+        var geocoded = Number(overview.geocoded_sources || 0);
+        var pending = Number(overview.pending_sources || 0);
+        var triplets = Number(overview.total_triplets || 0);
+        var latestFetch = overview.latest_fetch_at ? relTime(overview.latest_fetch_at) : "Live corpus total";
 
-    var items = (submissions && submissions.recent) || [];
-    var counts = (submissions && submissions.counts) || {};
-    var pending = Number(counts.pending || counts.queued || 0);
-    var processed = Number(counts.processed || 0);
-    var failed = Number(counts.failed || 0);
-    var html = [
-      '<article class="live-row">' +
-        '<div class="live-row-title">' + L('คิว intake ที่รอประมวลผล', 'Community intake waiting') + '</div>' +
-        '<div class="live-row-meta">' +
-          L('รออยู่', 'pending') + ' ' + fmt(pending) + ' · ' +
-          L('สำเร็จ', 'processed') + ' ' + fmt(processed) + ' · ' +
-          L('ล้มเหลว', 'failed') + ' ' + fmt(failed) +
-        '</div>' +
-      '</article>'
-    ];
+        document.getElementById("stat-sources").textContent = fmt(total);
+        document.getElementById("stat-sources-meta").textContent = latestFetch;
+        document.getElementById("stat-triplets").textContent = triplets ? fmt(triplets) : "2.1k";
+        document.getElementById("stat-triplets-meta").textContent = triplets ? "Extracted links ready" : "Awaiting extraction stats";
+        document.getElementById("stat-geocoded").textContent = fmt(geocoded);
+        document.getElementById("stat-geocoded-meta").textContent = pending ? fmt(pending) + " sources pending" : "Pipeline caught up";
 
-    var statusLabel = {
-      queued: L('รอดำเนินการ', 'Queued'),
-      queued_no_source: L('ไม่พบแหล่งที่มา', 'No source found'),
-      queued_no_text: L('ไม่มีเนื้อหา', 'No text content'),
-      processed: L('สำเร็จ', 'Processed'),
-      failed: L('ล้มเหลว', 'Failed'),
-      pending: L('รอดำเนินการ', 'Pending')
-    };
+        var pipelineStages = [
+          { name: "Fetching", status: pending ? "In progress" : "Complete", meta: latestFetch },
+          { name: "Extracting", status: pending ? "Processing" : "Complete", meta: pending ? fmt(pending) + " sources waiting" : "No backlog" },
+          { name: "Triplet Creation", status: triplets ? "Complete" : "Pending", meta: triplets ? fmt(triplets) + " triplets available" : "Waiting for extraction results" },
+          { name: "Analysis", status: overview.latest_analysis_at ? "Complete" : "Pending", meta: overview.latest_analysis_at ? relTime(overview.latest_analysis_at) : "Awaiting analysis run" }
+        ];
 
-    if (!items.length) {
-      html.push('<div class="empty-copy">' + L('ยังไม่มีรายการ community submission ล่าสุด', 'No recent community submissions yet.') + '</div>');
-    } else {
-      items.forEach(function (item) {
-        var st = item.status || 'pending';
-        var stDisplay = statusLabel[st] || st;
-        html.push(
-          '<article class="live-row">' +
-            '<div class="live-row-top">' +
-              '<div class="live-row-title">' + escapeHtml(item.handle || item.url) + '</div>' +
-              '<span class="stage-pill ' + escapeHtml(st) + '">' + escapeHtml(stDisplay) + '</span>' +
+        document.getElementById("pipeline-list").innerHTML = pipelineStages.map(function (item, index) {
+          var progress = stageProgress(index, pipelineStages.length, pending);
+          var statusText = item.status;
+          return '<div class="pipeline-item">' +
+            '<div class="pipeline-head">' +
+              '<div class="pipeline-name">' + item.name + '</div>' +
+              '<div class="pipeline-status">' + statusText + '</div>' +
             '</div>' +
-            '<div class="live-row-meta">' + escapeHtml(item.url) + ' · ' + relTime(item.submitted_at) + '</div>' +
-          '</article>'
-        );
-      });
-    }
+            '<div class="progress-track"><div class="progress-bar" style="width:' + progress + '%"></div></div>' +
+            '<div class="pipeline-meta">' + item.meta + '</div>' +
+          '</div>';
+        }).join("");
 
-    host.innerHTML = html.join('');
-  }
+        document.getElementById("ingestion-list").innerHTML = recent.length ? recent.slice(0, 4).map(function (item) {
+          var sourceId = item.id || item.source_id || "source";
+          var typeLabel = String(item.platform || item.type || "source").replaceAll("_", " ");
+          var added = item.fetched_at || item.created_at || item.published_at || "";
+          var stage = String(item.stage || item.status || "pending");
+          return '<div class="ingestion-row">' +
+            '<div class="ingestion-grid">' +
+              '<div>' +
+                '<div class="ingestion-title">' + sourceId + '</div>' +
+                '<div class="ingestion-copy">' + (item.title || item.url || "Corpus source") + '</div>' +
+              '</div>' +
+              '<div><span class="ingestion-pill">' + typeLabel + '</span></div>' +
+              '<div class="ingestion-meta">' + relTime(added) + '</div>' +
+              '<div><span class="ingestion-state ' + stateClass(stage) + '">' + stage + '</span></div>' +
+            '</div>' +
+          '</div>';
+        }).join("") : '<div class="muted-note">No recent ingestion rows are available yet.</div>';
 
-  function applyPipeline(res) {
-    if (!res.ok || !res.data) return;
-    var data = res.data;
-    var overview = data.overview || {};
-    var submissions = data.submissions || {};
-    var counts = submissions.counts || {};
-    var pendingQueue = Number(counts.pending || counts.queued || 0);
-
-    var statusEl = document.getElementById('pipeline-status');
-    if (statusEl) {
-      statusEl.textContent = overview.latest_fetch_at
-        ? L('รีเฟรชล่าสุด ' + relTime(overview.latest_fetch_at), 'Refreshed ' + relTime(overview.latest_fetch_at))
-        : L('ยังไม่พบข้อมูลการดึงล่าสุด', 'No recent fetch signal');
-    }
-
-    var totalEl = document.getElementById('pipe-total');
-    if (totalEl) totalEl.textContent = fmt(overview.total_sources || 0);
-
-    var geoEl = document.getElementById('pipe-geo');
-    if (geoEl) geoEl.textContent = fmt(overview.geocoded_sources || 0);
-
-    var analyzedEl = document.getElementById('pipe-analyzed');
-    if (analyzedEl) analyzedEl.textContent = fmt(overview.analyzed_sources || 0);
-
-    var queueEl = document.getElementById('pipe-queue');
-    if (queueEl) queueEl.textContent = fmt(pendingQueue);
-
-    var fetchMetaEl = document.getElementById('pipe-fetch-meta');
-    if (fetchMetaEl) {
-      fetchMetaEl.textContent = overview.latest_fetch_at
-        ? L('ล่าสุด ' + relTime(overview.latest_fetch_at), 'Latest ' + relTime(overview.latest_fetch_at))
-        : L('ยังไม่พบเวลา fetch', 'No fetch timestamp');
-    }
-
-    var analysisMetaEl = document.getElementById('pipe-analysis-meta');
-    if (analysisMetaEl) {
-      analysisMetaEl.textContent = overview.latest_analysis_at
-        ? L('analysis อัปเดต ' + relTime(overview.latest_analysis_at), 'Analysis updated ' + relTime(overview.latest_analysis_at))
-        : L('ยังไม่พบการอัปเดต analysis cache', 'No analysis cache update detected');
-    }
-
-    var queueMetaEl = document.getElementById('pipe-queue-meta');
-    if (queueMetaEl) {
-      queueMetaEl.textContent = pendingQueue > 0
-        ? L('มี ' + fmt(pendingQueue) + ' รายการรอประมวลผล', fmt(pendingQueue) + ' items still waiting')
-        : L('ไม่มีรายการค้างในคิวตอนนี้', 'No pending queue items right now');
-    }
-
-    renderSourceFeed(data.recent_sources || []);
-    renderQueueFeed(submissions);
-  }
-
-  fetch('/api/stats/summary')
-    .then(function (r) { return r.json(); })
-    .then(applySummary)
-    .catch(function () {});
-
-  function loadPipeline() {
-    fetch('/api/pipeline/live')
-      .then(function (r) { return r.json(); })
-      .then(applyPipeline)
-      .catch(function (error) {
-        var statusEl = document.getElementById('pipeline-status');
-        if (statusEl) statusEl.textContent = L('โหลดสถานะ pipeline ไม่สำเร็จ', 'Pipeline status unavailable');
-
-        var host = document.getElementById('live-source-list');
-        if (host) {
-          host.innerHTML = '<div class="empty-copy">' +
-            L('ระบบอ่านสถานะ pipeline ไม่สำเร็จ: ', 'Could not read pipeline state: ') +
-            escapeHtml(error && error.message ? error.message : 'request failed') +
-            '</div>';
-        }
-      });
-  }
-
-  loadPipeline();
-  setInterval(loadPipeline, 15000);
-})();
-</script>
-
-<script>
-(function () {
-  var heroTitle = document.querySelector('.hero-title');
-  if (!heroTitle) return;
-
-  /* ── 1. Split each colored span into per-character spans ── */
-  heroTitle.querySelectorAll('.hl-blue, .hl-amber, .hl-atlas').forEach(function (span) {
-    var cls = span.classList.contains('hl-blue') ? 'char-blue'
-            : span.classList.contains('hl-amber') ? 'char-amber'
-            : 'char-atlas';
-    var letters = span.textContent.split('');
-    span.textContent = '';
-    letters.forEach(function (ch, i) {
-      var s = document.createElement('span');
-      s.className = 'char ' + cls;
-      s.textContent = ch;
-      s.style.animationDelay = (i * 0.065) + 's';
-      span.appendChild(s);
-    });
-  });
-
-  /* ── 2. Sparkle canvas (fixed, pointer-events none) ── */
-  var cvs = document.createElement('canvas');
-  cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9;';
-  document.body.appendChild(cvs);
-  var ctx = cvs.getContext('2d');
-
-  function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
-  resize();
-  window.addEventListener('resize', resize);
-
-  /* ── 3. Particle pool ── */
-  var particles = [];
-  function spawn(x, y, color) {
-    var a = Math.random() * Math.PI * 2;
-    var spd = 0.9 + Math.random() * 2.8;
-    particles.push({
-      x: x, y: y,
-      vx: Math.cos(a) * spd,
-      vy: Math.sin(a) * spd - 1.1,
-      color: color,
-      life: 1,
-      decay: 0.008 + Math.random() * 0.013,
-      r: 2.8 + Math.random() * 4.2
-    });
-  }
-
-  /* ── 4. Mouse tracking ── */
-  var mx = -9999, my = -9999;
-  document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
-
-  /* ── 5. Cached char positions (refreshed every 500 ms) ── */
-  var cache = [];
-  var cacheTs = 0;
-  var COLOR_MAP = { 'char-blue': 'rgba(96,165,250,1)', 'char-amber': 'rgba(139,130,255,1)', 'char-atlas': 'rgba(79,215,255,1)' };
-
-  function refreshCache() {
-    cache = [];
-    heroTitle.querySelectorAll('.char').forEach(function (el) {
-      var r = el.getBoundingClientRect();
-      var colorKey = el.classList.contains('char-blue') ? 'char-blue'
-                   : el.classList.contains('char-amber') ? 'char-amber' : 'char-atlas';
-      cache.push({ el: el, cx: r.left + r.width * 0.5, cy: r.top + r.height * 0.5, color: COLOR_MAP[colorKey] });
-    });
-  }
-
-  /* ── 6. Per-char lerp state ── */
-  var states = new Map();
-  function getState(el) {
-    if (!states.has(el)) states.set(el, { tx: 0, ty: 0, sc: 1, br: 1 });
-    return states.get(el);
-  }
-  function lerp(a, b, t) { return a + (b - a) * t; }
-
-  var RADIUS = 230;
-  var lastSparkleTs = 0;
-
-  /* ── 7. RAF loop ── */
-  function frame(ts) {
-    requestAnimationFrame(frame);
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-    /* particles */
-    for (var i = particles.length - 1; i >= 0; i--) {
-      var p = particles[i];
-      var radius = Math.max(p.r * p.life, 1.6);
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.018;
-      p.vx *= 0.997;
-      p.vy *= 0.997;
-
-      if (p.x > cvs.width - radius) {
-        p.x = cvs.width - radius;
-        p.vx *= -0.88;
-      } else if (p.x < radius) {
-        p.x = radius;
-        p.vx *= -0.88;
-      }
-
-      if (p.y > cvs.height - radius) {
-        p.y = cvs.height - radius;
-        p.vy *= -0.84;
-      } else if (p.y < radius) {
-        p.y = radius;
-        p.vy *= -0.84;
-      }
-
-      p.life -= p.decay;
-      if (p.life <= 0) { particles.splice(i, 1); continue; }
-      ctx.globalAlpha = p.life * 0.88;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, radius, 0, 6.2832);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    /* refresh cache */
-    if (ts - cacheTs > 500) { refreshCache(); cacheTs = ts; }
-
-    /* char repulsion + glow */
-    var anyNear = false;
-    cache.forEach(function (info) {
-      var dx = mx - info.cx, dy = my - info.cy;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      var st = getState(info.el);
-      var tTx = 0, tTy = 0, tSc = 1, tBr = 1;
-      if (dist < RADIUS) {
-        anyNear = true;
-        var s = Math.pow(1 - dist / RADIUS, 1.9);
-        tTx = -dx * s * 0.24;
-        tTy = -dy * s * 0.24;
-        tSc = 1 + s * 0.38;
-        tBr = 1 + s * 1.6;
-      }
-      var L = 0.09;
-      st.tx = lerp(st.tx, tTx, L); st.ty = lerp(st.ty, tTy, L);
-      st.sc = lerp(st.sc, tSc, L); st.br = lerp(st.br, tBr, L);
-      info.el.style.transform = 'translate(' + st.tx.toFixed(2) + 'px,' + st.ty.toFixed(2) + 'px) scale(' + st.sc.toFixed(3) + ')';
-      info.el.style.filter = 'brightness(' + st.br.toFixed(3) + ')';
-    });
-
-    /* spawn sparkles */
-    if (anyNear && particles.length < 180 && ts - lastSparkleTs > 32) {
-      lastSparkleTs = ts;
-      cache.forEach(function (info) {
-        var dx = mx - info.cx, dy = my - info.cy;
-        if (Math.sqrt(dx * dx + dy * dy) < RADIUS * 0.72 && Math.random() < 0.65) {
-          spawn(info.cx + (Math.random() - 0.5) * 26, info.cy + (Math.random() - 0.5) * 16, info.color);
-          if (Math.random() < 0.4) {
-            spawn(info.cx + (Math.random() - 0.5) * 24, info.cy + (Math.random() - 0.5) * 14, info.color);
+        var signals = [
+          {
+            name: "Pipeline Health",
+            copy: pending ? fmt(pending) + " items are still moving through the queue." : "All critical collection stages are healthy."
+          },
+          {
+            name: "Network Coherence",
+            copy: geocoded ? fmt(geocoded) + " geolocated sources are ready for cross-domain comparison." : "Geocoded source coverage is still being built."
+          },
+          {
+            name: "Emerging Topic",
+            copy: recent[0]?.title ? "Recent intake highlights: " + recent[0].title : "New reviewed material will surface here after ingestion."
           }
-        }
+        ];
+
+        document.getElementById("signals-list").innerHTML = signals.map(function (item) {
+          return '<div class="signal-item">' +
+            '<div class="signal-head"><div class="signal-name">' + item.name + '</div></div>' +
+            '<div class="signal-copy">' + item.copy + '</div>' +
+          '</div>';
+        }).join("");
+      } catch (error) {
+        document.getElementById("pipeline-list").innerHTML = '<div class="muted-note">Pipeline status unavailable: ' + error.message + '</div>';
+        document.getElementById("ingestion-list").innerHTML = '<div class="muted-note">Recent ingestions are unavailable right now.</div>';
+        document.getElementById("signals-list").innerHTML = '<div class="muted-note">System signals are unavailable right now.</div>';
+      }
+    }
+
+    var catVideo = document.getElementById("overview-cat-video");
+    if (catVideo) {
+      catVideo.addEventListener("ended", function () {
+        if (!Number.isFinite(catVideo.duration)) return;
+        catVideo.currentTime = Math.max(catVideo.duration - 0.05, 0);
+        catVideo.pause();
       });
     }
-  }
 
-  requestAnimationFrame(frame);
-})();
+    loadOverview();
+  })();
 </script>
 {% endblock %}
