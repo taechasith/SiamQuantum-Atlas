@@ -385,6 +385,25 @@
       gap: 0.75rem;
     }
 
+    .live-fab-refresh {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color 0.14s, border-color 0.14s, transform 0.3s;
+    }
+
+    .live-fab-refresh:hover { color: var(--primary); border-color: var(--border-strong); }
+    .live-fab-refresh.spinning { animation: fab-spin 0.6s linear; }
+    @keyframes fab-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     .live-fab-btn {
       display: inline-flex;
       align-items: center;
@@ -739,7 +758,15 @@
       <div class="live-fab-panel-head">
         <div class="live-fab-panel-top">
           <div class="global-live-title" id="global-live-title">Page Status</div>
-          <div class="global-live-status" id="global-live-status">Loading</div>
+          <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
+            <div class="global-live-status" id="global-live-status">Loading</div>
+            <button class="live-fab-refresh" id="global-live-refresh" type="button" title="Refresh data" aria-label="Refresh live data">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="global-live-copy" id="global-live-copy">Reading the latest data for this page.</div>
       </div>
@@ -861,6 +888,7 @@
         metrics: document.getElementById("global-live-metrics"),
         feed: document.getElementById("global-live-feed"),
         liveToggle: document.getElementById("global-live-toggle"),
+        liveRefresh: document.getElementById("global-live-refresh"),
         desktopModal: document.getElementById("desktop-modal"),
         desktopModalClose: document.getElementById("desktop-modal-close")
       };
@@ -1067,6 +1095,11 @@
       }
 
       if (els.liveToggle) els.liveToggle.addEventListener("click", toggleLivePanel);
+      if (els.liveRefresh) els.liveRefresh.addEventListener("click", function () {
+        els.liveRefresh.classList.add("spinning");
+        setTimeout(function () { els.liveRefresh.classList.remove("spinning"); }, 650);
+        refreshLivePanel();
+      });
       if (els.desktopModalClose) els.desktopModalClose.addEventListener("click", closeDesktopModal);
       if (els.desktopModal) {
         els.desktopModal.addEventListener("click", function (event) {

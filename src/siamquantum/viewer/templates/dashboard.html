@@ -534,6 +534,11 @@
     background: var(--map-rose);
   }
 
+  .marker-web {
+    color: #fbbf24;
+    background: #fbbf24;
+  }
+
   .marker-other {
     color: #b59cff;
     background: #b59cff;
@@ -753,6 +758,10 @@
         <span>YouTube</span>
       </div>
       <div class="legend-item">
+        <span class="legend-dot" style="background:#fbbf24; color:#fbbf24;"></span>
+        <span>Web</span>
+      </div>
+      <div class="legend-item">
         <span class="legend-dot" style="background:#b59cff; color:#b59cff;"></span>
         <span>Other</span>
       </div>
@@ -818,7 +827,8 @@
 
   const platformClass = {
     gdelt: "marker-gdelt",
-    youtube: "marker-youtube"
+    youtube: "marker-youtube",
+    web: "marker-web"
   };
 
   function copyForLang(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
