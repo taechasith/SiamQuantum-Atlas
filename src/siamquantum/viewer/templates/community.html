@@ -315,7 +315,7 @@
           <div class="item-title">${item.title}</div>
           <span class="pill">${item.status} / ${item.analysis_status}</span>
         </div>
-        <div class="item-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        <div class="item-meta">${item.category}${item.page_target ? ` � ${item.page_target}` : ""}</div>
         <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
       </article>
     `).join("");
@@ -332,7 +332,7 @@
           <div class="item-title">${item.title}</div>
           <span class="pill">${item.category}</span>
         </div>
-        <div class="item-meta">${item.page_target || "general"} · ${item.status} / ${item.analysis_status}</div>
+        <div class="item-meta">${item.page_target || "general"} � ${item.status} / ${item.analysis_status}</div>
         <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
       </article>
     `).join("");

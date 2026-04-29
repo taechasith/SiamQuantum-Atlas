@@ -219,7 +219,7 @@
             <div id="profile-display-heading" style="color:var(--text);font-size:1rem;font-weight:600;">Profile</div>
             <div id="profile-email" class="profile-copy" style="margin-top:0.2rem;">No email loaded.</div>
             <div class="meta-list">
-              <div id="profile-created-at">Account created: —</div>
+              <div id="profile-created-at">Account created: �</div>
             </div>
           </div>
         </div>
@@ -311,7 +311,7 @@
           <div class="submission-title">${item.title}</div>
           <span class="pill">${item.status} / ${item.analysis_status}</span>
         </div>
-        <div class="submission-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        <div class="submission-meta">${item.category}${item.page_target ? ` � ${item.page_target}` : ""}</div>
         <div class="submission-copy">${item.description || item.source_url || "No extra description."}</div>
       </article>
     `).join("");
@@ -322,7 +322,7 @@
     const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
     profileDisplayHeading.textContent = displayName;
     profileEmail.textContent = profile?.email || user?.email || "No email";
-    profileCreatedAt.textContent = `Account created: ${profile?.created_at || user?.created_at || "—"}`;
+    profileCreatedAt.textContent = `Account created: ${profile?.created_at || user?.created_at || "�"}`;
     document.getElementById("display_name").value = profile?.display_name || "";
     document.getElementById("bio").value = profile?.bio || "";
     document.getElementById("website_url").value = profile?.website_url || "";

@@ -926,7 +926,7 @@
       jumpToConcept: "ย้ายไปยังแนวคิดนี้",
       currentDatabaseNoNodes: "ฐานข้อมูลปัจจุบันไม่มี concept node สำหรับเรนเดอร์",
       unknownGraphApiError: "API กราฟส่งข้อผิดพลาดที่ไม่ทราบสาเหตุ",
-      nodeStatus: (label, degree) => `${label} · ดีกรี ${degree}`,
+      nodeStatus: (label, degree) => `${label} � ดีกรี ${degree}`,
       selected: (label) => `เลือกแล้ว: ${label}`,
       resetCamera: "กำลังรีเซ็ตกล้อง",
       nodesLinks: (nodes, links) => `${nodes} โหนด, ${links} เส้นเชื่อม`,
@@ -992,7 +992,7 @@
       jumpToConcept: "Jump to concept",
       currentDatabaseNoNodes: "The current database returned no concept nodes for rendering.",
       unknownGraphApiError: "Unknown graph API error",
-      nodeStatus: (label, degree) => `${label} · degree ${degree}`,
+      nodeStatus: (label, degree) => `${label} � degree ${degree}`,
       selected: (label) => `Selected: ${label}`,
       resetCamera: "Resetting camera",
       nodesLinks: (nodes, links) => `${nodes} nodes, ${links} links`,
@@ -1208,7 +1208,7 @@
               <div class="stack-item">
                 <button class="stack-link" type="button" data-node-jump="${escapeHtml(item.id)}">
                   <strong>${escapeHtml(item.label)}</strong>
-                  <div class="stack-meta">${escapeHtml(t("degreeLower"))} ${escapeHtml(item.degree)} · ${escapeHtml(t("sharedLinks"))} ${escapeHtml(item.shared_links)} · ${escapeHtml(t("jumpToConcept"))}</div>
+                  <div class="stack-meta">${escapeHtml(t("degreeLower"))} ${escapeHtml(item.degree)} � ${escapeHtml(t("sharedLinks"))} ${escapeHtml(item.shared_links)} � ${escapeHtml(t("jumpToConcept"))}</div>
                 </button>
               </div>
             `, t("noNearbyConcepts"))}
@@ -1248,7 +1248,7 @@
             ${listMarkup(detail.supporting_sources, (item) => `
               <div class="stack-item">
                 <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>
-                <div class="stack-meta">${escapeHtml(item.platform)} · ${escapeHtml(item.published_year)} · ${escapeHtml(item.quantum_domain || t("domainUnknown"))}</div>
+                <div class="stack-meta">${escapeHtml(item.platform)} � ${escapeHtml(item.published_year)} � ${escapeHtml(item.quantum_domain || t("domainUnknown"))}</div>
               </div>
             `, t("noSourceExamples"))}
           </div>
@@ -1362,10 +1362,10 @@ async function loadMetrics() {
       elements.metricsBody.innerHTML = `
         <div class="metrics-accordion">
           <details class="metric-group" open>
-            <summary>${escapeHtml(t("hubInterpretation"))}<span>${escapeHtml(t("degreeHub"))}: ${escapeHtml(hub.degree_hub?.label || "-")} · ${escapeHtml(t("brokerHub"))}: ${escapeHtml(hub.broker_hub?.label || "-")}</span></summary>
+            <summary>${escapeHtml(t("hubInterpretation"))}<span>${escapeHtml(t("degreeHub"))}: ${escapeHtml(hub.degree_hub?.label || "-")} � ${escapeHtml(t("brokerHub"))}: ${escapeHtml(hub.broker_hub?.label || "-")}</span></summary>
             <div class="metric-group-body">
-              <div class="metric-summary-line"><strong style="color:#f6f8fe;">${escapeHtml(t("components"))}</strong> ${escapeHtml(data.components ?? "-")} · <strong style="color:#f6f8fe;">${escapeHtml(t("largestComponent"))}</strong> ${escapeHtml(data.largest_component_size ?? "-")} ${escapeHtml(t("nodesUnit"))}</div>
-              <div class="metric-summary-line">${escapeHtml(t("hubInterpretation"))} ${escapeHtml(t("degreeHub"))}: ${escapeHtml(hub.degree_hub?.label || "-")} · ${escapeHtml(t("brokerHub"))}: ${escapeHtml(hub.broker_hub?.label || "-")}</div>
+              <div class="metric-summary-line"><strong style="color:#f6f8fe;">${escapeHtml(t("components"))}</strong> ${escapeHtml(data.components ?? "-")} � <strong style="color:#f6f8fe;">${escapeHtml(t("largestComponent"))}</strong> ${escapeHtml(data.largest_component_size ?? "-")} ${escapeHtml(t("nodesUnit"))}</div>
+              <div class="metric-summary-line">${escapeHtml(t("hubInterpretation"))} ${escapeHtml(t("degreeHub"))}: ${escapeHtml(hub.degree_hub?.label || "-")} � ${escapeHtml(t("brokerHub"))}: ${escapeHtml(hub.broker_hub?.label || "-")}</div>
             </div>
           </details>
           <details class="metric-group" open>
@@ -1376,7 +1376,7 @@ async function loadMetrics() {
                   <input type="checkbox" data-metric-node="${escapeHtml(item.label)}">
                   <span>
                     <strong>${escapeHtml(item.label)}</strong>
-                    <span>${escapeHtml(t("degreeCentrality"))} ${escapeHtml(item.score)} · ${escapeHtml(t("role"))} ${escapeHtml(item.hub_role || "concept")}</span>
+                    <span>${escapeHtml(t("degreeCentrality"))} ${escapeHtml(item.score)} � ${escapeHtml(t("role"))} ${escapeHtml(item.hub_role || "concept")}</span>
                   </span>
                 </label>
               `).join("") : `<div class="metric-summary-line">${escapeHtml(t("noTopDegreeNodes"))}</div>`}
@@ -1390,7 +1390,7 @@ async function loadMetrics() {
                   <input type="checkbox" data-metric-node="${escapeHtml(item.hub)}">
                   <span>
                     <strong>${escapeHtml(item.hub)}</strong>
-                    <span>${escapeHtml(t("communityHub"))} · ${escapeHtml(item.hub_role)} · ${escapeHtml(t("size"))} ${escapeHtml(item.size)}</span>
+                    <span>${escapeHtml(t("communityHub"))} � ${escapeHtml(item.hub_role)} � ${escapeHtml(t("size"))} ${escapeHtml(item.size)}</span>
                   </span>
                 </label>
               `).join("") : `<div class="metric-summary-line">${escapeHtml(t("noStableCommunitySummaries"))}</div>`}

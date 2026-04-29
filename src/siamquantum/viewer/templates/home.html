@@ -26,6 +26,7 @@
 {% endblock %}
 
 {% block head %}
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <style>
   :root {
     --overview-bg: #07101d;
@@ -151,7 +152,14 @@
     font-size: clamp(2.35rem, 5vw, 4.1rem);
     line-height: 1.04;
     color: var(--overview-text);
+    white-space: nowrap;
     text-wrap: balance;
+  }
+
+  .hero-title .hero-title-line {
+    display: inline-flex;
+    gap: 0.28em;
+    white-space: nowrap;
   }
 
   .hero-title span { color: var(--overview-accent-2); }
@@ -252,16 +260,14 @@
     bottom: -1%;
     width: 96%;
     height: 104%;
-    object-fit: contain;
-    object-position: right bottom;
-    mix-blend-mode: screen;
+    background: transparent;
     opacity: 0.94;
     filter:
       drop-shadow(0 0 18px rgba(89, 196, 255, 0.24))
       drop-shadow(0 0 42px rgba(92, 95, 255, 0.14));
     z-index: 2;
-    -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.1) 10%, rgba(0, 0, 0, 0.52) 24%, rgba(0, 0, 0, 0.84) 46%, black 72%);
-    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.1) 10%, rgba(0, 0, 0, 0.52) 24%, rgba(0, 0, 0, 0.84) 46%, black 72%);
+    --progress-bar-color: transparent;
+    --progress-mask: transparent;
   }
 
   .hero-visual::after {
@@ -556,7 +562,7 @@
 <section class="overview-shell">
   <section class="overview-panel hero-panel">
     <div class="hero-copy">
-      <h1 class="hero-title">Welcome to<br><span>Siam Quantum Atlas</span></h1>
+      <h1 class="hero-title">Welcome to<br><span class="hero-title-line"><span>Siam</span><span>Quantum</span><span>Atlas</span></span></h1>
       <p class="hero-subtitle">
         A unified intelligence environment for mapping Thai quantum discourse, research activity,
         and institutional signals.
@@ -615,9 +621,17 @@
         <span></span>
         <span></span>
       </div>
-      <video class="hero-video" id="overview-cat-video" autoplay muted playsinline preload="auto">
-        <source src="/static/video/sqa.mp4" type="video/mp4">
-      </video>
+      <model-viewer
+        class="hero-video"
+        id="overview-cat-model"
+        src="/static/models/toon_cat_free.glb"
+        autoplay
+        disable-zoom
+        interaction-prompt="none"
+        camera-orbit="0deg 75deg 2.5m"
+        style="background: transparent;"
+        aria-label="Toon cat 3D model"
+      ></model-viewer>
     </div>
   </section>
 
@@ -811,15 +825,6 @@
         document.getElementById("ingestion-list").innerHTML = '<div class="muted-note">Recent ingestions are unavailable right now.</div>';
         document.getElementById("signals-list").innerHTML = '<div class="muted-note">System signals are unavailable right now.</div>';
       }
-    }
-
-    var catVideo = document.getElementById("overview-cat-video");
-    if (catVideo) {
-      catVideo.addEventListener("ended", function () {
-        if (!Number.isFinite(catVideo.duration)) return;
-        catVideo.currentTime = Math.max(catVideo.duration - 0.05, 0);
-        catVideo.pause();
-      });
     }
 
     loadOverview();
