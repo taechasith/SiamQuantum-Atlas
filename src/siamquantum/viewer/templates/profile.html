@@ -10,9 +10,27 @@
 {% block head %}
 <style>
   .profile-shell { display: grid; gap: 1rem; }
+  .profile-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem 1.55rem;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 212, 255, 0.16), transparent 24%),
+      radial-gradient(circle at 82% 24%, rgba(96, 165, 250, 0.15), transparent 22%),
+      linear-gradient(145deg, rgba(10, 18, 33, 0.98), rgba(12, 20, 36, 0.94));
+  }
+  .profile-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.03), transparent 32%),
+      linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.02) 100%);
+    pointer-events: none;
+  }
   .profile-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.82fr);
     gap: 1rem;
   }
   .profile-card {
@@ -27,16 +45,127 @@
     font-size: 1.9rem;
     margin-bottom: 0.6rem;
   }
+  .profile-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 1.9rem;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(79, 212, 255, 0.22);
+    background: rgba(79, 212, 255, 0.08);
+    color: #9edfff;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
   .profile-copy {
     color: var(--muted);
     line-height: 1.7;
     font-size: 0.9rem;
   }
+  .auth-shell {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .auth-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(280px, 0.98fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .auth-main {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    padding: 1.15rem;
+  }
+  .auth-side {
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+  }
+  .auth-side-card,
+  .auth-google-card,
+  .auth-form {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    padding: 1rem;
+  }
+  .auth-google-card {
+    background:
+      radial-gradient(circle at top left, rgba(79, 212, 255, 0.12), transparent 30%),
+      rgba(255,255,255,0.03);
+  }
+  .auth-panel-title {
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .auth-panel-copy {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.65;
+  }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 1rem 0;
+    color: #7f93b7;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.09);
+  }
   .auth-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+  .auth-form {
+    padding: 1rem 1rem 1.05rem;
+  }
+  .auth-form-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.8rem;
-    margin-top: 1rem;
+    margin-bottom: 0.35rem;
+  }
+  .auth-form-title {
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .auth-form-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.55rem;
+    padding: 0.14rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(121, 146, 189, 0.18);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted-strong);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .auth-form-copy {
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
   }
   .field { margin-top: 0.9rem; }
   .field label {
@@ -54,6 +183,12 @@
     border: 1px solid rgba(255,255,255,0.12);
     background: rgba(255,255,255,0.04);
     color: var(--text);
+  }
+  .field-hint {
+    margin-top: 0.42rem;
+    color: #7f93b7;
+    font-size: 0.76rem;
+    line-height: 1.5;
   }
   .field textarea { min-height: 110px; resize: vertical; }
   .field input:focus,
@@ -110,6 +245,51 @@
   .primary-btn { color: #04111e; background: linear-gradient(135deg, #7ad7ff, #34baf0); }
   .secondary-btn { color: var(--primary); background: rgba(56, 189, 248, 0.09); }
   .danger-btn { color: #fecaca; border-color: rgba(248,113,113,0.25); background: rgba(248,113,113,0.08); }
+  .google-btn {
+    width: 100%;
+    justify-content: center;
+    gap: 0.7rem;
+    border-color: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .google-btn svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+  .auth-feature-list {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+  }
+  .auth-feature {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    color: var(--muted);
+    font-size: 0.83rem;
+    line-height: 1.6;
+  }
+  .auth-feature-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    margin-top: 0.35rem;
+    background: linear-gradient(135deg, #7ad7ff, #34baf0);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+    flex-shrink: 0;
+  }
+  .auth-note {
+    margin-top: 0.8rem;
+    padding: 0.82rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(245,158,11,0.16);
+    background: rgba(245,158,11,0.06);
+    color: #f7d48a;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
   .status-box {
     display: none;
     margin-top: 1rem;
@@ -156,56 +336,102 @@
   }
   .hidden { display: none !important; }
   @media (max-width: 980px) {
-    .profile-grid, .auth-grid { grid-template-columns: 1fr; }
+    .profile-grid,
+    .auth-intro,
+    .auth-grid { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block body %}
 <section class="profile-shell">
-  <article class="profile-card">
-    <div class="profile-title">Profile</div>
-    <div class="profile-copy">Sign in with Google or email/password, edit your public profile fields, and review your own submitted data queue.</div>
+  <article class="profile-card profile-hero">
+    <div class="profile-kicker">Identity Workspace</div>
+    <div class="profile-title">Your Atlas Account</div>
+    <div class="profile-copy">Access the research workspace, manage your public profile, and keep your submitted data tied to a persistent identity across the Atlas.</div>
   </article>
 
   <div class="profile-grid">
     <article class="profile-card">
       <div id="logged-out-view">
-        <div class="profile-title" style="font-size:1.4rem;">Login or Create Account</div>
-        <div class="profile-copy">Supabase Auth handles the account session. Google OAuth uses the publishable key in the browser, while protected profile updates remain server-side.</div>
+        <div class="auth-shell">
+          <div class="auth-intro">
+            <section class="auth-main">
+              <div class="auth-panel-title">Sign in or create your workspace identity</div>
+              <div class="auth-panel-copy">Use email and password for direct access, or connect Google once the Supabase provider is configured with a web OAuth client.</div>
 
-        <div class="auth-grid">
-          <form id="login-form">
-            <div class="field">
-              <label for="login-email">Email</label>
-              <input id="login-email" type="email" required>
-            </div>
-            <div class="field">
-              <label for="login-password">Password</label>
-              <input id="login-password" type="password" required>
-            </div>
-            <div class="button-row">
-              <button class="primary-btn" id="login-btn" type="submit">Login</button>
-            </div>
-          </form>
+              <div class="auth-divider">Email Access</div>
 
-          <form id="signup-form">
-            <div class="field">
-              <label for="signup-email">Email</label>
-              <input id="signup-email" type="email" required>
-            </div>
-            <div class="field">
-              <label for="signup-password">Password</label>
-              <input id="signup-password" type="password" minlength="6" required>
-            </div>
-            <div class="button-row">
-              <button class="secondary-btn" id="signup-btn" type="submit">Create Account</button>
-            </div>
-          </form>
-        </div>
+              <div class="auth-grid">
+                <form id="login-form" class="auth-form">
+                  <div class="auth-form-head">
+                    <div class="auth-form-title">Welcome back</div>
+                    <div class="auth-form-badge">Login</div>
+                  </div>
+                  <div class="auth-form-copy">Open your existing profile and submission history.</div>
+                  <div class="field">
+                    <label for="login-email">Email</label>
+                    <input id="login-email" type="email" autocomplete="email" required>
+                  </div>
+                  <div class="field">
+                    <label for="login-password">Password</label>
+                    <input id="login-password" type="password" autocomplete="current-password" required>
+                  </div>
+                  <div class="button-row">
+                    <button class="primary-btn" id="login-btn" type="submit">Login</button>
+                  </div>
+                </form>
 
-        <div class="button-row">
-          <button class="secondary-btn" id="google-login-btn" type="button">Continue with Google</button>
+                <form id="signup-form" class="auth-form">
+                  <div class="auth-form-head">
+                    <div class="auth-form-title">Create account</div>
+                    <div class="auth-form-badge">New</div>
+                  </div>
+                  <div class="auth-form-copy">Create a persistent Atlas identity for submissions and profile ownership.</div>
+                  <div class="field">
+                    <label for="signup-email">Email</label>
+                    <input id="signup-email" type="email" autocomplete="email" required>
+                  </div>
+                  <div class="field">
+                    <label for="signup-password">Password</label>
+                    <input id="signup-password" type="password" autocomplete="new-password" minlength="6" required>
+                    <div class="field-hint">Use at least 6 characters. If Supabase email confirmation is enabled, you will need to verify the inbox before first login.</div>
+                  </div>
+                  <div class="button-row">
+                    <button class="secondary-btn" id="signup-btn" type="submit">Create Account</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <aside class="auth-side">
+              <section class="auth-google-card">
+                <div class="auth-panel-title">Google Sign-In</div>
+                <div class="auth-panel-copy">Fastest path for researchers and contributors once the OAuth provider is wired correctly in Supabase and Google Cloud.</div>
+                <div class="button-row">
+                  <button class="secondary-btn google-btn" id="google-login-btn" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.24 1.26-.96 2.33-2.04 3.05l3.3 2.56c1.92-1.77 3.03-4.37 3.03-7.47 0-.72-.06-1.42-.18-2.1H12z"/>
+                      <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.3-2.56c-.91.61-2.08.97-3.31.97-2.54 0-4.7-1.72-5.47-4.03H3.12v2.63A9.98 9.98 0 0 0 12 22z"/>
+                      <path fill="#4A90E2" d="M6.53 13.95A5.99 5.99 0 0 1 6.22 12c0-.68.12-1.34.31-1.95V7.42H3.12A10 10 0 0 0 2 12c0 1.61.38 3.14 1.12 4.58l3.41-2.63z"/>
+                      <path fill="#FBBC05" d="M12 6.02c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.95 3.01 14.69 2 12 2A9.98 9.98 0 0 0 3.12 7.42l3.41 2.63C7.3 7.74 9.46 6.02 12 6.02z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
+                </div>
+                <div class="auth-note">If Google shows <code>flowName=GeneralOAuthFlow</code>, the provider is usually using a Google <strong>Desktop</strong> OAuth client. Supabase requires a Google <strong>Web application</strong> client with the correct redirect URI.</div>
+              </section>
+
+              <section class="auth-side-card">
+                <div class="auth-panel-title">What this account unlocks</div>
+                <div class="auth-feature-list">
+                  <div class="auth-feature"><span class="auth-feature-dot"></span><span>Private submission history tied to your identity.</span></div>
+                  <div class="auth-feature"><span class="auth-feature-dot"></span><span>Editable public profile stored in the Supabase <code>profiles</code> table.</span></div>
+                  <div class="auth-feature"><span class="auth-feature-dot"></span><span>Session continuity across the research workflow and community submission tools.</span></div>
+                </div>
+              </section>
+            </aside>
+          </div>
         </div>
       </div>
 
@@ -281,6 +507,14 @@
   const profileEmail = document.getElementById("profile-email");
   const profileCreatedAt = document.getElementById("profile-created-at");
   const googleLoginButton = document.getElementById("google-login-btn");
+
+  function normalizeAuthError(error) {
+    const message = String(error?.message || error || "Request failed");
+    if (message.includes("flowName=GeneralOAuthFlow")) {
+      return "Google OAuth is misconfigured. In Google Cloud, create a Web application OAuth client, then use that client ID and secret in Supabase. A Desktop client ID will not work with the Supabase callback flow.";
+    }
+    return message;
+  }
 
   function showStatus(message, kind) {
     profileStatus.textContent = message;
@@ -364,7 +598,7 @@
       fillProfile(profileData?.profile, authState.user);
       renderSubmissions(mineData?.items || []);
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     }
   }
 
@@ -380,7 +614,7 @@
       showStatus("Logged in successfully.", "success");
       await refreshPage();
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     } finally {
       button.disabled = false;
     }
@@ -398,7 +632,7 @@
       showStatus("Signup complete. Check your email if confirmation is required.", "success");
       await refreshPage();
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     } finally {
       button.disabled = false;
     }
@@ -408,7 +642,7 @@
     try {
       await loginWithGoogle();
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     }
   });
 
@@ -430,7 +664,7 @@
       fillProfile(data?.profile, authState?.user);
       showStatus("Profile updated.", "success");
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     } finally {
       saveButton.disabled = false;
     }
@@ -442,7 +676,7 @@
       showStatus("Logged out.", "warning");
       await refreshPage();
     } catch (error) {
-      showStatus(error.message, "error");
+      showStatus(normalizeAuthError(error), "error");
     }
   });
 
