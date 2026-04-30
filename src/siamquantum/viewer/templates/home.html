@@ -26,7 +26,6 @@
 {% endblock %}
 
 {% block head %}
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <style>
   :root {
     --overview-bg: #07101d;
@@ -336,27 +335,13 @@
     bottom: 1rem;
   }
 
-  .hero-video {
+  #quantum-canvas {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    background: transparent;
-    opacity: 0.97;
-    filter:
-      drop-shadow(0 0 18px rgba(89, 196, 255, 0.18))
-      drop-shadow(0 18px 36px rgba(8, 15, 32, 0.34));
     z-index: 3;
-    pointer-events: auto;
-    cursor: grab;
-    transform: translateX(3%) translateY(4%) scale(0.74);
-    transform-origin: 62% 56%;
-    --progress-bar-color: transparent;
-    --progress-mask: transparent;
-  }
-
-  .hero-video:active {
-    cursor: grabbing;
+    pointer-events: none;
   }
 
   .hero-visual::after {
@@ -670,10 +655,14 @@
 <section class="overview-shell">
   <section class="overview-panel hero-panel">
     <div class="hero-copy">
-      <h1 class="hero-title">Welcome to<br><span class="hero-title-line"><span>Siam</span><span>Quantum</span><span>Atlas</span></span></h1>
+      <h1 class="hero-title">
+        <span class="th-text">ยินดีต้อนรับสู่<br></span>
+        <span class="en-text">Welcome to<br></span>
+        <span class="hero-title-line"><span>Siam</span><span>Quantum</span><span>Atlas</span></span>
+      </h1>
       <p class="hero-subtitle">
-        A unified intelligence environment for mapping Thai quantum discourse, research activity,
-        and institutional signals.
+        <span class="th-text">สภาพแวดล้อมข่าวกรองที่ครบวงจรสำหรับการทำแผนที่วาทกรรมควอนตัมไทย กิจกรรมการวิจัย และสัญญาณเชิงสถาบัน</span>
+        <span class="en-text">A unified intelligence environment for mapping Thai quantum discourse, research activity, and institutional signals.</span>
       </p>
 
       <div class="hero-stats">
@@ -684,8 +673,8 @@
             </div>
             <div class="hero-stat-value" id="stat-sources">775</div>
           </div>
-          <div class="hero-stat-label">Corpus Sources</div>
-          <div class="hero-stat-meta" id="stat-sources-meta">Live corpus total</div>
+          <div class="hero-stat-label"><span class="th-text">แหล่งข้อมูลคลัง</span><span class="en-text">Corpus Sources</span></div>
+          <div class="hero-stat-meta" id="stat-sources-meta"><span class="th-text">จำนวนคลังทั้งหมด</span><span class="en-text">Live corpus total</span></div>
         </article>
 
         <article class="hero-stat">
@@ -695,8 +684,8 @@
             </div>
             <div class="hero-stat-value" id="stat-triplets">2.1k</div>
           </div>
-          <div class="hero-stat-label">Knowledge Triplets</div>
-          <div class="hero-stat-meta" id="stat-triplets-meta">Extracted links</div>
+          <div class="hero-stat-label"><span class="th-text">ชุดความรู้สามส่วน</span><span class="en-text">Knowledge Triplets</span></div>
+          <div class="hero-stat-meta" id="stat-triplets-meta"><span class="th-text">ลิงก์ที่สกัดได้</span><span class="en-text">Extracted links</span></div>
         </article>
 
         <article class="hero-stat">
@@ -706,8 +695,8 @@
             </div>
             <div class="hero-stat-value" id="stat-geocoded">350</div>
           </div>
-          <div class="hero-stat-label">Geolocated Sources</div>
-          <div class="hero-stat-meta" id="stat-geocoded-meta">Mapped across Thailand</div>
+          <div class="hero-stat-label"><span class="th-text">แหล่งข้อมูลที่ระบุพิกัด</span><span class="en-text">Geolocated Sources</span></div>
+          <div class="hero-stat-meta" id="stat-geocoded-meta"><span class="th-text">แผนที่ทั่วประเทศไทย</span><span class="en-text">Mapped across Thailand</span></div>
         </article>
 
         <article class="hero-stat">
@@ -717,8 +706,8 @@
             </div>
             <div class="hero-stat-value" id="stat-years">2016-2026</div>
           </div>
-          <div class="hero-stat-label">Temporal Range</div>
-          <div class="hero-stat-meta">11 years of data</div>
+          <div class="hero-stat-label"><span class="th-text">ช่วงเวลา</span><span class="en-text">Temporal Range</span></div>
+          <div class="hero-stat-meta"><span class="th-text">ข้อมูล 11 ปี</span><span class="en-text">11 years of data</span></div>
         </article>
       </div>
     </div>
@@ -729,29 +718,11 @@
         <span></span>
         <span></span>
       </div>
-      <div class="hero-stage" id="overview-cat-stage">
-        <div class="hero-stage-chip top">Atlas Companion</div>
+      <div class="hero-stage" id="overview-vis-stage">
+        <div class="hero-stage-chip top"><span class="th-text">เครือข่ายควอนตัมสด</span><span class="en-text">Live Quantum Network</span></div>
         <div class="hero-stage-orbit" aria-hidden="true"></div>
-        <model-viewer
-          class="hero-video"
-          id="overview-cat-model"
-          src="/static/models/toon_cat_free.glb"
-          autoplay
-          auto-rotate
-          auto-rotate-delay="0"
-          rotation-per-second="18deg"
-          camera-controls
-          disable-zoom
-          interaction-prompt="none"
-          camera-target="0m 0.5m 0m"
-          camera-orbit="18deg 79deg 2.28m"
-          min-camera-orbit="-8deg 68deg 2.08m"
-          max-camera-orbit="38deg 90deg 2.42m"
-          field-of-view="30deg"
-          style="background: transparent;"
-          aria-label="Toon cat 3D model"
-        ></model-viewer>
-        <div class="hero-stage-chip bottom">Drag to Rotate</div>
+        <canvas id="quantum-canvas" aria-hidden="true"></canvas>
+        <div class="hero-stage-chip bottom"><span class="th-text">วาทกรรมควอนตัมไทย</span><span class="en-text">Thai Quantum Discourse</span></div>
       </div>
     </div>
   </section>
@@ -761,68 +732,68 @@
       <div class="module-icon">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 0 1 0 18"></path><path d="M12 3a15 15 0 0 0 0 18"></path></svg>
       </div>
-      <div class="module-title">Research Atlas</div>
-      <div class="module-copy">Explore verified sources, institutions, and publications across Thailand's quantum research landscape.</div>
-      <div class="module-link">Open Module -></div>
+      <div class="module-title"><span class="th-text">แผนที่วิจัย</span><span class="en-text">Research Atlas</span></div>
+      <div class="module-copy"><span class="th-text">สำรวจแหล่งข้อมูล สถาบัน และสิ่งพิมพ์ที่ตรวจสอบแล้วทั่วภูมิทัศน์การวิจัยควอนตัมของไทย</span><span class="en-text">Explore verified sources, institutions, and publications across Thailand's quantum research landscape.</span></div>
+      <div class="module-link"><span class="th-text">เปิดโมดูล →</span><span class="en-text">Open Module -></span></div>
     </a>
 
     <a class="overview-panel module-card" href="/network">
       <div class="module-icon">
         <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="17" r="2"></circle><path d="M8 8l2.8 7"></path><path d="M16 7l-2.8 8"></path><path d="M8 7h8"></path></svg>
       </div>
-      <div class="module-title">Discourse Map</div>
-      <div class="module-copy">Visualize conceptual connections and knowledge networks within the active quantum discourse.</div>
-      <div class="module-link">Open Module -></div>
+      <div class="module-title"><span class="th-text">แผนที่วาทกรรม</span><span class="en-text">Discourse Map</span></div>
+      <div class="module-copy"><span class="th-text">แสดงภาพการเชื่อมต่อเชิงแนวคิดและเครือข่ายความรู้ในวาทกรรมควอนตัมที่ยังดำเนินอยู่</span><span class="en-text">Visualize conceptual connections and knowledge networks within the active quantum discourse.</span></div>
+      <div class="module-link"><span class="th-text">เปิดโมดูล →</span><span class="en-text">Open Module -></span></div>
     </a>
 
     <a class="overview-panel module-card" href="/analytics">
       <div class="module-icon">
         <svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"></path><path d="M4 4v14h16"></path></svg>
       </div>
-      <div class="module-title">Temporal Analysis</div>
-      <div class="module-copy">Analyze trends, bursts, and shifts in discourse over time with advanced temporal tools.</div>
-      <div class="module-link">Open Module -></div>
+      <div class="module-title"><span class="th-text">การวิเคราะห์ตามเวลา</span><span class="en-text">Temporal Analysis</span></div>
+      <div class="module-copy"><span class="th-text">วิเคราะห์แนวโน้ม การระเบิดตัว และการเปลี่ยนแปลงของวาทกรรมตามกาลเวลาด้วยเครื่องมือเชิงเวลาขั้นสูง</span><span class="en-text">Analyze trends, bursts, and shifts in discourse over time with advanced temporal tools.</span></div>
+      <div class="module-link"><span class="th-text">เปิดโมดูล →</span><span class="en-text">Open Module -></span></div>
     </a>
 
     <a class="overview-panel module-card" href="/submit-data">
       <div class="module-icon">
         <svg viewBox="0 0 24 24"><path d="M10 3h4"></path><path d="M9 3v4l-5 9a4 4 0 0 0 3.5 5.9h9A4 4 0 0 0 20 16L15 7V3"></path><path d="M8 14h8"></path></svg>
       </div>
-      <div class="module-title">Laboratory</div>
-      <div class="module-copy">Run experiments, test hypotheses, and feed reviewed user submissions into the analysis workflow.</div>
-      <div class="module-link">Open Module -></div>
+      <div class="module-title"><span class="th-text">ห้องปฏิบัติการ</span><span class="en-text">Laboratory</span></div>
+      <div class="module-copy"><span class="th-text">ทดลอง ทดสอบสมมติฐาน และป้อนการส่งข้อมูลที่ตรวจสอบแล้วเข้าสู่ขั้นตอนการวิเคราะห์</span><span class="en-text">Run experiments, test hypotheses, and feed reviewed user submissions into the analysis workflow.</span></div>
+      <div class="module-link"><span class="th-text">เปิดโมดูล →</span><span class="en-text">Open Module -></span></div>
     </a>
   </section>
 
   <section class="bottom-grid">
     <article class="overview-panel detail-panel">
-      <div class="detail-title">Live Pipeline Status</div>
+      <div class="detail-title"><span class="th-text">สถานะไปป์ไลน์สด</span><span class="en-text">Live Pipeline Status</span></div>
       <div class="pipeline-list" id="pipeline-list">
-        <div class="muted-note">Loading pipeline stages...</div>
+        <div class="muted-note"><span class="th-text">กำลังโหลดขั้นตอนไปป์ไลน์...</span><span class="en-text">Loading pipeline stages...</span></div>
       </div>
     </article>
 
     <article class="overview-panel detail-panel">
-      <div class="detail-title">Recent Ingestions</div>
+      <div class="detail-title"><span class="th-text">การนำเข้าล่าสุด</span><span class="en-text">Recent Ingestions</span></div>
       <div class="ingestion-table">
         <div class="ingestion-header">
-          <div>Source ID</div>
-          <div>Type</div>
-          <div>Date Added</div>
-          <div>Status</div>
+          <div><span class="th-text">รหัสแหล่งข้อมูล</span><span class="en-text">Source ID</span></div>
+          <div><span class="th-text">ประเภท</span><span class="en-text">Type</span></div>
+          <div><span class="th-text">วันที่เพิ่ม</span><span class="en-text">Date Added</span></div>
+          <div><span class="th-text">สถานะ</span><span class="en-text">Status</span></div>
         </div>
         <div id="ingestion-list">
-          <div class="muted-note">Loading recent source activity...</div>
+          <div class="muted-note"><span class="th-text">กำลังโหลดกิจกรรมล่าสุด...</span><span class="en-text">Loading recent source activity...</span></div>
         </div>
       </div>
     </article>
 
     <article class="overview-panel detail-panel">
-      <div class="detail-title">System Signals</div>
+      <div class="detail-title"><span class="th-text">สัญญาณระบบ</span><span class="en-text">System Signals</span></div>
       <div class="signals-list" id="signals-list">
-        <div class="muted-note">Loading system signals...</div>
+        <div class="muted-note"><span class="th-text">กำลังโหลดสัญญาณระบบ...</span><span class="en-text">Loading system signals...</span></div>
       </div>
-      <a class="signals-link" href="/analytics">View All Signals -></a>
+      <a class="signals-link" href="/analytics"><span class="th-text">ดูสัญญาณทั้งหมด →</span><span class="en-text">View All Signals -></span></a>
     </article>
   </section>
 </section>
@@ -834,18 +805,22 @@
       return String(value == null ? "-" : value);
     }
 
+    function isTH() {
+      return document.documentElement.dataset.lang === "th";
+    }
+
     function relTime(value) {
-      if (!value) return "Unknown";
+      if (!value) return isTH() ? "ไม่ทราบ" : "Unknown";
       var date = new Date(value);
       if (Number.isNaN(date.getTime())) return String(value);
       var seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
-      if (seconds < 60) return "just now";
+      if (seconds < 60) return isTH() ? "เมื่อกี้" : "just now";
       var minutes = Math.round(seconds / 60);
-      if (minutes < 60) return minutes + " min ago";
+      if (minutes < 60) return isTH() ? minutes + " นาทีที่แล้ว" : minutes + " min ago";
       var hours = Math.round(minutes / 60);
-      if (hours < 24) return hours + " hr ago";
+      if (hours < 24) return isTH() ? hours + " ชม. ที่แล้ว" : hours + " hr ago";
       var days = Math.round(hours / 24);
-      return days + " day ago";
+      return isTH() ? days + " วันที่แล้ว" : days + " day ago";
     }
 
     function stateClass(stage) {
@@ -861,37 +836,134 @@
       return 100;
     }
 
-    function initHeroModel() {
-      var stage = document.getElementById("overview-cat-stage");
-      var model = document.getElementById("overview-cat-model");
-      if (!stage || !model) return;
-      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    function initQuantumCanvas() {
+      var canvas = document.getElementById("quantum-canvas");
+      if (!canvas) return;
+      var ctx = canvas.getContext("2d");
+      var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      var baseAzimuth = 18;
-      var baseElevation = 79;
-      var baseDistance = 2.28;
+      function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+      resize();
+      window.addEventListener("resize", resize);
 
-      stage.addEventListener("pointermove", function (event) {
-        if (event.pointerType === "touch") return;
-        var rect = stage.getBoundingClientRect();
-        var x = (event.clientX - rect.left) / rect.width;
-        var y = (event.clientY - rect.top) / rect.height;
-        var offsetX = (x - 0.5) * 2;
-        var offsetY = (y - 0.5) * 2;
+      var COLORS = ["#4fd4ff", "#60a5fa", "#818cf8", "#34d399"];
+      var NODE_COUNT = 28;
+      var nodes = [];
 
-        stage.style.transform =
-          "perspective(1200px) rotateY(" + (offsetX * 5).toFixed(2) + "deg) rotateX(" + (-offsetY * 4).toFixed(2) + "deg) translateY(" + (-Math.abs(offsetY) * 3).toFixed(2) + "px)";
+      for (var i = 0; i < NODE_COUNT; i++) {
+        var angle = (i / NODE_COUNT) * Math.PI * 2;
+        var radius = 0.12 + Math.random() * 0.34;
+        nodes.push({
+          ax: 0.5 + Math.cos(angle) * radius,
+          ay: 0.5 + Math.sin(angle) * radius * 0.72,
+          vx: (Math.random() - 0.5) * 0.00018,
+          vy: (Math.random() - 0.5) * 0.00014,
+          r: 1.4 + Math.random() * 2.2,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          pulse: Math.random() * Math.PI * 2,
+          pulseSpeed: 0.016 + Math.random() * 0.022,
+          connections: []
+        });
+      }
 
-        model.cameraOrbit =
-          (baseAzimuth + offsetX * 9).toFixed(2) + "deg " +
-          (baseElevation - offsetY * 4).toFixed(2) + "deg " +
-          (baseDistance - Math.abs(offsetX) * 0.06).toFixed(2) + "m";
+      // Central hub node
+      nodes.push({
+        ax: 0.5, ay: 0.5, vx: 0, vy: 0,
+        r: 5.5, color: "#4fd4ff", pulse: 0, pulseSpeed: 0.012, connections: [], isHub: true
       });
 
-      stage.addEventListener("pointerleave", function () {
-        stage.style.transform = "";
-        model.cameraOrbit = baseAzimuth + "deg " + baseElevation + "deg " + baseDistance + "m";
-      });
+      function buildConnections() {
+        nodes.forEach(function (n) { n.connections = []; });
+        for (var a = 0; a < nodes.length; a++) {
+          for (var b = a + 1; b < nodes.length; b++) {
+            var dx = nodes[a].ax - nodes[b].ax;
+            var dy = nodes[a].ay - nodes[b].ay;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 0.22 || nodes[a].isHub || nodes[b].isHub) {
+              if (dist < 0.42) {
+                nodes[a].connections.push(b);
+                nodes[b].connections.push(a);
+              }
+            }
+          }
+        }
+      }
+      buildConnections();
+
+      var raf;
+      function draw() {
+        var W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        nodes.forEach(function (n) {
+          if (!reducedMotion) {
+            n.ax += n.vx;
+            n.ay += n.vy;
+            n.pulse += n.pulseSpeed;
+            if (n.ax < 0.08 || n.ax > 0.92) n.vx *= -1;
+            if (n.ay < 0.08 || n.ay > 0.92) n.vy *= -1;
+          }
+        });
+
+        // Draw connections
+        var drawn = new Set();
+        nodes.forEach(function (n, i) {
+          n.connections.forEach(function (j) {
+            var key = i < j ? i + "_" + j : j + "_" + i;
+            if (drawn.has(key)) return;
+            drawn.add(key);
+            var m = nodes[j];
+            var dx = n.ax - m.ax, dy = n.ay - m.ay;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var alpha = Math.max(0, 1 - dist / 0.42) * 0.38;
+            ctx.beginPath();
+            ctx.moveTo(n.ax * W, n.ay * H);
+            ctx.lineTo(m.ax * W, m.ay * H);
+            ctx.strokeStyle = "rgba(79, 212, 255, " + alpha + ")";
+            ctx.lineWidth = n.isHub || m.isHub ? 0.8 : 0.5;
+            ctx.stroke();
+          });
+        });
+
+        // Draw nodes
+        nodes.forEach(function (n) {
+          var x = n.ax * W, y = n.ay * H;
+          var glow = n.r + Math.sin(n.pulse) * 1.2;
+
+          if (n.isHub) {
+            // Hub glow rings
+            for (var ring = 3; ring >= 1; ring--) {
+              ctx.beginPath();
+              ctx.arc(x, y, glow * ring * 2.8, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(79, 212, 255, " + (0.04 / ring) + ")";
+              ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, glow * 1.6, 0, Math.PI * 2);
+            var grad = ctx.createRadialGradient(x, y, 0, x, y, glow * 1.6);
+            grad.addColorStop(0, "rgba(200, 240, 255, 0.95)");
+            grad.addColorStop(0.4, "rgba(79, 212, 255, 0.8)");
+            grad.addColorStop(1, "rgba(79, 212, 255, 0)");
+            ctx.fillStyle = grad;
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(x, y, glow * 2.4, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(79, 212, 255, 0.07)";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x, y, glow, 0, Math.PI * 2);
+            ctx.fillStyle = n.color;
+            ctx.fill();
+          }
+        });
+
+        raf = requestAnimationFrame(draw);
+      }
+      draw();
     }
 
     async function loadOverview() {
@@ -906,20 +978,21 @@
         var geocoded = Number(overview.geocoded_sources || 0);
         var pending = Number(overview.pending_sources || 0);
         var triplets = Number(overview.total_triplets || 0);
-        var latestFetch = overview.latest_fetch_at ? relTime(overview.latest_fetch_at) : "Live corpus total";
+        var latestFetch = overview.latest_fetch_at ? relTime(overview.latest_fetch_at) : (isTH() ? "จำนวนคลังทั้งหมด" : "Live corpus total");
 
         document.getElementById("stat-sources").textContent = fmt(total);
         document.getElementById("stat-sources-meta").textContent = latestFetch;
         document.getElementById("stat-triplets").textContent = triplets ? fmt(triplets) : "2.1k";
-        document.getElementById("stat-triplets-meta").textContent = triplets ? "Extracted links ready" : "Awaiting extraction stats";
+        document.getElementById("stat-triplets-meta").textContent = triplets ? (isTH() ? "ลิงก์ที่สกัดพร้อมใช้" : "Extracted links ready") : (isTH() ? "รอผลการสกัด" : "Awaiting extraction stats");
         document.getElementById("stat-geocoded").textContent = fmt(geocoded);
-        document.getElementById("stat-geocoded-meta").textContent = pending ? fmt(pending) + " sources pending" : "Pipeline caught up";
+        document.getElementById("stat-geocoded-meta").textContent = pending ? fmt(pending) + (isTH() ? " แหล่งรอดำเนินการ" : " sources pending") : (isTH() ? "ไปป์ไลน์ทันกำหนด" : "Pipeline caught up");
 
+        var th = isTH();
         var pipelineStages = [
-          { name: "Fetching", status: pending ? "In progress" : "Complete", meta: latestFetch },
-          { name: "Extracting", status: pending ? "Processing" : "Complete", meta: pending ? fmt(pending) + " sources waiting" : "No backlog" },
-          { name: "Triplet Creation", status: triplets ? "Complete" : "Pending", meta: triplets ? fmt(triplets) + " triplets available" : "Waiting for extraction results" },
-          { name: "Analysis", status: overview.latest_analysis_at ? "Complete" : "Pending", meta: overview.latest_analysis_at ? relTime(overview.latest_analysis_at) : "Awaiting analysis run" }
+          { name: th ? "การดึงข้อมูล" : "Fetching", status: pending ? (th ? "กำลังดำเนินการ" : "In progress") : (th ? "เสร็จสิ้น" : "Complete"), meta: latestFetch },
+          { name: th ? "การสกัดข้อมูล" : "Extracting", status: pending ? (th ? "กำลังประมวลผล" : "Processing") : (th ? "เสร็จสิ้น" : "Complete"), meta: pending ? fmt(pending) + (th ? " แหล่งรอดำเนินการ" : " sources waiting") : (th ? "ไม่มีงานค้าง" : "No backlog") },
+          { name: th ? "สร้างชุดความรู้" : "Triplet Creation", status: triplets ? (th ? "เสร็จสิ้น" : "Complete") : (th ? "รอดำเนินการ" : "Pending"), meta: triplets ? fmt(triplets) + (th ? " ชุดพร้อมใช้" : " triplets available") : (th ? "รอผลการสกัด" : "Waiting for extraction results") },
+          { name: th ? "การวิเคราะห์" : "Analysis", status: overview.latest_analysis_at ? (th ? "เสร็จสิ้น" : "Complete") : (th ? "รอดำเนินการ" : "Pending"), meta: overview.latest_analysis_at ? relTime(overview.latest_analysis_at) : (th ? "รอรันการวิเคราะห์" : "Awaiting analysis run") }
         ];
 
         document.getElementById("pipeline-list").innerHTML = pipelineStages.map(function (item, index) {
@@ -936,10 +1009,10 @@
         }).join("");
 
         document.getElementById("ingestion-list").innerHTML = recent.length ? recent.slice(0, 4).map(function (item) {
-          var sourceId = item.id || item.source_id || "source";
-          var typeLabel = String(item.platform || item.type || "source").replaceAll("_", " ");
+          var sourceId = item.id || item.source_id || (th ? "แหล่งข้อมูล" : "source");
+          var typeLabel = String(item.platform || item.type || (th ? "แหล่งข้อมูล" : "source")).replaceAll("_", " ");
           var added = item.fetched_at || item.created_at || item.published_at || "";
-          var stage = String(item.stage || item.status || "pending");
+          var stage = String(item.stage || item.status || (th ? "รอดำเนินการ" : "pending"));
           return '<div class="ingestion-row">' +
             '<div class="ingestion-grid">' +
               '<div>' +
@@ -951,20 +1024,20 @@
               '<div><span class="ingestion-state ' + stateClass(stage) + '">' + stage + '</span></div>' +
             '</div>' +
           '</div>';
-        }).join("") : '<div class="muted-note">No recent ingestion rows are available yet.</div>';
+        }).join("") : '<div class="muted-note">' + (th ? "ยังไม่มีข้อมูลการนำเข้าล่าสุด" : "No recent ingestion rows are available yet.") + '</div>';
 
         var signals = [
           {
-            name: "Pipeline Health",
-            copy: pending ? fmt(pending) + " items are still moving through the queue." : "All critical collection stages are healthy."
+            name: th ? "สุขภาพไปป์ไลน์" : "Pipeline Health",
+            copy: pending ? fmt(pending) + (th ? " รายการยังอยู่ในคิว" : " items are still moving through the queue.") : (th ? "ขั้นตอนการเก็บข้อมูลสำคัญทั้งหมดปกติ" : "All critical collection stages are healthy.")
           },
           {
-            name: "Network Coherence",
-            copy: geocoded ? fmt(geocoded) + " geolocated sources are ready for cross-domain comparison." : "Geocoded source coverage is still being built."
+            name: th ? "ความสอดคล้องของเครือข่าย" : "Network Coherence",
+            copy: geocoded ? fmt(geocoded) + (th ? " แหล่งข้อมูลพิกัดพร้อมเปรียบเทียบ" : " geolocated sources are ready for cross-domain comparison.") : (th ? "กำลังสร้างความครอบคลุมแหล่งข้อมูลพิกัด" : "Geocoded source coverage is still being built.")
           },
           {
-            name: "Emerging Topic",
-            copy: recent[0]?.title ? "Recent intake highlights: " + recent[0].title : "New reviewed material will surface here after ingestion."
+            name: th ? "หัวข้อที่กำลังเกิดขึ้น" : "Emerging Topic",
+            copy: recent[0]?.title ? (th ? "ข้อมูลนำเข้าล่าสุด: " : "Recent intake highlights: ") + recent[0].title : (th ? "เนื้อหาที่ตรวจสอบแล้วจะปรากฏที่นี่หลังนำเข้า" : "New reviewed material will surface here after ingestion.")
           }
         ];
 
@@ -975,14 +1048,15 @@
           '</div>';
         }).join("");
       } catch (error) {
-        document.getElementById("pipeline-list").innerHTML = '<div class="muted-note">Pipeline status unavailable: ' + error.message + '</div>';
-        document.getElementById("ingestion-list").innerHTML = '<div class="muted-note">Recent ingestions are unavailable right now.</div>';
-        document.getElementById("signals-list").innerHTML = '<div class="muted-note">System signals are unavailable right now.</div>';
+        var th2 = isTH();
+        document.getElementById("pipeline-list").innerHTML = '<div class="muted-note">' + (th2 ? "สถานะไปป์ไลน์ไม่พร้อมใช้: " : "Pipeline status unavailable: ") + error.message + '</div>';
+        document.getElementById("ingestion-list").innerHTML = '<div class="muted-note">' + (th2 ? "ไม่สามารถโหลดข้อมูลนำเข้าล่าสุดได้" : "Recent ingestions are unavailable right now.") + '</div>';
+        document.getElementById("signals-list").innerHTML = '<div class="muted-note">' + (th2 ? "สัญญาณระบบไม่พร้อมใช้งานขณะนี้" : "System signals are unavailable right now.") + '</div>';
       }
     }
 
     loadOverview();
-    initHeroModel();
+    initQuantumCanvas();
   })();
 </script>
 {% endblock %}
