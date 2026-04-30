@@ -355,7 +355,6 @@
                     <span>Continue with Google</span>
                   </button>
                 </div>
-                <div class="auth-note">If Google shows <code>flowName=GeneralOAuthFlow</code>, the provider is usually using a Google <strong>Desktop</strong> OAuth client. Supabase requires a Google <strong>Web application</strong> client with the correct redirect URI.</div>
               </div>
 
               <div class="auth-divider">Email Access</div>
@@ -483,9 +482,6 @@
 
   function normalizeAuthError(error) {
     const message = String(error?.message || error || "Request failed");
-    if (message.includes("flowName=GeneralOAuthFlow")) {
-      return "Google OAuth is misconfigured. In Google Cloud, create a Web application OAuth client, then use that client ID and secret in Supabase. A Desktop client ID will not work with the Supabase callback flow.";
-    }
     return message;
   }
 
