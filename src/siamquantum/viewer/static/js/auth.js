@@ -11,7 +11,7 @@ import {
 
 let authConfigPromise = null;
 
-async function getAuthConfig() {
+export async function getAuthConfig() {
   if (!authConfigPromise) {
     authConfigPromise = fetch("/api/auth/config")
       .then((response) => response.json())
@@ -278,16 +278,29 @@ export async function registerWithPassword(email, password) {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    return loadAuthState();
+    const state = await loadAuthState();
+    return { ...state, signupPendingConfirmation: false };
   }
-  await signUpWithPassword(email, password);
-  return loadAuthStateSupabase();
+  const result = await signUpWithPassword(email, password);
+  if (result?.session) {
+    const state = await loadAuthStateSupabase();
+    return { ...state, signupPendingConfirmation: false };
+  }
+  const state = await loadAuthStateSupabase();
+  return {
+    ...state,
+    signupPendingConfirmation: true,
+    signupEmail: email,
+  };
 }
 
 export async function loginWithGoogle() {
   const config = await getAuthConfig();
   if (config?.local_mode) {
     throw new Error("Google login is not available in local fallback mode.");
+  }
+  if (!config?.google_oauth_available) {
+    throw new Error("Google login is not available in this environment.");
   }
   const redirectTo = `${window.location.origin}/profile`;
   await signInWithGoogle(redirectTo);

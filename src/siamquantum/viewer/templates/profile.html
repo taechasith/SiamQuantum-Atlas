@@ -41,7 +41,7 @@
     padding: 1.2rem 1.25rem;
   }
   .profile-title {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-heading);
     font-size: 1.9rem;
     margin-bottom: 0.6rem;
   }
@@ -461,6 +461,7 @@
 <script type="module">
   import {
     apiFetch,
+    getAuthConfig,
     loadAuthState,
     loginWithGoogle,
     loginWithPassword,
@@ -478,6 +479,7 @@
   const profileEmail = document.getElementById("profile-email");
   const profileCreatedAt = document.getElementById("profile-created-at");
   const googleLoginButton = document.getElementById("google-login-btn");
+  const googleLoginPanel = googleLoginButton ? googleLoginButton.closest(".oauth-inline") : null;
 
   function normalizeAuthError(error) {
     const message = String(error?.message || error || "Request failed");
@@ -537,11 +539,12 @@
 
   async function refreshPage() {
     try {
+      const authConfig = await getAuthConfig();
       const authState = await loadAuthState();
-      if (authState?.localMode) {
-        googleLoginButton.classList.add("hidden");
+      if (authState?.localMode || !authConfig?.google_oauth_available) {
+        if (googleLoginPanel) googleLoginPanel.classList.add("hidden");
       } else {
-        googleLoginButton.classList.remove("hidden");
+        if (googleLoginPanel) googleLoginPanel.classList.remove("hidden");
       }
       if (!authState?.enabled) {
         loggedOutView.classList.remove("hidden");
@@ -596,11 +599,18 @@
     const button = document.getElementById("signup-btn");
     button.disabled = true;
     try {
-      await registerWithPassword(
+      const result = await registerWithPassword(
         document.getElementById("signup-email").value.trim(),
         document.getElementById("signup-password").value
       );
-      showStatus("Signup complete. Check your email if confirmation is required.", "success");
+      if (result?.signupPendingConfirmation) {
+        showStatus(
+          `Signup complete. Confirm the verification email sent to ${result.signupEmail || "your inbox"} before logging in.`,
+          "success"
+        );
+      } else {
+        showStatus("Signup complete. You are now logged in.", "success");
+      }
       await refreshPage();
     } catch (error) {
       showStatus(normalizeAuthError(error), "error");
