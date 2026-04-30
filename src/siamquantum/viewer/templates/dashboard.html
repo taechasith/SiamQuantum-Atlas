@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Source Map | SiamQuantum Atlas{% endblock %}
 {% set active = 'dashboard' %}
 
@@ -683,8 +683,8 @@
     <aside class="ops-panel">
       <div class="panel-head">
         <div class="panel-status" id="panel-status">
-          <span class="th-text">ออนไลน์ � ซิงก์ข้อมูล</span>
-          <span class="en-text">Online � Syncing</span>
+          <span class="th-text">ออนไลน์ • ซิงก์ข้อมูล</span>
+          <span class="en-text">Online • Syncing</span>
         </div>
         <div class="panel-node-title" id="panel-node-title">Awaiting source selection</div>
         <div class="panel-node-meta" id="panel-node-meta">Select a source marker on the map to inspect its live context.</div>
@@ -948,12 +948,12 @@
     const location = [item.city, item.region].filter(Boolean).join(", ") || copyForLang("ไม่ทราบตำแหน่ง", "Unknown location");
     const sourceId = `SQA-${String(item.source_id || "0").padStart(4, "0")}`;
     elements.panelTitle.textContent = title;
-    elements.panelMeta.textContent = `${sourceId} � ${location}`;
+    elements.panelMeta.textContent = `${sourceId} • ${location}`;
     elements.telemetrySourceId.textContent = sourceId;
     elements.telemetryPlatform.textContent = (item.platform || "other").toUpperCase();
     elements.telemetryYear.textContent = item.published_year || "-";
     elements.telemetryFetch.textContent = relTime(item.fetched_at);
-    elements.panelStatus.textContent = copyForLang("ออนไลน์ � ซิงก์ข้อมูล", "Online � Syncing");
+    elements.panelStatus.textContent = copyForLang("ออนไลน์ • ซิงก์ข้อมูล", "Online • Syncing");
     renderFocusTags(item);
     renderTopology(item);
     elements.openSource.href = item.url || "/database";

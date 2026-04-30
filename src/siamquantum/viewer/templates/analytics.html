@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Trends | SiamQuantum Atlas{% endblock %}
 {% set active = 'analytics' %}
 
@@ -379,7 +379,7 @@
           <div class="kpi-label"><span class="th-text">แหล่งข้อมูลที่วิเคราะห์</span><span class="en-text">Sources Reviewed</span></div>
           <div class="kpi-value" id="stat-sources">0</div>
           <div class="kpi-sub">
-            <span id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: �</span><span class="en-text">Years with data: �</span></span>
+            <span id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: —</span><span class="en-text">Years with data: —</span></span>
           </div>
         </div>
         <div class="kpi-block">
@@ -412,7 +412,7 @@
         <h3><span class="th-text">รูปแบบเนื้อหา</span><span class="en-text">By Format</span></h3>
         <p>
           <span class="th-text">แสดงการมีส่วนร่วมตามรูปแบบ เช่น บทความ พอดแคสต์ วิดีโอ วิชาการ หรือฟิล์ม</span>
-          <span class="en-text">Breaks down engagement by format � article, podcast, video, academic paper, film, and more.</span>
+          <span class="en-text">Breaks down engagement by format — article, podcast, video, academic paper, film, and more.</span>
         </p>
       </div>
       <div class="brief-card">
@@ -478,7 +478,7 @@
       <h3><span class="th-text">การมีส่วนร่วมตามรูปแบบเนื้อหารายปี</span><span class="en-text">Format Trends by Year</span></h3>
       <p>
         <span class="th-text">แสดงแนวโน้มตามรูปแบบเนื้อหา เช่น บทความ พอดแคสต์ วิดีโอ งานวิชาการ</span>
-        <span class="en-text">Yearly trends by content form � separating articles, podcasts, videos, academic papers, and more.</span>
+        <span class="en-text">Yearly trends by content form — separating articles, podcasts, videos, academic papers, and more.</span>
       </p>
       <canvas id="production-chart"></canvas>
       <div class="validation-list" id="production-validation"></div>
@@ -625,12 +625,12 @@
       </div>
       <div class="validation-item">
         <strong>${title} composition by year</strong>
-        <span>Chi-square χ�=${composition.chi2 ?? "n/a"}, p=${composition.p ?? "n/a"}, Cram�r's V=${composition.cramers_v ?? "n/a"} for the year-by-label contingency table.</span>
+        <span>Chi-square χ²=${composition.chi2 ?? "n/a"}, p=${composition.p ?? "n/a"}, Cramér's V=${composition.cramers_v ?? "n/a"} for the year-by-label contingency table.</span>
         ${sigBadge(Boolean(composition.significant))}
       </div>
       <div class="validation-item">
         <strong>Strongest monotonic trend</strong>
-        <span>${trend ? `${trend.label} � tau=${Number(trend.mannkendall_tau || 0).toFixed(3)} � p=${Number(trend.mannkendall_p || 0).toFixed(4)} � rho=${Number(trend.spearman_rho || 0).toFixed(3)}` : "Insufficient multi-year support for a stable label-level trend test."}</span>
+        <span>${trend ? `${trend.label} · tau=${Number(trend.mannkendall_tau || 0).toFixed(3)} · p=${Number(trend.mannkendall_p || 0).toFixed(4)} · rho=${Number(trend.spearman_rho || 0).toFixed(3)}` : "Insufficient multi-year support for a stable label-level trend test."}</span>
       </div>
       <div class="validation-item">
         <strong>Most distinct yearly split</strong>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Source Library | SiamQuantum Atlas{% endblock %}
 {% set active = 'database' %}
 
@@ -439,7 +439,7 @@
       <span class="en-text">Browse saved sources by year, platform, and content type, then export the filtered view to `.xlsx`.</span>
     </p>
     <p style="margin-top:0.85rem;font-size:0.9rem;">
-      Scope note: the current relevance flags use the project�s working archive rules and should be treated as review aids, not final labels.
+      Scope note: the current relevance flags use the project's working archive rules and should be treated as review aids, not final labels.
     </p>
   </div>
   <div class="side-card">
@@ -738,7 +738,7 @@
       Array.from(elements.grid.children).forEach((card) => card.classList.add("is-entering"));
       renderActiveFilters();
       syncPlatformSegments();
-      setStatus(L(`โหลดแล้ว ${items.length} รายการ`, `Loaded ${items.length} items � page ${currentPage}`));
+      setStatus(L(`โหลดแล้ว ${items.length} รายการ`, `Loaded ${items.length} items · page ${currentPage}`));
     } catch (error) {
       showError(L(`ไม่สามารถโหลดข้อมูลแหล่งข้อมูลได้: ${error.message}`, `Could not load sources: ${error.message}`));
       elements.total.textContent = L("0 รายการ", "0 items");
