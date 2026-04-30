@@ -166,7 +166,7 @@ def _db() -> Path:
 
 
 def _prefer_local_auth() -> bool:
-    return settings.deployment_mode == "local"
+    return not supabase_enabled()
 
 
 def _utcnow_iso() -> str:
@@ -837,8 +837,8 @@ def _process_community_submission(submission_id: int, url: str) -> None:
 # ---------------------------------------------------------------------------
 
 @app.get("/", include_in_schema=False)
-def root(request: Request) -> Any:
-    return templates.TemplateResponse(request, "landing.html")
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/overview", status_code=307)
 
 
 @app.get("/overview", include_in_schema=False)

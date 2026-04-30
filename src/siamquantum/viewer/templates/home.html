@@ -140,6 +140,7 @@
 
   .hero-copy {
     position: relative;
+    grid-column: 1;
     z-index: 3;
     align-self: start;
     max-width: 33rem;
@@ -230,58 +231,66 @@
   }
 
   .hero-visual {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    position: relative;
+    grid-column: 2;
+    align-self: stretch;
+    justify-self: end;
+    width: min(100%, 34rem);
+    min-height: 22rem;
+    margin-right: -0.35rem;
     overflow: visible;
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
   }
 
   .hero-visual::before {
     content: "";
     position: absolute;
-    inset: 4% 0 2% 7%;
+    inset: 5% 2% 4% 8%;
     background:
-      radial-gradient(circle at 58% 44%, rgba(107, 123, 255, 0.16), transparent 28%),
-      radial-gradient(circle at 50% 82%, rgba(79, 212, 255, 0.12), transparent 22%),
-      radial-gradient(circle at 74% 26%, rgba(255, 255, 255, 0.08), transparent 16%);
-    filter: blur(14px);
+      radial-gradient(circle at 66% 40%, rgba(107, 123, 255, 0.14), transparent 26%),
+      radial-gradient(circle at 58% 82%, rgba(79, 212, 255, 0.12), transparent 20%),
+      radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.06), transparent 14%);
+    filter: blur(16px);
     pointer-events: none;
     z-index: 0;
   }
 
   .hero-video {
     position: absolute;
-    right: -6%;
-    bottom: -1%;
-    width: 96%;
-    height: 104%;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     background: transparent;
-    opacity: 0.94;
+    opacity: 0.95;
     filter:
       drop-shadow(0 0 18px rgba(89, 196, 255, 0.24))
       drop-shadow(0 0 42px rgba(92, 95, 255, 0.14));
     z-index: 2;
+    pointer-events: auto;
+    cursor: grab;
+    transform: translateX(7%) translateY(3%) scale(0.88);
+    transform-origin: 72% 58%;
     --progress-bar-color: transparent;
     --progress-mask: transparent;
+  }
+
+  .hero-video:active {
+    cursor: grabbing;
   }
 
   .hero-visual::after {
     content: "";
     position: absolute;
-    left: 4%;
-    right: 0;
-    bottom: 2%;
-    height: 30%;
+    left: 20%;
+    right: 2%;
+    bottom: 7%;
+    height: 24%;
     border-radius: 50%;
     background:
-      radial-gradient(ellipse at center, rgba(79, 212, 255, 0.2), transparent 58%),
-      radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12), transparent 72%);
-    filter: blur(16px);
+      radial-gradient(ellipse at center, rgba(79, 212, 255, 0.18), transparent 56%),
+      radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1), transparent 72%);
+    filter: blur(18px);
     pointer-events: none;
   }
 
@@ -300,25 +309,25 @@
   }
 
   .hero-visual-rings span:nth-child(1) {
-    width: 68%;
-    height: 20%;
-    left: 18%;
-    bottom: 6%;
+    width: 62%;
+    height: 16%;
+    left: 28%;
+    bottom: 8%;
   }
 
   .hero-visual-rings span:nth-child(2) {
-    width: 50%;
-    height: 13%;
-    left: 28%;
-    bottom: 10%;
+    width: 44%;
+    height: 10%;
+    left: 36%;
+    bottom: 11%;
     border-color: rgba(79, 212, 255, 0.22);
   }
 
   .hero-visual-rings span:nth-child(3) {
-    width: 80%;
-    height: 26%;
-    left: 12%;
-    bottom: 2%;
+    width: 72%;
+    height: 20%;
+    left: 22%;
+    bottom: 4%;
     border-color: rgba(94, 111, 255, 0.14);
   }
 
@@ -542,9 +551,11 @@
     .hero-panel { grid-template-columns: 1fr; }
     .hero-visual {
       position: relative;
+      grid-column: 1;
       width: 100%;
       min-height: 22rem;
       margin-top: 0.2rem;
+      margin-right: 0;
     }
     .hero-copy { max-width: none; }
     .module-grid,
@@ -554,6 +565,10 @@
       grid-template-columns: 1fr;
     }
     .hero-visual { min-height: 20rem; }
+    .hero-video {
+      transform: translateX(2%) translateY(2%) scale(0.9);
+      transform-origin: 60% 58%;
+    }
   }
 </style>
 {% endblock %}
@@ -626,9 +641,14 @@
         id="overview-cat-model"
         src="/static/models/toon_cat_free.glb"
         autoplay
+        camera-controls
         disable-zoom
         interaction-prompt="none"
-        camera-orbit="0deg 75deg 2.5m"
+        camera-target="0m 0.45m 0m"
+        camera-orbit="22deg 78deg 2.15m"
+        min-camera-orbit="-18deg 64deg 1.95m"
+        max-camera-orbit="54deg 92deg 2.4m"
+        field-of-view="34deg"
         style="background: transparent;"
         aria-label="Toon cat 3D model"
       ></model-viewer>

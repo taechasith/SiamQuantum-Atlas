@@ -86,20 +86,23 @@ def seeded_db(tmp_path: Path) -> Path:
 @pytest.fixture()
 def client(seeded_db: Path) -> TestClient:
     with patch("siamquantum.viewer.server.settings") as mock_settings:
-        mock_settings.database_url = f"sqlite:///{seeded_db}"
-        with TestClient(app) as c:
-            yield c
+        with patch("siamquantum.services.supabase.settings", mock_settings):
+            mock_settings.database_url = f"sqlite:///{seeded_db}"
+            mock_settings.supabase_url = ""
+            mock_settings.supabase_publishable_key = ""
+            mock_settings.supabase_secret_key = ""
+            with TestClient(app) as c:
+                yield c
 
 
 # ---------------------------------------------------------------------------
 # Root home page
 # ---------------------------------------------------------------------------
 
-def test_root_returns_home_page(client: TestClient) -> None:
-    resp = client.get("/")
-    assert resp.status_code == 200
-    assert "text/html" in resp.headers["content-type"]
-    assert "SiamQuantum Atlas" in resp.text
+def test_root_redirects_to_overview(client: TestClient) -> None:
+    resp = client.get("/", follow_redirects=False)
+    assert resp.status_code == 307
+    assert resp.headers["location"] == "/overview"
 
 
 # ---------------------------------------------------------------------------
@@ -427,3 +430,33 @@ def test_community_submit_blocked_in_demo_mode(client: TestClient) -> None:
     payload = resp.json()
     assert payload["ok"] is False
     assert payload["error"]["code"] == "community_disabled_in_demo"
+
+
+def test_auth_config_uses_local_mode_when_supabase_is_not_configured(client: TestClient) -> None:
+    resp = client.get("/api/auth/config")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    assert payload["data"]["enabled"] is False
+    assert payload["data"]["auth_mode"] == "local"
+    assert payload["data"]["local_mode"] is True
+    assert payload["data"]["google_oauth_available"] is False
+
+
+def test_auth_config_prefers_supabase_when_keys_are_configured(seeded_db: Path) -> None:
+    with patch("siamquantum.viewer.server.settings") as mock_settings:
+        with patch("siamquantum.services.supabase.settings", mock_settings):
+            mock_settings.database_url = f"sqlite:///{seeded_db}"
+            mock_settings.supabase_url = "https://example.supabase.co"
+            mock_settings.supabase_publishable_key = "sb_publishable_test"
+            mock_settings.supabase_secret_key = "sb_secret_test"
+            with TestClient(app) as client:
+                resp = client.get("/api/auth/config")
+
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    assert payload["data"]["enabled"] is True
+    assert payload["data"]["auth_mode"] == "supabase"
+    assert payload["data"]["local_mode"] is False
+    assert payload["data"]["google_oauth_available"] is True

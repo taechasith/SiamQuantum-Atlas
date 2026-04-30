@@ -52,8 +52,16 @@ def _as_text(value: Any) -> str | None:
     return text or None
 
 
+def _configured_setting(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
 def supabase_enabled() -> bool:
-    return bool(settings.supabase_url and settings.supabase_publishable_key and settings.supabase_secret_key)
+    return bool(
+        _configured_setting(settings.supabase_url)
+        and _configured_setting(settings.supabase_publishable_key)
+        and _configured_setting(settings.supabase_secret_key)
+    )
 
 
 def require_supabase() -> None:
