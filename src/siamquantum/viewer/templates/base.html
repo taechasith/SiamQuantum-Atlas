@@ -1056,7 +1056,7 @@
               { label: "Targeted", value: fmt(queueItems.filter(function (i) { return !!i.page_target; }).length) }
             ],
             feed: queueItems.slice(0, 3).map(function (item) {
-              return { copy: item.title || item.source_url || "-", meta: (item.category || "-") + " Â· " + (item.page_target || "general") };
+              return { copy: item.title || item.source_url || "-", meta: (item.category || "-") + " · " + (item.page_target || "general") };
             })
           };
         }

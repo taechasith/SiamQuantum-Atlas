@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import logging
 from datetime import date, datetime, timezone
 from typing import Any, cast
@@ -151,8 +152,8 @@ def _build_source(
     if not vid_id:
         return None
     snippet = item.get("snippet") or {}
-    title = snippet.get("title") or None
-    description = snippet.get("description") or None
+    title = html.unescape(snippet.get("title") or "") or None
+    description = html.unescape(snippet.get("description") or "") or None
     raw_text = f"{title or ''}\n{description or ''}".strip() or None
     pub_year = _parse_published_year(snippet.get("publishedAt") or "", year)
     cid = snippet.get("channelId") or None

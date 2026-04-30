@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import logging
 from datetime import date, datetime
 from typing import Any, cast
@@ -41,7 +42,7 @@ def _parse_response(data: dict[str, Any], year: int) -> list[SourceRaw]:
         if not url or url in seen_urls:
             continue
         seen_urls.add(url)
-        title = art.get("title") or None
+        title = html.unescape(art.get("title") or "") or None
         seendate = art.get("seendate") or ""
         pub_year = _year_from_seendate(seendate, year)
         out.append(
