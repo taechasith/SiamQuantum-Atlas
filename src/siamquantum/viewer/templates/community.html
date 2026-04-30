@@ -9,7 +9,7 @@
 
 {% block head %}
 <style>
-  .submit-shell { display: grid; gap: 1rem; }
+  .submit-shell { display: grid; gap: 1rem; font-family: var(--font-body); }
   .submit-card, .submit-side, .submit-list-card {
     border-radius: 16px;
     border: 1px solid var(--border);
@@ -31,7 +31,7 @@
     margin-bottom: 0.65rem;
   }
   .submit-title {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-heading);
     font-size: clamp(1.7rem, 3vw, 2.55rem);
     line-height: 1.08;
     margin-bottom: 0.8rem;
@@ -47,6 +47,7 @@
     gap: 1rem;
   }
   .submit-section-title {
+    font-family: var(--font-heading);
     font-size: 1rem;
     color: var(--text);
     margin-bottom: 0.35rem;
@@ -181,13 +182,13 @@
   <section class="submit-shell">
   <div class="submit-hero">
     <article class="submit-card">
-      <div class="submit-eyebrow">User-Owned Intake</div>
-      <h1 class="submit-title">Submit Data into the SiamQuantum analysis queue.</h1>
-      <p class="submit-copy">Authenticated users can submit source data, assign it to a target page, and track its queue state. Public pages only surface items after review approval and completed analysis.</p>
+      <div class="submit-eyebrow"><span class="th-text">พื้นที่ส่งข้อมูลของผู้ใช้</span><span class="en-text">User-Owned Intake</span></div>
+      <h1 class="submit-title"><span class="th-text">ส่งข้อมูลเข้าสู่คิววิเคราะห์ของ SiamQuantum</span><span class="en-text">Submit Data into the SiamQuantum analysis queue.</span></h1>
+      <p class="submit-copy"><span class="th-text">ผู้ใช้ที่เข้าสู่ระบบสามารถส่งข้อมูลแหล่งอ้างอิง ระบุหน้าปลายทาง และติดตามสถานะคิวได้ โดยหน้าสาธารณะจะแสดงเฉพาะรายการที่ผ่านการอนุมัติและวิเคราะห์เสร็จแล้วเท่านั้น</span><span class="en-text">Authenticated users can submit source data, assign it to a target page, and track its queue state. Public pages only surface items after review approval and completed analysis.</span></p>
     </article>
     <aside class="submit-side">
-      <div class="submit-section-title">Queue model</div>
-      <p class="submit-section-copy">New submissions start as <strong>pending</strong> with <strong>analysis_status=queued</strong>. They can progress through processing, completion, or failure, and require admin approval before they appear publicly.</p>
+      <div class="submit-section-title"><span class="th-text">โครงสร้างคิว</span><span class="en-text">Queue model</span></div>
+      <p class="submit-section-copy"><span class="th-text">รายการใหม่จะเริ่มที่สถานะ <strong>pending</strong> และ <strong>analysis_status=queued</strong> จากนั้นอาจเปลี่ยนเป็นกำลังประมวลผล เสร็จสิ้น หรือไม่สำเร็จ และต้องผ่านการอนุมัติจากผู้ดูแลก่อนจะแสดงบนหน้าสาธารณะ</span><span class="en-text">New submissions start as <strong>pending</strong> with <strong>analysis_status=queued</strong>. They can progress through processing, completion, or failure, and require admin approval before they appear publicly.</span></p>
       <div class="badge-row">
         <span class="pill">queued</span>
         <span class="pill">processing</span>
@@ -199,67 +200,68 @@
 
   <div class="submit-grid">
     <article class="submit-card">
-      <div class="submit-section-title">Submit Data</div>
-      <div class="submit-section-copy">You must be logged in to create a submission. Categories come from Supabase and can be extended inline.</div>
+      <div class="submit-section-title"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit Data</span></div>
+      <div class="submit-section-copy"><span class="th-text">คุณต้องเข้าสู่ระบบก่อนสร้างรายการส่งข้อมูล หมวดหมู่จะโหลดจาก Supabase และสามารถเพิ่มใหม่ได้ในหน้านี้ทันที</span><span class="en-text">You must be logged in to create a submission. Categories come from Supabase and can be extended inline.</span></div>
 
       <div id="auth-required" class="status-box warning show">
-        Login is required before you can submit data. Use the Profile page to sign in or create an account.
+        <span class="th-text">ต้องเข้าสู่ระบบก่อนจึงจะส่งข้อมูลได้ ใช้หน้าโปรไฟล์เพื่อเข้าสู่ระบบหรือสร้างบัญชี</span>
+        <span class="en-text">Login is required before you can submit data. Use the Profile page to sign in or create an account.</span>
       </div>
 
       <div class="inline-actions" id="auth-actions">
-        <a class="secondary-btn" href="/profile">Open Profile / Login</a>
+        <a class="secondary-btn" href="/profile"><span class="th-text">เปิดหน้าโปรไฟล์ / เข้าสู่ระบบ</span><span class="en-text">Open Profile / Login</span></a>
       </div>
 
       <form id="submit-data-form" class="hidden">
         <div class="field">
-          <label for="title">Title *</label>
+          <label for="title"><span class="th-text">ชื่อเรื่อง *</span><span class="en-text">Title *</span></label>
           <input id="title" name="title" type="text" required>
         </div>
 
         <div class="field">
-          <label for="description">Description</label>
-          <textarea id="description" name="description" placeholder="Context, findings, or relevance notes"></textarea>
+          <label for="description"><span class="th-text">คำอธิบาย</span><span class="en-text">Description</span></label>
+          <textarea id="description" name="description" placeholder="บริบท ข้อค้นพบ หรือหมายเหตุความเกี่ยวข้อง" data-placeholder-th="บริบท ข้อค้นพบ หรือหมายเหตุความเกี่ยวข้อง" data-placeholder-en="Context, findings, or relevance notes"></textarea>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label for="source_url">Source URL</label>
-            <input id="source_url" name="source_url" type="url" placeholder="https://example.com/source">
+            <label for="source_url"><span class="th-text">ลิงก์แหล่งข้อมูล</span><span class="en-text">Source URL</span></label>
+            <input id="source_url" name="source_url" type="url" placeholder="https://example.com/source" data-placeholder-th="https://example.com/source" data-placeholder-en="https://example.com/source">
           </div>
           <div class="field">
-            <label for="page_target">Page Target</label>
+            <label for="page_target"><span class="th-text">หน้าปลายทาง</span><span class="en-text">Page Target</span></label>
             <select id="page_target" name="page_target">
-              <option value="overview">Research Atlas</option>
-              <option value="dashboard">Dashboard</option>
-              <option value="network">Discourse Map</option>
-              <option value="analytics">Temporal Analysis</option>
-              <option value="database">Source Library</option>
-              <option value="submit-data">Submit Data</option>
+              <option value="overview" data-th="ภาพรวมงานวิจัย" data-en="Research Atlas">Research Atlas</option>
+              <option value="dashboard" data-th="แดชบอร์ด" data-en="Dashboard">Dashboard</option>
+              <option value="network" data-th="แผนที่วาทกรรม" data-en="Discourse Map">Discourse Map</option>
+              <option value="analytics" data-th="การวิเคราะห์เชิงเวลา" data-en="Temporal Analysis">Temporal Analysis</option>
+              <option value="database" data-th="คลังแหล่งข้อมูล" data-en="Source Library">Source Library</option>
+              <option value="submit-data" data-th="ส่งข้อมูล" data-en="Submit Data">Submit Data</option>
             </select>
           </div>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label for="category">Category *</label>
+            <label for="category"><span class="th-text">หมวดหมู่ *</span><span class="en-text">Category *</span></label>
             <select id="category" name="category" required>
-              <option value="">Loading categories...</option>
+              <option value="">กำลังโหลดหมวดหมู่...</option>
             </select>
           </div>
           <div class="field">
-            <label for="new-category">Add New Category</label>
-            <input id="new-category" name="new-category" type="text" placeholder="Optional new category name">
+            <label for="new-category"><span class="th-text">เพิ่มหมวดหมู่ใหม่</span><span class="en-text">Add New Category</span></label>
+            <input id="new-category" name="new-category" type="text" placeholder="ชื่อหมวดหมู่ใหม่ (ถ้ามี)" data-placeholder-th="ชื่อหมวดหมู่ใหม่ (ถ้ามี)" data-placeholder-en="Optional new category name">
           </div>
         </div>
 
         <div class="field">
-          <label for="metadata">Optional Notes / Metadata</label>
-          <textarea id="metadata" name="metadata" placeholder='JSON optional, e.g. {"priority":"high"}'></textarea>
+          <label for="metadata"><span class="th-text">หมายเหตุเพิ่มเติม / เมทาดาทา</span><span class="en-text">Optional Notes / Metadata</span></label>
+          <textarea id="metadata" name="metadata" placeholder='JSON เพิ่มเติม เช่น {"priority":"high"}' data-placeholder-th='JSON เพิ่มเติม เช่น {"priority":"high"}' data-placeholder-en='JSON optional, e.g. {"priority":"high"}'></textarea>
         </div>
 
         <div class="inline-actions">
-          <button class="primary-btn" id="submit-data-btn" type="submit">Submit Data</button>
-          <button class="secondary-btn" id="create-category-btn" type="button">Create Category Only</button>
+          <button class="primary-btn" id="submit-data-btn" type="submit"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit Data</span></button>
+          <button class="secondary-btn" id="create-category-btn" type="button"><span class="th-text">สร้างหมวดหมู่เท่านั้น</span><span class="en-text">Create Category Only</span></button>
         </div>
 
         <div class="status-box" id="submit-status"></div>
@@ -267,25 +269,25 @@
     </article>
 
     <aside class="submit-side">
-      <div class="submit-section-title">Your Queue Snapshot</div>
-      <div class="submit-section-copy">Recent submissions owned by the current user. Pending and failed items stay private here and on the Profile page.</div>
+      <div class="submit-section-title"><span class="th-text">ภาพรวมคิวของคุณ</span><span class="en-text">Your Queue Snapshot</span></div>
+      <div class="submit-section-copy"><span class="th-text">รายการล่าสุดที่เป็นของผู้ใช้ปัจจุบัน รายการที่ยังรอและที่ล้มเหลวจะยังคงเป็นข้อมูลส่วนตัวที่นี่และในหน้าโปรไฟล์</span><span class="en-text">Recent submissions owned by the current user. Pending and failed items stay private here and on the Profile page.</span></div>
       <div class="queue-list" id="my-submissions">
-        <div class="queue-item"><div class="item-copy">Login to load your submissions.</div></div>
+        <div class="queue-item"><div class="item-copy"><span class="th-text">เข้าสู่ระบบเพื่อโหลดรายการส่งข้อมูลของคุณ</span><span class="en-text">Login to load your submissions.</span></div></div>
       </div>
     </aside>
   </div>
 
   <article class="submit-list-card">
-    <div class="submit-section-title">Approved Public Contributions</div>
-    <div class="submit-section-copy">Only submissions with <strong>status=approved</strong> and <strong>analysis_status=completed</strong> appear here.</div>
+    <div class="submit-section-title"><span class="th-text">รายการสาธารณะที่ผ่านอนุมัติแล้ว</span><span class="en-text">Approved Public Contributions</span></div>
+    <div class="submit-section-copy"><span class="th-text">จะแสดงเฉพาะรายการที่มี <strong>status=approved</strong> และ <strong>analysis_status=completed</strong> เท่านั้น</span><span class="en-text">Only submissions with <strong>status=approved</strong> and <strong>analysis_status=completed</strong> appear here.</span></div>
     <div class="public-list" id="public-submissions">
-      <div class="public-item"><div class="item-copy">Loading public contributions...</div></div>
+      <div class="public-item"><div class="item-copy"><span class="th-text">กำลังโหลดรายการสาธารณะ...</span><span class="en-text">Loading public contributions...</span></div></div>
     </div>
   </article>
 </section>
 
 <script type="module">
-  import { apiFetch, loadAuthState, loginWithGoogle } from "/static/js/auth.js";
+  import { apiFetch, loadAuthState } from "/static/js/auth.js";
 
   const form = document.getElementById("submit-data-form");
   const authRequired = document.getElementById("auth-required");
@@ -298,6 +300,32 @@
   const submitButton = document.getElementById("submit-data-btn");
   const mySubmissions = document.getElementById("my-submissions");
   const publicSubmissions = document.getElementById("public-submissions");
+  const pageTargetSelect = document.getElementById("page_target");
+  window.__sqMineItems = [];
+  window.__sqPublicItems = [];
+
+  function isTH() {
+    return document.documentElement.dataset.lang !== "en";
+  }
+
+  function copyForLang(th, en) {
+    return isTH() ? th : en;
+  }
+
+  function pageTargetLabel(value) {
+    const option = pageTargetSelect.querySelector(`option[value="${value}"]`);
+    if (!option) return value || copyForLang("ทั่วไป", "general");
+    return isTH() ? (option.dataset.th || option.textContent) : (option.dataset.en || option.textContent);
+  }
+
+  function setPlaceholders() {
+    document.querySelectorAll("[data-placeholder-th]").forEach((node) => {
+      node.placeholder = isTH() ? node.dataset.placeholderTh : node.dataset.placeholderEn;
+    });
+    pageTargetSelect.querySelectorAll("option").forEach((option) => {
+      option.textContent = isTH() ? (option.dataset.th || option.textContent) : (option.dataset.en || option.textContent);
+    });
+  }
 
   function showStatus(message, kind) {
     statusBox.textContent = message;
@@ -305,8 +333,9 @@
   }
 
   function renderMine(items) {
+    window.__sqMineItems = items || [];
     if (!items?.length) {
-      mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">No private submissions yet.</div></div>';
+      mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("ยังไม่มีรายการส่วนตัว", "No private submissions yet.")}</div></div>`;
       return;
     }
     mySubmissions.innerHTML = items.map((item) => `
@@ -315,15 +344,16 @@
           <div class="item-title">${item.title}</div>
           <span class="pill">${item.status} / ${item.analysis_status}</span>
         </div>
-        <div class="item-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
-        <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
+        <div class="item-meta">${item.category}${item.page_target ? ` · ${pageTargetLabel(item.page_target)}` : ""}</div>
+        <div class="item-copy">${item.description || item.source_url || copyForLang("ไม่มีคำอธิบายเพิ่มเติม", "No extra description.")}</div>
       </article>
     `).join("");
   }
 
   function renderPublic(items) {
+    window.__sqPublicItems = items || [];
     if (!items?.length) {
-      publicSubmissions.innerHTML = '<div class="public-item"><div class="item-copy">No approved public submissions yet.</div></div>';
+      publicSubmissions.innerHTML = `<div class="public-item"><div class="item-copy">${copyForLang("ยังไม่มีรายการสาธารณะที่ผ่านอนุมัติ", "No approved public submissions yet.")}</div></div>`;
       return;
     }
     publicSubmissions.innerHTML = items.map((item) => `
@@ -332,8 +362,8 @@
           <div class="item-title">${item.title}</div>
           <span class="pill">${item.category}</span>
         </div>
-        <div class="item-meta">${item.page_target || "general"} · ${item.status} / ${item.analysis_status}</div>
-        <div class="item-copy">${item.description || item.source_url || "No extra description."}</div>
+        <div class="item-meta">${pageTargetLabel(item.page_target)} · ${item.status} / ${item.analysis_status}</div>
+        <div class="item-copy">${item.description || item.source_url || copyForLang("ไม่มีคำอธิบายเพิ่มเติม", "No extra description.")}</div>
       </article>
     `).join("");
   }
@@ -343,14 +373,14 @@
       const data = await apiFetch("/api/categories");
       const items = data?.items || [];
       if (!items.length) {
-        categorySelect.innerHTML = '<option value="">No categories yet</option>';
+        categorySelect.innerHTML = `<option value="">${copyForLang("ยังไม่มีหมวดหมู่", "No categories yet")}</option>`;
         return;
       }
-      categorySelect.innerHTML = '<option value="">Select category</option>' + items.map((item) => `
+      categorySelect.innerHTML = `<option value="">${copyForLang("เลือกหมวดหมู่", "Select category")}</option>` + items.map((item) => `
         <option value="${item.name}">${item.name}</option>
       `).join("");
     } catch (error) {
-      categorySelect.innerHTML = '<option value="">Categories unavailable</option>';
+      categorySelect.innerHTML = `<option value="">${copyForLang("ไม่สามารถโหลดหมวดหมู่ได้", "Categories unavailable")}</option>`;
       throw error;
     }
   }
@@ -358,7 +388,7 @@
   async function createCategoryFromInput() {
     const name = newCategoryInput.value.trim();
     if (!name) {
-      showStatus("Enter a new category name first.", "warning");
+      showStatus(copyForLang("กรอกชื่อหมวดหมู่ใหม่ก่อน", "Enter a new category name first."), "warning");
       return null;
     }
     createCategoryButton.disabled = true;
@@ -372,7 +402,7 @@
       if (data?.category?.name) {
         categorySelect.value = data.category.name;
       }
-      showStatus("Category created and added to the shared list.", "success");
+      showStatus(copyForLang("สร้างหมวดหมู่และเพิ่มลงในรายการส่วนกลางแล้ว", "Category created and added to the shared list."), "success");
       return data?.category || null;
     } catch (error) {
       showStatus(error.message, "error");
@@ -401,13 +431,13 @@
       try {
         metadata = JSON.parse(metadataText);
       } catch (_error) {
-        showStatus("Metadata must be valid JSON when provided.", "error");
+        showStatus(copyForLang("หากระบุเมทาดาทา จะต้องเป็น JSON ที่ถูกต้อง", "Metadata must be valid JSON when provided."), "error");
         return;
       }
     }
 
     submitButton.disabled = true;
-    submitButton.textContent = "Submitting...";
+    submitButton.textContent = copyForLang("กำลังส่ง...", "Submitting...");
     try {
       await apiFetch("/api/submitted-data", {
         method: "POST",
@@ -421,15 +451,16 @@
         }),
       });
       form.reset();
+      setPlaceholders();
       await loadCategories();
-      showStatus("Submission accepted and queued for analysis.", "success");
+      showStatus(copyForLang("รับรายการส่งข้อมูลแล้ว และเพิ่มเข้าคิววิเคราะห์เรียบร้อย", "Submission accepted and queued for analysis."), "success");
       const mine = await apiFetch("/api/submitted-data/mine");
       renderMine(mine?.items || []);
     } catch (error) {
       showStatus(error.message, "error");
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "Submit Data";
+      submitButton.textContent = copyForLang("ส่งข้อมูล", "Submit Data");
     }
   });
 
@@ -447,8 +478,8 @@
         form.classList.add("hidden");
         authRequired.classList.remove("hidden");
         authActions.classList.remove("hidden");
-        mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">Supabase is not configured on this server yet.</div></div>';
-        showStatus("Supabase is not configured on the server.", "warning");
+        mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("เซิร์ฟเวอร์นี้ยังไม่ได้ตั้งค่า Supabase", "Supabase is not configured on this server yet.")}</div></div>`;
+        showStatus(copyForLang("เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Supabase", "Supabase is not configured on the server."), "warning");
         return;
       }
 
@@ -456,9 +487,9 @@
         form.classList.add("hidden");
         authRequired.classList.remove("hidden");
         authActions.classList.remove("hidden");
-        mySubmissions.innerHTML = '<div class="queue-item"><div class="item-copy">Login to load your submissions.</div></div>';
+        mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("เข้าสู่ระบบเพื่อโหลดรายการส่งข้อมูลของคุณ", "Login to load your submissions.")}</div></div>`;
         if (authState?.degraded) {
-          showStatus("Authentication state could not be verified. Refresh the page and try again.", "warning");
+          showStatus(copyForLang("ไม่สามารถยืนยันสถานะการเข้าสู่ระบบได้ รีเฟรชหน้าแล้วลองอีกครั้ง", "Authentication state could not be verified. Refresh the page and try again."), "warning");
         }
         return;
       }
@@ -475,6 +506,17 @@
     }
   }
 
+  window.__sq_apply_language = function () {
+    setPlaceholders();
+    submitButton.textContent = copyForLang("ส่งข้อมูล", "Submit Data");
+    if (!form.classList.contains("hidden")) {
+      loadCategories().catch(function () {});
+      renderMine(window.__sqMineItems || []);
+    }
+    renderPublic(window.__sqPublicItems || []);
+  };
+
+  setPlaceholders();
   initialize();
 </script>
 {% endblock %}
