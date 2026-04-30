@@ -88,17 +88,11 @@
     align-content: start;
   }
   .auth-side-card,
-  .auth-google-card,
   .auth-form {
     border-radius: 18px;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.03);
     padding: 1rem;
-  }
-  .auth-google-card {
-    background:
-      radial-gradient(circle at top left, rgba(79, 212, 255, 0.12), transparent 30%),
-      rgba(255,255,255,0.03);
   }
   .auth-panel-title {
     color: var(--text);
@@ -128,6 +122,15 @@
     flex: 1;
     height: 1px;
     background: rgba(255,255,255,0.09);
+  }
+  .oauth-inline {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      radial-gradient(circle at top left, rgba(79, 212, 255, 0.12), transparent 30%),
+      rgba(255,255,255,0.03);
   }
   .auth-grid {
     display: grid;
@@ -360,6 +363,26 @@
               <div class="auth-panel-title">Sign in or create your workspace identity</div>
               <div class="auth-panel-copy">Use email and password for direct access, or connect Google once the Supabase provider is configured with a web OAuth client.</div>
 
+              <div class="oauth-inline">
+                <div class="auth-form-head">
+                  <div class="auth-form-title">Google sign-in</div>
+                  <div class="auth-form-badge">OAuth</div>
+                </div>
+                <div class="auth-form-copy">Use the same workspace with a single Google account once the provider is correctly wired in Supabase.</div>
+                <div class="button-row">
+                  <button class="secondary-btn google-btn" id="google-login-btn" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.24 1.26-.96 2.33-2.04 3.05l3.3 2.56c1.92-1.77 3.03-4.37 3.03-7.47 0-.72-.06-1.42-.18-2.1H12z"/>
+                      <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.3-2.56c-.91.61-2.08.97-3.31.97-2.54 0-4.7-1.72-5.47-4.03H3.12v2.63A9.98 9.98 0 0 0 12 22z"/>
+                      <path fill="#4A90E2" d="M6.53 13.95A5.99 5.99 0 0 1 6.22 12c0-.68.12-1.34.31-1.95V7.42H3.12A10 10 0 0 0 2 12c0 1.61.38 3.14 1.12 4.58l3.41-2.63z"/>
+                      <path fill="#FBBC05" d="M12 6.02c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.95 3.01 14.69 2 12 2A9.98 9.98 0 0 0 3.12 7.42l3.41 2.63C7.3 7.74 9.46 6.02 12 6.02z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
+                </div>
+                <div class="auth-note">If Google shows <code>flowName=GeneralOAuthFlow</code>, the provider is usually using a Google <strong>Desktop</strong> OAuth client. Supabase requires a Google <strong>Web application</strong> client with the correct redirect URI.</div>
+              </div>
+
               <div class="auth-divider">Email Access</div>
 
               <div class="auth-grid">
@@ -405,23 +428,6 @@
             </section>
 
             <aside class="auth-side">
-              <section class="auth-google-card">
-                <div class="auth-panel-title">Google Sign-In</div>
-                <div class="auth-panel-copy">Fastest path for researchers and contributors once the OAuth provider is wired correctly in Supabase and Google Cloud.</div>
-                <div class="button-row">
-                  <button class="secondary-btn google-btn" id="google-login-btn" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.24 1.26-.96 2.33-2.04 3.05l3.3 2.56c1.92-1.77 3.03-4.37 3.03-7.47 0-.72-.06-1.42-.18-2.1H12z"/>
-                      <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.3-2.56c-.91.61-2.08.97-3.31.97-2.54 0-4.7-1.72-5.47-4.03H3.12v2.63A9.98 9.98 0 0 0 12 22z"/>
-                      <path fill="#4A90E2" d="M6.53 13.95A5.99 5.99 0 0 1 6.22 12c0-.68.12-1.34.31-1.95V7.42H3.12A10 10 0 0 0 2 12c0 1.61.38 3.14 1.12 4.58l3.41-2.63z"/>
-                      <path fill="#FBBC05" d="M12 6.02c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.95 3.01 14.69 2 12 2A9.98 9.98 0 0 0 3.12 7.42l3.41 2.63C7.3 7.74 9.46 6.02 12 6.02z"/>
-                    </svg>
-                    <span>Continue with Google</span>
-                  </button>
-                </div>
-                <div class="auth-note">If Google shows <code>flowName=GeneralOAuthFlow</code>, the provider is usually using a Google <strong>Desktop</strong> OAuth client. Supabase requires a Google <strong>Web application</strong> client with the correct redirect URI.</div>
-              </section>
-
               <section class="auth-side-card">
                 <div class="auth-panel-title">What this account unlocks</div>
                 <div class="auth-feature-list">
