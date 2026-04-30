@@ -953,7 +953,7 @@
       }
 
       async function fetchJson(url) {
-        var response = await fetch(url);
+        var response = await fetch(url, { cache: "no-store" });
         var payload = await response.json();
         if (!response.ok || !payload.ok) {
           throw new Error(payload && payload.error ? payload.error.message : "request failed");
@@ -965,7 +965,7 @@
         var path = window.location.pathname;
 
         if (path === "/dashboard") {
-          var geoPayload = await fetch("/api/geo/list");
+          var geoPayload = await fetch("/api/geo/list", { cache: "no-store" });
           var geo = await geoPayload.json();
           var pipeline = await fetchJson("/api/pipeline/live");
           return {
