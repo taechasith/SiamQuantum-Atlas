@@ -3,7 +3,7 @@
 {% set active = 'profile' %}
 
 {% block page_title %}
-  <span class="th-text">Profile</span>
+  <span class="th-text">โปรไฟล์</span>
   <span class="en-text">Profile</span>
 {% endblock %}
 
@@ -71,7 +71,7 @@
   }
   .auth-intro {
     display: grid;
-    grid-template-columns: minmax(0, 1.02fr) minmax(280px, 0.98fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
     gap: 1rem;
     align-items: stretch;
   }
@@ -340,8 +340,10 @@
   .hidden { display: none !important; }
   @media (max-width: 980px) {
     .profile-grid,
-    .auth-intro,
     .auth-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .auth-intro { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
