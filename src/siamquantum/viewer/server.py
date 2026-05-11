@@ -51,6 +51,7 @@ from siamquantum.stats.yearly_taxonomy_analytics import build_yearly_taxonomy_an
 
 logger = logging.getLogger(__name__)
 _LOCAL_SESSION_COOKIE = "sq_local_session"
+_ingest_lock = asyncio.Lock()
 
 
 @dataclass
@@ -100,41 +101,59 @@ def _prewarm_registry_sync() -> None:
         logger.exception("Node registry pre-warm failed")
 
 
+async def _run_ingest_now() -> dict[str, int]:
+    """Fetch last 3 days from GDELT + YouTube, write to DB, refresh caches.
+    Returns counts. No-op if another ingest is already running."""
+    from datetime import date, timedelta
+    from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
+
+    if _ingest_lock.locked():
+        return {"skipped": 1}
+    async with _ingest_lock:
+        db = db_path_from_url(settings.database_url)
+        today = date.today()
+        start = today - timedelta(days=2)
+        g_fetched, g_inserted = await ingest_gdelt_daterange(start, today, db)
+        logger.info("Ingest GDELT: fetched=%d inserted=%d", g_fetched, g_inserted)
+        y_fetched, y_inserted = await ingest_youtube_daterange(start, today, db)
+        logger.info("Ingest YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
+        relevance_checked = 0
+        if g_inserted + y_inserted > 0:
+            new_counts = backfill_relevance(db)
+            relevance_checked += int(new_counts.get("checked", 0))
+            logger.info("Ingest relevance backfill: %s", new_counts)
+        audit_counts = recheck_relevance(
+            db,
+            stale_after_days=settings.relevance_recheck_days,
+            limit=settings.relevance_audit_batch_size,
+        )
+        relevance_checked += int(audit_counts.get("checked", 0))
+        logger.info("Ingest relevance audit: %s", audit_counts)
+        if g_inserted + y_inserted > 0 or relevance_checked > 0:
+            _invalidate_node_registry()
+            if not settings.database_read_only:
+                with get_connection(db) as conn:
+                    StatsCacheRepo(conn).invalidate("graph:node_details")
+        return {
+            "gdelt_fetched": g_fetched,
+            "gdelt_inserted": g_inserted,
+            "youtube_fetched": y_fetched,
+            "youtube_inserted": y_inserted,
+            "relevance_checked": relevance_checked,
+        }
+
+
 async def _daily_ingest_task() -> None:
     """Run GDELT + YouTube ingest once per day at ~00:05.
     Fetches last 3 days to compensate for GDELT's ~24-48h indexing lag."""
-    from datetime import date, datetime, timedelta
+    from datetime import datetime, timedelta
 
     while True:
         now = datetime.now()
         next_run = (now + timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
         await asyncio.sleep(max(60.0, (next_run - now).total_seconds()))
         try:
-            from siamquantum.pipeline.ingest import ingest_gdelt_daterange, ingest_youtube_daterange
-            db = db_path_from_url(settings.database_url)
-            today = date.today()
-            start = today - timedelta(days=2)  # 3-day window covers GDELT lag
-            g_fetched, g_inserted = await ingest_gdelt_daterange(start, today, db)
-            logger.info("Daily GDELT: fetched=%d inserted=%d", g_fetched, g_inserted)
-            y_fetched, y_inserted = await ingest_youtube_daterange(start, today, db)
-            logger.info("Daily YouTube: fetched=%d inserted=%d", y_fetched, y_inserted)
-            relevance_checked = 0
-            if g_inserted + y_inserted > 0:
-                new_counts = backfill_relevance(db)
-                relevance_checked += int(new_counts.get("checked", 0))
-                logger.info("Daily relevance backfill: %s", new_counts)
-            audit_counts = recheck_relevance(
-                db,
-                stale_after_days=settings.relevance_recheck_days,
-                limit=settings.relevance_audit_batch_size,
-            )
-            relevance_checked += int(audit_counts.get("checked", 0))
-            logger.info("Daily relevance audit: %s", audit_counts)
-            if g_inserted + y_inserted > 0 or relevance_checked > 0:
-                _invalidate_node_registry()
-                if not settings.database_read_only:
-                    with get_connection(db) as conn:
-                        StatsCacheRepo(conn).invalidate("graph:node_details")
+            await _run_ingest_now()
         except Exception:
             logger.exception("Daily ingest failed")
 
@@ -144,6 +163,7 @@ async def lifespan(app_instance: FastAPI):  # type: ignore[type-arg]
     if settings.deployment_mode != "vercel":
         _ensure_local_auth_tables()
         asyncio.create_task(asyncio.to_thread(_prewarm_registry_sync))
+        asyncio.create_task(_run_ingest_now())  # fetch fresh data on startup
         asyncio.create_task(_daily_ingest_task())
     yield
 
@@ -2556,6 +2576,15 @@ async def api_ingest_today() -> JSONResponse:
             "error": None,
         }
     )
+
+
+@app.post("/api/pipeline/trigger")
+async def api_pipeline_trigger() -> JSONResponse:
+    """Kick off an on-demand ingest in the background. Returns immediately."""
+    if _ingest_lock.locked():
+        return JSONResponse({"ok": True, "data": {"status": "already_running"}, "error": None})
+    asyncio.create_task(_run_ingest_now())
+    return JSONResponse({"ok": True, "data": {"status": "started"}, "error": None})
 
 
 @app.get("/api/pipeline/live")

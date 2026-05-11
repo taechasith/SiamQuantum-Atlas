@@ -1095,10 +1095,14 @@
       }
 
       if (els.liveToggle) els.liveToggle.addEventListener("click", toggleLivePanel);
-      if (els.liveRefresh) els.liveRefresh.addEventListener("click", function () {
+      if (els.liveRefresh) els.liveRefresh.addEventListener("click", async function () {
         els.liveRefresh.classList.add("spinning");
-        setTimeout(function () { els.liveRefresh.classList.remove("spinning"); }, 650);
-        refreshLivePanel();
+        try {
+          await fetch("/api/pipeline/trigger", { method: "POST" });
+        } catch (_) { /* ignore network errors */ }
+        await refreshLivePanel();
+        // keep spinning 2 s so user sees ingest kicked off in background
+        setTimeout(function () { els.liveRefresh.classList.remove("spinning"); }, 2000);
       });
       if (els.desktopModalClose) els.desktopModalClose.addEventListener("click", closeDesktopModal);
       if (els.desktopModal) {
