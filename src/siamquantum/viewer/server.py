@@ -101,6 +101,30 @@ def _prewarm_registry_sync() -> None:
         logger.exception("Node registry pre-warm failed")
 
 
+def _stamp_last_ingest(db: Path) -> None:
+    """Write current UTC time to pipeline_meta so the UI shows when we last checked."""
+    with get_connection(db) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pipeline_meta (
+                key   TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO pipeline_meta (key, value, updated_at)
+            VALUES ('last_ingest_at', datetime('now'), datetime('now'))
+            ON CONFLICT(key) DO UPDATE SET
+                value      = excluded.value,
+                updated_at = excluded.updated_at
+            """
+        )
+        conn.commit()
+
+
 async def _run_ingest_now() -> dict[str, int]:
     """Fetch last 3 days from GDELT + YouTube, write to DB, refresh caches.
     Returns counts. No-op if another ingest is already running."""
@@ -134,6 +158,7 @@ async def _run_ingest_now() -> dict[str, int]:
             if not settings.database_read_only:
                 with get_connection(db) as conn:
                     StatsCacheRepo(conn).invalidate("graph:node_details")
+        _stamp_last_ingest(db)
         return {
             "gdelt_fetched": g_fetched,
             "gdelt_inserted": g_inserted,
@@ -2695,6 +2720,12 @@ def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
             denstream_row = conn.execute(
                 "SELECT MAX(datetime(updated_at)) AS updated_at FROM denstream_state"
             ).fetchone()
+            try:
+                meta_row = conn.execute(
+                    "SELECT value FROM pipeline_meta WHERE key='last_ingest_at'"
+                ).fetchone()
+            except Exception:
+                meta_row = None
     except Exception as exc:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "pipeline_live_failed", "message": str(exc)}},
@@ -2754,7 +2785,7 @@ def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
             int(overview_row["total_sources"] or 0) - int(overview_row["analyzed_sources"] or 0),
             0,
         ),
-        "latest_fetch_at": overview_row["latest_fetch_at"] if overview_row else None,
+        "latest_fetch_at": (meta_row["value"] if meta_row else None) or (overview_row["latest_fetch_at"] if overview_row else None),
         "latest_analysis_at": latest_analysis_at,
     }
 
