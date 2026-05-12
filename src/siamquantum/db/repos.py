@@ -38,15 +38,18 @@ class SourceRepo:
         self._c = conn
 
     def insert(self, source: SourceCreate) -> int:
-        """Insert; returns new id. Skips on duplicate URL (OR IGNORE)."""
+        """Insert; returns new id. Skips on duplicate URL."""
+        is_pg = getattr(self._c, "dialect", "sqlite") == "pg"
+        returning = " RETURNING id" if is_pg else ""
         cur = self._c.execute(
-            """
-            INSERT OR IGNORE INTO sources
+            f"""
+            INSERT INTO sources
               (platform, url, title, raw_text, published_year, fetched_at,
                view_count, like_count, comment_count,
                is_quantum_tech, is_thailand_related,
                channel_id, channel_title, channel_country, channel_default_language)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (url) DO NOTHING{returning}
             """,
             (
                 source.platform,
@@ -67,6 +70,9 @@ class SourceRepo:
             ),
         )
         self._c.commit()
+        if is_pg:
+            row = cur.fetchone()
+            return int(row[0]) if row else 0
         return cur.lastrowid or 0
 
     def get_by_id(self, source_id: int) -> SourceRow | None:
@@ -259,11 +265,16 @@ class CommunitySubmissionRepo:
         self._c = conn
 
     def insert(self, sub: CommunitySubmissionCreate) -> int:
+        is_pg = getattr(self._c, "dialect", "sqlite") == "pg"
+        returning = " RETURNING id" if is_pg else ""
         cur = self._c.execute(
-            "INSERT INTO community_submissions (handle, url, status, submitted_at) VALUES (?, ?, 'pending', ?)",
+            f"INSERT INTO community_submissions (handle, url, status, submitted_at) VALUES (?, ?, 'pending', ?){returning}",
             (sub.handle, sub.url, sub.submitted_at.isoformat()),
         )
         self._c.commit()
+        if is_pg:
+            row = cur.fetchone()
+            return int(row[0]) if row else 0
         return cur.lastrowid or 0
 
     def list_pending(self) -> list[CommunitySubmissionRow]:

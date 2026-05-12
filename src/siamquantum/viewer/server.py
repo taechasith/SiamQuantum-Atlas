@@ -2612,6 +2612,25 @@ async def api_pipeline_trigger() -> JSONResponse:
     return JSONResponse({"ok": True, "data": {"status": "started"}, "error": None})
 
 
+@app.get("/api/cron/ingest")
+async def api_cron_ingest(request: Request) -> JSONResponse:
+    """Vercel cron endpoint — runs ingest synchronously and returns results.
+    Protected by CRON_SECRET header set automatically by Vercel."""
+    auth = request.headers.get("authorization", "")
+    expected = f"Bearer {settings.cron_secret}" if settings.cron_secret else None
+    if expected and auth != expected:
+        return JSONResponse({"ok": False, "error": "Unauthorized"}, status_code=401)
+    try:
+        counts = await _run_ingest_now()
+        return JSONResponse({"ok": True, "data": counts, "error": None})
+    except Exception as exc:
+        logger.exception("Cron ingest failed")
+        return JSONResponse(
+            {"ok": False, "data": None, "error": str(exc)},
+            status_code=500,
+        )
+
+
 @app.get("/api/pipeline/live")
 def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
     """Real recent intake + analysis readiness for the home page."""

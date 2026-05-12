@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     google_cse_cx_media: str = Field(default="")
     deployment_mode: str = "local"
     database_read_only: bool = False
+    pg_database_url: str = Field(default="", validation_alias=AliasChoices("SIAMQUANTUM_PG_DATABASE_URL", "PG_DATABASE_URL"))
+    cron_secret: str = Field(default="", validation_alias=AliasChoices("CRON_SECRET"))
     relevance_recheck_days: int = 30
     relevance_audit_batch_size: int = 40
     # Supabase env vars are intentionally unprefixed to match the user's deployment setup.
