@@ -386,6 +386,30 @@
     border-color: rgba(199, 155, 255, 0.22);
   }
 
+  .source-channel {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin: 0.15rem 0 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .source-fetched {
+    color: var(--muted);
+    font-size: 0.72rem;
+    margin: 0.25rem 0 0.5rem;
+    opacity: 0.7;
+  }
+
+  .chip-count {
+    font-family: var(--font-mono);
+    font-size: 0.73rem;
+    background: rgba(56, 189, 248, 0.07) !important;
+    border-color: rgba(56, 189, 248, 0.18) !important;
+    color: var(--primary) !important;
+  }
+
   .source-url {
     color: var(--muted);
     font-size: 0.84rem;
@@ -724,23 +748,29 @@
     if (item.user_intent) taxChips.push(`<span class="chip chip-intent">${item.user_intent.replace(/_/g," ")}</span>`);
     if (item.quantum_domain) taxChips.push(`<span class="chip chip-domain">${item.quantum_domain.replace(/_/g," ")}</span>`);
     const counts = [];
-    if (item.view_count !== null && item.view_count !== undefined) counts.push(`views ${Number(item.view_count).toLocaleString()}`);
-    if (item.like_count !== null && item.like_count !== undefined) counts.push(`likes ${Number(item.like_count).toLocaleString()}`);
-    if (item.comment_count !== null && item.comment_count !== undefined) counts.push(`comments ${Number(item.comment_count).toLocaleString()}`);
+    if (item.view_count != null) counts.push(`👁 ${Number(item.view_count).toLocaleString()}`);
+    if (item.like_count != null) counts.push(`♥ ${Number(item.like_count).toLocaleString()}`);
+    if (item.comment_count != null) counts.push(`💬 ${Number(item.comment_count).toLocaleString()}`);
+    const channelLine = item.channel_title
+      ? `<div class="source-channel">${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}${item.channel_default_language ? " · " + item.channel_default_language : ""}</div>`
+      : "";
+    const fetchedLine = item.fetched_at ? `<div class="source-fetched">${L("ดึงข้อมูล", "Fetched")}: ${new Date(item.fetched_at).toLocaleDateString()}</div>` : "";
 
     return `
       <article class="source-card">
         ${thumb ? `<div class="source-thumb" style="position:relative;"><img src="${thumb}" loading="lazy" alt=""><span class="source-thumb-badge">${(item.platform || "").toUpperCase()}</span></div>` : ""}
         <div class="source-top">
           ${!thumb ? `<div class="source-platform">${(item.platform || "unknown").toUpperCase()}</div>` : ""}
-          <div class="source-year" style="${thumb ? "" : ""}">${item.published_year || "unknown year"}</div>
+          <div class="source-year">${item.published_year || "unknown year"}</div>
         </div>
         <h3>${title}</h3>
+        ${channelLine}
         <div class="meta-grid">
           ${chips.map((chip) => `<span class="chip">${chip}</span>`).join("")}
-          ${counts.map((chip) => `<span class="chip">${chip}</span>`).join("")}
+          ${counts.map((chip) => `<span class="chip chip-count">${chip}</span>`).join("")}
           ${taxChips.join("")}
         </div>
+        ${fetchedLine}
         <div class="source-url">${item.url || "No URL available"}</div>
         <a class="source-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดต้นฉบับ", "Open source")}</a>
       </article>

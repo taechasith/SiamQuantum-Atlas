@@ -39,6 +39,8 @@
     --overview-accent-2: #79c6ff;
     --overview-success: #42dfa8;
     --overview-warning: #94a3b8;
+    --overview-surface: rgba(11, 20, 37, 0.92);
+    --overview-copy: #c8d8f0;
     --font-display: "IBM Plex Sans Thai", system-ui, sans-serif;
   }
 
@@ -615,6 +617,51 @@
   .state-processing { color: var(--overview-accent); }
   .state-pending { color: var(--overview-warning); }
 
+  .home-coverage-card {
+    background: linear-gradient(160deg, var(--overview-surface), rgba(13, 22, 38, 0.8));
+    border: 1px solid var(--overview-border);
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+  }
+
+  .home-bars { display: grid; gap: 0.55rem; margin-top: 0.7rem; }
+
+  .home-bar-row {
+    display: grid;
+    grid-template-columns: 9rem 1fr 3rem;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .home-bar-label {
+    color: var(--overview-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .home-bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .home-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--overview-accent), rgba(96,165,250,0.7));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .home-bar-val {
+    color: var(--overview-copy);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-align: right;
+  }
+
   .signals-link {
     display: inline-flex;
     align-items: center;
@@ -819,6 +866,18 @@
         <div class="muted-note"><span class="th-text">กำลังโหลดสัญญาณระบบ...</span><span class="en-text">Loading system signals...</span></div>
       </div>
       <a class="signals-link" href="/analytics"><span class="th-text">ดูสัญญาณทั้งหมด →</span><span class="en-text">View All Signals -></span></a>
+    </article>
+  </section>
+
+  <!-- Coverage breakdown section -->
+  <section class="overview-lower" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+    <article class="home-coverage-card" style="display:none">
+      <div class="detail-title"><span class="th-text">แพลตฟอร์ม</span><span class="en-text">By Platform</span></div>
+      <div id="home-platform-bars" class="home-bars"></div>
+    </article>
+    <article class="home-coverage-card" style="display:none">
+      <div class="detail-title"><span class="th-text">โดเมนควอนตัม</span><span class="en-text">By Quantum Domain</span></div>
+      <div id="home-domain-bars" class="home-bars"></div>
     </article>
   </section>
 </section>
@@ -1304,6 +1363,49 @@
 
     loadOverview();
     initHeroModel();
+
+    // ── Corpus summary: platform + domain breakdown ──────────────────────────
+    (async function loadCorpusSummary() {
+      try {
+        var [sumResp, covResp] = await Promise.all([
+          fetch("/api/stats/summary"),
+          fetch("/api/corpus/coverage")
+        ]);
+        var [sumPayload, covPayload] = await Promise.all([sumResp.json(), covResp.json()]);
+
+        // Platform breakdown bar
+        var platformEl = document.getElementById("home-platform-bars");
+        if (platformEl && sumResp.ok && sumPayload.ok) {
+          var platforms = Array.isArray((sumPayload.data || {}).platforms) ? sumPayload.data.platforms : [];
+          var totalPlatforms = platforms.reduce(function(s, p) { return s + p.count; }, 0) || 1;
+          platformEl.innerHTML = platforms.slice(0, 6).map(function(p) {
+            var pct = (p.count / totalPlatforms * 100).toFixed(1);
+            return '<div class="home-bar-row">' +
+              '<span class="home-bar-label">' + p.platform + '</span>' +
+              '<div class="home-bar-track"><div class="home-bar-fill" style="width:' + pct + '%"></div></div>' +
+              '<span class="home-bar-val">' + p.count.toLocaleString() + '</span>' +
+              '</div>';
+          }).join("") || '<div class="muted-note">No data</div>';
+          platformEl.closest(".home-coverage-card").style.display = "";
+        }
+
+        // Domain breakdown bar
+        var domainEl = document.getElementById("home-domain-bars");
+        if (domainEl && covResp.ok && covPayload.ok) {
+          var domains = Array.isArray((covPayload.data || {}).by_domain) ? covPayload.data.by_domain : [];
+          var totalDomains = domains.reduce(function(s, d) { return s + d.count; }, 0) || 1;
+          domainEl.innerHTML = domains.slice(0, 8).map(function(d) {
+            var pct = (d.count / totalDomains * 100).toFixed(1);
+            return '<div class="home-bar-row">' +
+              '<span class="home-bar-label">' + d.domain.replace(/_/g, " ") + '</span>' +
+              '<div class="home-bar-track"><div class="home-bar-fill" style="width:' + pct + '%"></div></div>' +
+              '<span class="home-bar-val">' + d.count.toLocaleString() + '</span>' +
+              '</div>';
+          }).join("") || '<div class="muted-note">No data</div>';
+          domainEl.closest(".home-coverage-card").style.display = "";
+        }
+      } catch (_) {}
+    })();
   })();
 </script>
 {% endblock %}

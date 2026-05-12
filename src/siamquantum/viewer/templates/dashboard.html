@@ -751,6 +751,10 @@
             <div class="telemetry-label"><span class="th-text">อัปเดตล่าสุด</span><span class="en-text">Last Fetch</span></div>
             <div class="telemetry-value small green" id="telemetry-fetch">-</div>
           </div>
+          <div class="telemetry-item" style="grid-column:1/-1;min-height:auto;padding:0.6rem 0.9rem;">
+            <div class="telemetry-label"><span class="th-text">โดเมนควอนตัม</span><span class="en-text">Quantum Domain</span></div>
+            <div class="telemetry-value small" id="telemetry-domain" style="font-size:0.95rem;margin-top:0.2rem;color:var(--map-cyan);">-</div>
+          </div>
         </div>
       </section>
 
@@ -846,6 +850,7 @@
     telemetryPlatform: document.getElementById("telemetry-platform"),
     telemetryYear: document.getElementById("telemetry-year"),
     telemetryFetch: document.getElementById("telemetry-fetch"),
+    telemetryDomain: document.getElementById("telemetry-domain"),
     openSource: document.getElementById("panel-open-source"),
     openLibrary: document.getElementById("panel-open-library")
   };
@@ -902,10 +907,12 @@
     const title = item.title || item.url || "Untitled source";
     const year = item.published_year ?? "Unknown year";
     const platform = (item.platform || "other").toUpperCase();
+    const domain = item.quantum_domain ? `<br><span class="popup-meta" style="color:var(--primary)">⬡ ${item.quantum_domain.replaceAll("_"," ")}</span>` : "";
+    const channel = item.channel_title ? `<br><span class="popup-meta">📺 ${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}</span>` : "";
     return `
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
-      <span class="popup-meta">${item.isp || "Unknown ISP"}</span><br>
+      <span class="popup-meta">${item.isp || item.asn_org || "Unknown ISP"}</span>${domain}${channel}<br>
       <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open link")}</a>
     `;
   }
@@ -981,6 +988,7 @@
     elements.telemetryPlatform.textContent = (item.platform || "other").toUpperCase();
     elements.telemetryYear.textContent = item.published_year || "-";
     elements.telemetryFetch.textContent = relTime(item.fetched_at);
+    if (elements.telemetryDomain) elements.telemetryDomain.textContent = item.quantum_domain ? item.quantum_domain.replaceAll("_", " ") : "-";
     elements.panelStatus.textContent = copyForLang("ออนไลน์ • ซิงก์ข้อมูล", "Online • Syncing");
     renderFocusTags(item);
     renderTopology(item);

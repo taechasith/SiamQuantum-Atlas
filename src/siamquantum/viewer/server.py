@@ -970,7 +970,8 @@ def api_geo_list(
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                           s.channel_title, s.channel_country
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
@@ -982,7 +983,8 @@ def api_geo_list(
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                           s.channel_title, s.channel_country
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
@@ -1540,7 +1542,8 @@ def api_sources(
             rows = conn.execute(f"""
                 SELECT s.id, s.platform, s.url, s.title, s.published_year,
                        s.view_count, s.like_count, s.comment_count,
-                       s.quantum_domain,
+                       s.quantum_domain, s.fetched_at,
+                       s.channel_id, s.channel_title, s.channel_country, s.channel_default_language,
                        e.content_type, e.production_type, e.area, e.engagement_level,
                        e.media_format, e.user_intent
                 FROM sources s
