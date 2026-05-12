@@ -32,7 +32,13 @@ def kruskal_wallis(groups: dict[str, NDArray[np.float64]]) -> dict[str, Any]:
     arrays = [v for v in groups.values() if len(v) >= 2]
     if len(arrays) < 2:
         return {"h": None, "p": None, "note": "insufficient_groups"}
-    result = scipy_stats.kruskal(*arrays)
+    all_vals = np.concatenate(arrays)
+    if np.all(all_vals == all_vals[0]):
+        return {"h": 0.0, "p": 1.0, "significant": False, "note": "all_identical", "groups": {k: int(len(v)) for k, v in groups.items() if len(v) >= 2}}
+    try:
+        result = scipy_stats.kruskal(*arrays)
+    except ValueError as exc:
+        return {"h": None, "p": None, "note": str(exc), "groups": {k: int(len(v)) for k, v in groups.items() if len(v) >= 2}}
     return {
         "h": round(float(result.statistic), 4),
         "p": round(float(result.pvalue), 6),

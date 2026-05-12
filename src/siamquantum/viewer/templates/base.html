@@ -207,6 +207,69 @@
       flex-shrink: 0;
     }
 
+    /* ── HISTORY BAR ─────────────────────────────────────────────────────── */
+    .sq-history-bar {
+      display: none;
+      align-items: center;
+      gap: 1.4rem;
+      padding: 0.42rem 1.7rem;
+      background: rgba(6, 10, 21, 0.7);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .sq-history-bar.is-loaded { display: flex; }
+    .sq-history-bar::-webkit-scrollbar { display: none; }
+
+    .sq-hist-kpi {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    .sq-hist-kpi-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.06rem;
+    }
+    .sq-hist-kpi-label {
+      color: var(--muted);
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .sq-hist-kpi-val {
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .sq-hist-kpi-delta {
+      font-size: 0.62rem;
+      font-weight: 600;
+    }
+    .sq-hist-kpi-delta.up   { color: var(--secondary); }
+    .sq-hist-kpi-delta.down { color: var(--danger); }
+    .sq-hist-kpi-delta.flat { color: var(--muted); }
+    .sq-hist-divider {
+      width: 1px;
+      height: 1.4rem;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .sq-hist-caption {
+      color: var(--muted);
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
     /* ── MAIN WRAP ────────────────────────────────────────────────────────── */
     .main-wrap {
       margin-left: var(--sidebar-w);
@@ -570,6 +633,55 @@
 
     .live-placeholder.line { min-height: 50px; }
 
+    .live-history-section {
+      border-top: 1px solid var(--border);
+      padding-top: 0.55rem;
+      margin-top: 0.2rem;
+    }
+
+    .live-history-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      padding: 0.2rem 0;
+    }
+    .live-history-toggle::-webkit-details-marker { display: none; }
+    .live-history-toggle svg { flex-shrink: 0; transition: transform 0.18s; }
+    details[open] .live-history-toggle svg { transform: rotate(180deg); }
+
+    .live-history-count {
+      margin-left: auto;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.64rem;
+      color: var(--muted);
+    }
+
+    .live-history-feed {
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      gap: 0.3rem !important;
+    }
+
+    .live-history-row {
+      opacity: 0.75;
+      font-size: 0.72rem !important;
+    }
+
+    .live-history-row .global-live-row-meta {
+      font-size: 0.62rem;
+    }
+
     .live-placeholder::after {
       content: "";
       position: absolute;
@@ -814,6 +926,11 @@
       </div>
     </header>
 
+    <!-- HISTORY BAR -->
+    <div class="sq-history-bar" id="sq-history-bar" aria-label="Corpus history">
+      <span class="sq-hist-caption" id="sq-hist-caption">HISTORY</span>
+    </div>
+
     <!-- PAGE BODY -->
     <main class="page-content">
       {% block body %}{% endblock %}
@@ -855,6 +972,14 @@
         <div class="live-placeholder line" aria-hidden="true"></div>
         <div class="live-placeholder line" aria-hidden="true"></div>
       </div>
+      <details class="live-history-section" id="live-history-section" style="display:none">
+        <summary class="live-history-toggle">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span class="th-text">ประวัติสะสม</span><span class="en-text">Accumulated history</span>
+          <span class="live-history-count" id="live-history-count"></span>
+        </summary>
+        <div class="global-live-feed live-history-feed" id="live-history-feed"></div>
+      </details>
     </div>
     <button class="live-fab-btn" id="global-live-toggle" type="button" aria-expanded="false" aria-controls="live-fab-panel" aria-label="Toggle live data panel">
       <span class="live-fab-dot"></span>
@@ -913,12 +1038,10 @@
 
   <script type="module">
     import { loadAuthState, subscribeAuthChanges } from "/static/js/auth.js";
-
     await loadAuthState();
-    subscribeAuthChanges(async () => {
-      await loadAuthState();
-    });
+    subscribeAuthChanges(async () => { await loadAuthState(); });
   </script>
+  <script type="module" src="/static/js/history-client.js"></script>
   <script>
     function setLang(lang) {
       document.documentElement.dataset.lang = lang;
@@ -993,8 +1116,23 @@
         liveToggle: document.getElementById("global-live-toggle"),
         liveRefresh: document.getElementById("global-live-refresh"),
         desktopModal: document.getElementById("desktop-modal"),
-        desktopModalClose: document.getElementById("desktop-modal-close")
+        desktopModalClose: document.getElementById("desktop-modal-close"),
+        historySection: document.getElementById("live-history-section"),
+        historyFeed: document.getElementById("live-history-feed"),
+        historyCount: document.getElementById("live-history-count"),
+        historyBar: document.getElementById("sq-history-bar"),
+        historyCaption: document.getElementById("sq-hist-caption")
       };
+
+      function currentPageKey() {
+        var p = window.location.pathname;
+        if (p === "/dashboard") return "dashboard";
+        if (p === "/network") return "network";
+        if (p === "/analytics") return "analytics";
+        if (p === "/database") return "database";
+        if (p.indexOf("/submit") === 0 || p === "/community") return "community";
+        return "overview";
+      }
 
       function applyLivePanelState() {
         if (!els.liveShell || !els.liveToggle) return;
@@ -1010,7 +1148,10 @@
         var open = !els.liveShell.classList.contains("is-open");
         localStorage.setItem("sq-live-open", open ? "true" : "false");
         applyLivePanelState();
-        if (open) refreshLivePanel();
+        if (open) {
+          refreshLivePanel();
+          loadHistoryFeed();
+        }
       }
 
       function setLoadingPanel() {
@@ -1053,6 +1194,86 @@
           : '<article class="global-live-row"><div class="global-live-row-copy">' +
               escapeHtml(copyForLang("ยังไม่มีสัญญาณข้อมูลสดสำหรับหน้านี้", "No live data available for this page yet.")) +
             '</div></article>';
+
+        // ── Save snapshot to Supabase history ──────────────────────────────
+        if (window.SQHistory && window.SQHistory.enabled()) {
+          window.SQHistory.saveSnapshot(currentPageKey(), safeArray(data.metrics), safeArray(data.feed));
+          // Render history bar (async, non-blocking)
+          renderHistoryBar(safeArray(data.metrics));
+        }
+      }
+
+      // ── History bar sparklines ────────────────────────────────────────────
+      function renderHistoryBar(currentMetrics) {
+        if (!els.historyBar || !window.SQHistory) return;
+        window.SQHistory.loadHistory(currentPageKey(), 40).then(function (snapshots) {
+          if (!snapshots.length && !currentMetrics.length) return;
+          var bar = els.historyBar;
+          var inner = "";
+
+          currentMetrics.forEach(function (m, idx) {
+            var series = window.SQHistory.extractSeries(snapshots, m.label);
+            // Append current value to series so sparkline always ends at current
+            var rawNum = parseFloat(String(m.value || "").replace(/,/g, ""));
+            if (!isNaN(rawNum)) series.push(rawNum);
+            if (series.length < 2) return;
+
+            var first = series[0];
+            var last = series[series.length - 1];
+            var delta = last - first;
+            var deltaClass = delta > 0 ? "up" : (delta < 0 ? "down" : "flat");
+            var deltaSign = delta > 0 ? "+" : (delta < 0 ? "−" : "");
+            var absDelta = Math.abs(delta);
+            var absDeltaFmt = absDelta >= 1 ? Math.round(absDelta).toLocaleString() : absDelta.toFixed(2);
+
+            var sparkColor = delta >= 0 ? "#38BDF8" : "#f87171";
+            var svg = window.SQHistory.sparklineSvg(series, sparkColor, 80, 26);
+
+            if (idx > 0) inner += '<div class="sq-hist-divider"></div>';
+            inner += '<div class="sq-hist-kpi">' +
+              svg +
+              '<div class="sq-hist-kpi-meta">' +
+                '<div class="sq-hist-kpi-label">' + escapeHtml(m.label) + '</div>' +
+                '<div class="sq-hist-kpi-val">' +
+                  escapeHtml(String(m.value)) +
+                  (series.length > 1 ? '<span class="sq-hist-kpi-delta ' + deltaClass + '">' + deltaSign + escapeHtml(absDeltaFmt) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+            '</div>';
+          });
+
+          if (!inner) return;
+          var captionText = copyForLang(
+            "ประวัติ " + snapshots.length + " ช็อต",
+            snapshots.length + " snapshots"
+          );
+          if (els.historyCaption) els.historyCaption.textContent = captionText;
+
+          // Replace all but the caption span
+          var existingKpis = bar.querySelectorAll(".sq-hist-kpi, .sq-hist-divider");
+          existingKpis.forEach(function (el) { el.remove(); });
+          bar.insertAdjacentHTML("beforeend", inner);
+          bar.classList.add("is-loaded");
+        });
+      }
+
+      // ── Accumulated history feed ──────────────────────────────────────────
+      function loadHistoryFeed() {
+        if (!els.historySection || !els.historyFeed || !window.SQHistory) return;
+        window.SQHistory.loadAccumulatedFeed(currentPageKey(), 60).then(function (items) {
+          if (!items.length) return;
+          els.historySection.style.display = "";
+          if (els.historyCount) els.historyCount.textContent = items.length;
+          els.historyFeed.innerHTML = items.map(function (item) {
+            return '<article class="global-live-row live-history-row">' +
+              '<div class="global-live-row-copy">' + escapeHtml(item.copy || "") + '</div>' +
+              '<div class="global-live-row-meta">' +
+                escapeHtml(item.meta || "") +
+                (item.ts ? ' · ' + escapeHtml(relTime(item.ts)) : '') +
+              '</div>' +
+            '</article>';
+          }).join("");
+        });
       }
 
       async function fetchJson(url) {

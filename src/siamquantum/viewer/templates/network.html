@@ -741,15 +741,6 @@
       </article>
     </div>
     <span id="stat-selection" style="display:none">None</span>
-    <div class="net-guide">
-      <h3><span class="th-text">วิธีอ่านกราฟ</span><span class="en-text">How to Read</span></h3>
-      <div class="legend-key">
-        <div class="legend-row"><span class="legend-dot" style="background:#78c9ff;color:#78c9ff;"></span><span class="th-text">ป้ายอักษรไทย</span><span class="en-text">Thai-script label</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#5ff2c8;color:#5ff2c8;"></span><span class="th-text">ป้ายอักษรละติน</span><span class="en-text">Latin-script label</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#c8a8ff;color:#c8a8ff;"></span><span class="th-text">สคริปต์ผสม</span><span class="en-text">Mixed script</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#ffb86b;color:#ffb86b;"></span><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected concept</span></div>
-      </div>
-    </div>
   </section>
 
   <section class="surface">
@@ -851,33 +842,7 @@
     </div>
   </section>
 
-  <section class="metrics-grid">
-    <article class="panel">
-      <h2><span class="th-text">คำอธิบายสัญลักษณ์</span><span class="en-text">Legend</span></h2>
-      <p><span class="th-text">สีใช้แยกประเภทสคริปต์เพื่อให้อ่านเร็วขึ้น ส่วนขนาดและความเด่นของเส้นคือสัญญาณเชิงวิเคราะห์ที่มีความหมายจริง</span><span class="en-text">Color is script-based for quick reading; size and line emphasis carry the actual analytical meaning.</span></p>
-      <div class="legend-key">
-        <div class="legend-row"><span class="legend-dot" style="background:#78c9ff;color:#78c9ff;"></span><span class="th-text">ป้ายแนวคิดที่ใช้อักษรไทย</span><span class="en-text">Thai-script concept label</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#5ff2c8;color:#5ff2c8;"></span><span class="th-text">ป้ายแนวคิดที่ใช้อักษรละติน</span><span class="en-text">Latin-script concept label</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#c8a8ff;color:#c8a8ff;"></span><span class="th-text">ป้ายที่เป็นสคริปต์ผสมหรือสคริปต์อื่น</span><span class="en-text">Mixed or other script label</span></div>
-        <div class="legend-row"><span class="legend-dot" style="background:#ffb86b;color:#ffb86b;"></span><span class="th-text">แนวคิดที่ถูกเลือก</span><span class="en-text">Selected concept</span></div>
-      </div>
-    </article>
-    <article class="panel">
-      <h2><span class="th-text">ชั้นการตีความ</span><span class="en-text">How to Interpret It</span></h2>
-      <p>
-        <span class="th-text">นี่ไม่ใช่แผนที่เชิงเหตุและผล แต่เป็นแผนที่ของวาทกรรมที่สร้างจากความสัมพันธ์ที่สกัดได้ในชุดข้อมูลปัจจุบัน พื้นที่ที่ดูเด่นกว่ามักหมายถึงการถูกกล่าวถึงซ้ำหนาแน่นกว่า ไม่ได้แปลว่ามีความสำคัญเชิงข้อเท็จจริงมากกว่าเสมอไป</span>
-        <span class="en-text">This is not a causal map. Stronger-looking regions usually mean repeated mention, not proven importance.</span>
-      </p>
-      <p>
-        <span class="th-text">leaf node ที่ถูกซ่อนยังสามารถเปิดดูได้ตามต้องการ ระบบซ่อนไว้ตอนเริ่มต้นเพราะแนวคิดที่มีเพียงเส้นเชื่อมเดียวอาจทำให้เลย์เอาต์รกโดยเพิ่มคุณค่าในการวางทิศทางเพียงเล็กน้อย</span>
-        <span class="en-text">Smaller one-connection topics are still available on demand, but they are hidden first to keep the layout readable.</span>
-      </p>
-    </article>
-    <article class="panel">
-      <h2><span class="th-text">ตัวชี้วัดกราฟ</span><span class="en-text">Network Metrics</span></h2>
-      <div id="metrics-body">Loading metrics...</div>
-    </article>
-  </section>
+  <div id="metrics-body" style="display:none" aria-hidden="true"></div>
 </section>
 
 <script defer src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
