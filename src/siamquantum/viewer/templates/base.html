@@ -940,22 +940,26 @@
     bottom: 2.2rem;
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    color: var(--muted);
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
+    gap: 0.65rem;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 12px;
+    padding: 0.7rem 1.1rem;
+    color: #e2f4fd;
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     opacity: 0;
     animation: splash-fade-up 0.6s 1.4s ease both;
-    max-width: 420px;
-    text-align: center;
-    padding: 0 1.5rem;
+    max-width: 460px;
+    text-align: left;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
   }
   .splash-recommend svg {
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 1.3rem;
+    height: 1.3rem;
     flex-shrink: 0;
     color: var(--primary);
-    opacity: 0.7;
   }
   @keyframes splash-rise {
     from { opacity: 0; transform: translateY(18px) scale(0.88); }
