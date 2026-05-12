@@ -1000,6 +1000,13 @@
   <script>
     (function() {
       var splash = document.getElementById('splash');
+      var SEEN_KEY = 'sq_splash_seen';
+      // skip splash on all page navigations after first visit
+      if (sessionStorage.getItem(SEEN_KEY)) {
+        splash.classList.add('splash-hidden');
+        return;
+      }
+      sessionStorage.setItem(SEEN_KEY, '1');
       var MIN_MS = 3500;
       var start = Date.now();
       function hideSplash() {
