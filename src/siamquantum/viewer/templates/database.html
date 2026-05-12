@@ -418,10 +418,49 @@
     word-break: break-all;
   }
 
+  .source-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
   .source-link {
     color: var(--accent);
     text-decoration: none;
     font-size: 0.9rem;
+  }
+
+  .source-map-link {
+    color: var(--warning);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 6px;
+    padding: 0.15rem 0.5rem;
+    transition: background 0.15s;
+  }
+  .source-map-link:hover { background: rgba(245,158,11,0.12); }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    flex: 1;
+    min-width: 180px;
+  }
+  .search-box svg { width: 0.95rem; height: 0.95rem; color: var(--muted); flex-shrink: 0; }
+  .search-box input {
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--text);
+    font-size: 0.88rem;
+    width: 100%;
   }
 
   .pagination {
@@ -558,15 +597,20 @@
         <button class="segment-btn" data-platform-segment="gdelt" type="button">GDELT</button>
         <button class="segment-btn" data-platform-segment="youtube" type="button">YouTube</button>
       </div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="filter-search" type="search" placeholder="Search titles…" autocomplete="off">
+      </div>
     </div>
     <div class="filters">
       <div class="field">
         <label for="filter-relevance"><span class="th-text">ขอบเขตความเกี่ยวข้อง</span><span class="en-text">Relevance Scope</span></label>
         <select id="filter-relevance">
-          <option value="all"><span class="th-text">ทั้งหมด (815 รายการ)</span><span class="en-text">All sources</span></option>
-          <option value="quantum"><span class="th-text">ควอนตัม</span><span class="en-text">Quantum only</span></option>
-          <option value="thailand"><span class="th-text">ไทย</span><span class="en-text">Thailand only</span></option>
-          <option value="strict"><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum + Thailand</span></option>
+          <option value="relevant" selected>Relevant (qt OR th) — 403 sources</option>
+          <option value="strict">Quantum + Thailand — 154 sources</option>
+          <option value="quantum">Quantum only — 249</option>
+          <option value="thailand">Thailand only — 120</option>
+          <option value="all">All (incl. rejected) — 815</option>
         </select>
       </div>
       <div class="field">
@@ -660,7 +704,8 @@
   const state = {
     page: 1,
     pageSize: 12,
-    totalPages: 1
+    totalPages: 1,
+    highlightId: null
   };
 
   const elements = {
@@ -683,7 +728,8 @@
     error: document.getElementById("error-state"),
     errorMessage: document.getElementById("error-message"),
     activeFilters: document.getElementById("active-filters"),
-    platformSegments: Array.from(document.querySelectorAll("[data-platform-segment]"))
+    platformSegments: Array.from(document.querySelectorAll("[data-platform-segment]")),
+    filterSearch: document.getElementById("filter-search")
   };
 
   function L(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
@@ -698,7 +744,7 @@
       params.set("page", String(state.page));
       params.set("page_size", String(state.pageSize));
     }
-    const scope = (elements.filterRelevance && elements.filterRelevance.value) || "all";
+    const scope = (elements.filterRelevance && elements.filterRelevance.value) || "relevant";
     params.set("relevance_scope", scope);
     if (elements.filterYear.value) params.set("year", elements.filterYear.value);
     if (elements.filterPlatform.value) params.set("platform", elements.filterPlatform.value);
@@ -706,7 +752,32 @@
     if (elements.filterMediaFormat.value) params.set("media_format", elements.filterMediaFormat.value);
     if (elements.filterUserIntent.value) params.set("user_intent", elements.filterUserIntent.value);
     if (elements.filterQuantumDomain.value) params.set("quantum_domain", elements.filterQuantumDomain.value);
+    if (elements.filterSearch && elements.filterSearch.value.trim()) params.set("search", elements.filterSearch.value.trim());
+    if (state.highlightId) params.set("source_id", state.highlightId);
     return params.toString();
+  }
+
+  function applyUrlParams() {
+    const sp = new URLSearchParams(window.location.search);
+    // deep-link: ?id=123 or ?source_id=123
+    const idParam = sp.get("id") || sp.get("source_id");
+    if (idParam) {
+      state.highlightId = idParam;
+      // switch to "all" scope to ensure the source is visible regardless of tier
+      if (elements.filterRelevance) elements.filterRelevance.value = "all";
+    }
+    if (sp.get("year") && elements.filterYear) elements.filterYear.value = sp.get("year");
+    if (sp.get("scope") && elements.filterRelevance) elements.filterRelevance.value = sp.get("scope");
+    if (sp.get("search") && elements.filterSearch) elements.filterSearch.value = sp.get("search");
+  }
+
+  function highlightCard(id) {
+    if (!id) return;
+    const card = document.getElementById(`src-${id}`);
+    if (!card) return;
+    card.style.outline = "2px solid var(--primary)";
+    card.style.boxShadow = "0 0 0 4px rgba(56,189,248,0.2)";
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function syncPlatformSegments() {
@@ -774,11 +845,11 @@
     const title = item.title || item.url || `Source ${item.id}`;
     const thumb = item.platform === "youtube" ? getYoutubeThumbnail(item.url) : null;
     const chips = [
-      item.content_type || "unknown content",
-      item.production_type || "unknown production",
-      item.area || "unknown area",
-      item.engagement_level || "unknown engagement"
-    ];
+      item.content_type,
+      item.production_type,
+      item.area,
+      item.engagement_level
+    ].filter(Boolean);
     const taxChips = [];
     const tier = relevanceTier(item);
     taxChips.push(`<span class="chip" style="border-color:${tier.color}40;color:${tier.color};background:${tier.color}12">${tier.label}</span>`);
@@ -786,31 +857,43 @@
     if (item.user_intent) taxChips.push(`<span class="chip chip-intent">${item.user_intent.replace(/_/g," ")}</span>`);
     if (item.quantum_domain && item.quantum_domain !== "not_applicable") taxChips.push(`<span class="chip chip-domain">${item.quantum_domain.replace(/_/g," ")}</span>`);
     const counts = [];
-    if (item.view_count != null) counts.push(`👁 ${Number(item.view_count).toLocaleString()}`);
-    if (item.like_count != null) counts.push(`♥ ${Number(item.like_count).toLocaleString()}`);
-    if (item.comment_count != null) counts.push(`💬 ${Number(item.comment_count).toLocaleString()}`);
+    if (item.view_count != null) counts.push(`<span class="chip chip-count">👁 ${Number(item.view_count).toLocaleString()}</span>`);
+    if (item.like_count != null) counts.push(`<span class="chip chip-count">♥ ${Number(item.like_count).toLocaleString()}</span>`);
+    if (item.comment_count != null) counts.push(`<span class="chip chip-count">💬 ${Number(item.comment_count).toLocaleString()}</span>`);
     const channelLine = item.channel_title
-      ? `<div class="source-channel">${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}${item.channel_default_language ? " · " + item.channel_default_language : ""}</div>`
+      ? `<div class="source-channel">📺 ${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}${item.channel_default_language ? " · " + item.channel_default_language : ""}</div>`
       : "";
-    const fetchedLine = item.fetched_at ? `<div class="source-fetched">${L("ดึงข้อมูล", "Fetched")}: ${new Date(item.fetched_at).toLocaleDateString()}</div>` : "";
+    const fetchedLine = item.fetched_at
+      ? `<div class="source-fetched">${L("ดึงข้อมูล", "Fetched")} ${new Date(item.fetched_at).toLocaleDateString()}</div>`
+      : "";
+    const mapLink = item.has_real_geo
+      ? `<a class="source-map-link" href="/dashboard?highlight=${item.id}" title="View on map">📍 Map</a>`
+      : "";
+    const confidenceBadge = item.relevance_confidence != null
+      ? `<span class="chip" style="color:var(--muted);font-size:0.68rem">conf ${Math.round(item.relevance_confidence * 100)}%</span>`
+      : "";
 
     return `
-      <article class="source-card">
-        ${thumb ? `<div class="source-thumb" style="position:relative;"><img src="${thumb}" loading="lazy" alt=""><span class="source-thumb-badge">${(item.platform || "").toUpperCase()}</span></div>` : ""}
+      <article class="source-card" id="src-${item.id}" data-source-id="${item.id}">
+        ${thumb ? `<div class="source-thumb"><img src="${thumb}" loading="lazy" alt=""><span class="source-thumb-badge">${(item.platform || "").toUpperCase()}</span></div>` : ""}
         <div class="source-top">
           ${!thumb ? `<div class="source-platform">${(item.platform || "unknown").toUpperCase()}</div>` : ""}
-          <div class="source-year">${item.published_year || "unknown year"}</div>
+          <div class="source-year">${item.published_year || "—"}</div>
         </div>
         <h3>${title}</h3>
         ${channelLine}
-        <div class="meta-grid">
-          ${chips.map((chip) => `<span class="chip">${chip}</span>`).join("")}
-          ${counts.map((chip) => `<span class="chip chip-count">${chip}</span>`).join("")}
+        <div class="meta-grid chip-row">
           ${taxChips.join("")}
+          ${chips.map((c) => `<span class="chip">${c}</span>`).join("")}
+          ${counts.join("")}
+          ${confidenceBadge}
         </div>
         ${fetchedLine}
-        <div class="source-url">${item.url || "No URL available"}</div>
-        <a class="source-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดต้นฉบับ", "Open source")}</a>
+        <div class="source-url">${item.url || "No URL"}</div>
+        <div class="source-actions">
+          <a class="source-link" href="${item.url}" target="_blank" rel="noopener">${L("เปิดต้นฉบับ", "Open source")}</a>
+          ${mapLink}
+        </div>
       </article>
     `;
   }
@@ -881,6 +964,16 @@
   }
 
   elements.apply.addEventListener("click", () => loadSources(1));
+  if (elements.filterSearch) {
+    let searchTimer;
+    elements.filterSearch.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { state.highlightId = null; loadSources(1); }, 350);
+    });
+    elements.filterSearch.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { clearTimeout(searchTimer); state.highlightId = null; loadSources(1); }
+    });
+  }
   elements.exportBtn.addEventListener("click", exportXlsx);
   elements.platformSegments.forEach((button) => {
     button.addEventListener("click", () => {
@@ -935,10 +1028,13 @@
     } catch { /* fallback: filters stay at "all" */ }
   }
 
+  applyUrlParams();
   populateYears();
   populateFilterOptions();
   syncPlatformSegments();
   renderActiveFilters();
-  loadSources(1);
+  loadSources(1).then(() => {
+    if (state.highlightId) highlightCard(state.highlightId);
+  });
 </script>
 {% endblock %}

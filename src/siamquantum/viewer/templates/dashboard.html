@@ -945,13 +945,20 @@
     const title = item.title || item.url || "Untitled source";
     const year = item.published_year ?? "Unknown year";
     const platform = (item.platform || "other").toUpperCase();
-    const domain = item.quantum_domain ? `<br><span class="popup-meta" style="color:var(--primary)">⬡ ${item.quantum_domain.replaceAll("_"," ")}</span>` : "";
-    const channel = item.channel_title ? `<br><span class="popup-meta">📺 ${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}</span>` : "";
+    const domain = item.quantum_domain && item.quantum_domain !== "not_applicable"
+      ? `<br><span class="popup-meta" style="color:var(--primary)">⬡ ${item.quantum_domain.replaceAll("_"," ")}</span>`
+      : "";
+    const channel = item.channel_title
+      ? `<br><span class="popup-meta">📺 ${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}</span>`
+      : "";
+    const dbLink = item.source_id
+      ? `<a class="popup-link" href="/database?id=${item.source_id}&scope=all" style="color:var(--warning)">📋 ${copyForLang("ดูในฐานข้อมูล", "View record")}</a> · `
+      : "";
     return `
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
       <span class="popup-meta">${item.isp || item.asn_org || "Unknown ISP"}</span>${domain}${channel}<br>
-      <a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open link")}</a>
+      ${dbLink}<a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open link")}</a>
     `;
   }
 

@@ -527,20 +527,28 @@
   <!-- Coverage and engagement — always visible regardless of taxonomy data state -->
   <div class="charts-grid" id="coverage-grid" style="margin-top:0">
     <div class="card wide-card" id="domain-coverage-card" style="display:none">
-      <h3><span class="th-text">การกระจายโดเมนควอนตัม</span><span class="en-text">Quantum Domain Distribution</span></h3>
-      <p>
-        <span class="th-text">จำนวนแหล่งข้อมูลในแต่ละโดเมนย่อยของควอนตัม</span>
-        <span class="en-text">Source count per quantum sub-domain in the operational corpus.</span>
-      </p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem">
+        <div>
+          <h3><span class="th-text">การกระจายโดเมนควอนตัม</span><span class="en-text">Quantum Domain Distribution</span></h3>
+          <p><span class="th-text">จำนวนแหล่งข้อมูลในแต่ละโดเมนย่อยของควอนตัม</span><span class="en-text">Source count per quantum sub-domain in the operational corpus.</span></p>
+        </div>
+        <a href="/database?scope=strict" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(56,189,248,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
+          <span class="th-text">ดูแหล่งข้อมูล →</span><span class="en-text">Browse sources →</span>
+        </a>
+      </div>
       <canvas id="domain-chart" style="max-height:220px"></canvas>
     </div>
 
     <div class="card wide-card" id="platform-coverage-card" style="display:none">
-      <h3><span class="th-text">แหล่งข้อมูลตามแพลตฟอร์มและปี</span><span class="en-text">Coverage by Platform &amp; Year</span></h3>
-      <p>
-        <span class="th-text">จำนวนแหล่งข้อมูลแบ่งตามแพลตฟอร์มและช่วงปี</span>
-        <span class="en-text">Stacked source counts across platforms and years — shows collection breadth over time.</span>
-      </p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem">
+        <div>
+          <h3><span class="th-text">แหล่งข้อมูลตามแพลตฟอร์มและปี</span><span class="en-text">Coverage by Platform &amp; Year</span></h3>
+          <p><span class="th-text">จำนวนแหล่งข้อมูลแบ่งตามแพลตฟอร์มและช่วงปี</span><span class="en-text">Stacked source counts across platforms and years — shows collection breadth over time.</span></p>
+        </div>
+        <a href="/database?scope=relevant" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(56,189,248,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
+          <span class="th-text">ดูแหล่งข้อมูล →</span><span class="en-text">Browse sources →</span>
+        </a>
+      </div>
       <canvas id="coverage-chart" style="max-height:260px"></canvas>
     </div>
 

@@ -978,35 +978,25 @@ def api_geo_list(
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
-            if cdn:
-                rows = conn.execute(f"""
-                    SELECT g.source_id, g.lat, g.lng, g.city, g.region,
-                           g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
-                           s.channel_title, s.channel_country,
-                           s.is_quantum_tech, s.is_thailand_related
-                    FROM geo g
-                    JOIN sources s ON g.source_id = s.id
-                    WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
-                    {relevance_clause}
-                    ORDER BY s.published_year DESC, g.source_id DESC
-                    LIMIT 2000
-                """).fetchall()
-            else:
-                rows = conn.execute(f"""
-                    SELECT g.source_id, g.lat, g.lng, g.city, g.region,
-                           g.isp, g.asn_org, g.is_cdn_resolved,
-                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
-                           s.channel_title, s.channel_country,
-                           s.is_quantum_tech, s.is_thailand_related
-                    FROM geo g
-                    JOIN sources s ON g.source_id = s.id
-                    WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
-                      AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
-                    {relevance_clause}
-                    ORDER BY s.published_year DESC, g.source_id DESC
-                    LIMIT 2000
-                """).fetchall()
+            cdn_filter = "" if cdn else "AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)"
+            # quality floor: exclude null/empty raw_text in non-all scopes
+            quality_filter = "" if scope == "all" else "AND (s.raw_text IS NOT NULL AND trim(s.raw_text) != '')"
+            rows = conn.execute(f"""
+                SELECT g.source_id, g.lat, g.lng, g.city, g.region,
+                       g.isp, g.asn_org, g.is_cdn_resolved,
+                       s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                       s.channel_title, s.channel_country,
+                       s.is_quantum_tech, s.is_thailand_related,
+                       s.relevance_confidence, s.view_count
+                FROM geo g
+                JOIN sources s ON g.source_id = s.id
+                WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
+                {cdn_filter}
+                {relevance_clause}
+                {quality_filter}
+                ORDER BY s.published_year DESC, g.source_id DESC
+                LIMIT 2000
+            """).fetchall()
     except Exception as exc:
         return JSONResponse(
             {
@@ -1510,24 +1500,43 @@ def api_sources(
     media_format: str | None = Query(None),
     user_intent: str | None = Query(None),
     quantum_domain: str | None = Query(None),
-    include_filtered: bool = Query(True, description="Show all sources by default. Set false for strict corpus filter only."),
-    relevance_scope: str = Query("all", description="all | quantum | thailand | strict"),
+    search: str | None = Query(None, description="Full-text search on title"),
+    source_id: int | None = Query(None, description="Direct lookup by source ID"),
+    include_filtered: bool = Query(True, description="Deprecated — use relevance_scope."),
+    relevance_scope: str = Query(
+        "relevant",
+        description="relevant (qt OR th, default) | strict (qt AND th) | quantum | thailand | all",
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> JSONResponse:
-    """Paginated source list with optional filters. Default: all sources (include_filtered=true)."""
+    """Paginated source list. Default scope='relevant' excludes fully-rejected sources."""
     db = _db()
-    conditions = []
+    conditions: list[str] = []
     params: list[Any] = []
 
-    if not include_filtered or relevance_scope == "strict":
+    # ── relevance scope ──────────────────────────────────────────────────────
+    # "relevant" = qt=1 OR th=1 — excludes the 292 fully-rejected (qt=0, th=0)
+    effective_scope = relevance_scope if include_filtered else "strict"
+    if effective_scope == "strict":
         conditions.append("s.is_quantum_tech = 1")
         conditions.append("s.is_thailand_related = 1")
-    elif relevance_scope == "quantum":
+    elif effective_scope == "quantum":
         conditions.append("s.is_quantum_tech = 1")
-    elif relevance_scope == "thailand":
+    elif effective_scope == "thailand":
         conditions.append("s.is_thailand_related = 1")
+    elif effective_scope == "relevant":
+        conditions.append("(s.is_quantum_tech = 1 OR s.is_thailand_related = 1)")
+    # "all" → no relevance filter (includes fully-rejected)
 
+    # ── hard quality floor: exclude null/empty raw_text ──────────────────────
+    if effective_scope != "all":
+        conditions.append("(s.raw_text IS NOT NULL AND trim(s.raw_text) != '')")
+
+    # ── field filters ────────────────────────────────────────────────────────
+    if source_id is not None:
+        conditions.append("s.id = ?")
+        params.append(source_id)
     if year is not None:
         conditions.append("s.published_year = ?")
         params.append(year)
@@ -1546,6 +1555,9 @@ def api_sources(
     if quantum_domain is not None:
         conditions.append("s.quantum_domain = ?")
         params.append(quantum_domain)
+    if search is not None and search.strip():
+        conditions.append("s.title LIKE ?")
+        params.append(f"%{search.strip()}%")
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
     offset = (page - 1) * page_size
@@ -1565,8 +1577,15 @@ def api_sources(
                        s.quantum_domain, s.fetched_at,
                        s.channel_id, s.channel_title, s.channel_country, s.channel_default_language,
                        s.is_quantum_tech, s.is_thailand_related,
+                       s.rejection_reason, s.relevance_confidence,
                        e.content_type, e.production_type, e.area, e.engagement_level,
-                       e.media_format, e.user_intent
+                       e.media_format, e.user_intent,
+                       CASE WHEN EXISTS (
+                           SELECT 1 FROM geo g
+                           WHERE g.source_id = s.id
+                             AND g.lat IS NOT NULL
+                             AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
+                       ) THEN 1 ELSE 0 END AS has_real_geo
                 FROM sources s
                 LEFT JOIN entities e ON s.id = e.source_id
                 {where}
