@@ -657,11 +657,11 @@
     .ops-layout { grid-template-columns: 1fr; }
 
     .map-stage,
-    #dashboard-map { min-height: calc(100svh - var(--header-h) - 4.5rem); }
+    #dashboard-map { min-height: calc(100svh - var(--header-h) - 5rem); }
 
     .ops-panel {
       position: fixed;
-      bottom: 56px;
+      bottom: 64px; /* matches new nav height */
       left: 0;
       right: 0;
       z-index: 120;
@@ -675,12 +675,18 @@
 
     .ops-panel.is-expanded { transform: translateY(0); }
 
-    .ops-panel-handle {
-      display: block;
-    }
+    .ops-panel-handle { display: block; }
 
     .focus-tags,
     .panel-actions { grid-template-columns: 1fr; }
+
+    /* scope filter buttons touch-friendly */
+    .scope-filter-bar { gap: 0.4rem; flex-wrap: wrap; }
+    .scope-btn { min-height: 40px; padding: 0 0.75rem; font-size: 0.8rem; }
+
+    /* telemetry text larger */
+    .telemetry-label { font-size: 0.72rem; }
+    .telemetry-val { font-size: 0.82rem; }
   }
 </style>
 {% endblock %}
