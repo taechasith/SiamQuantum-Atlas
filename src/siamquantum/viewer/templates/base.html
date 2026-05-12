@@ -9,6 +9,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
+  <link rel="preload" href="/static/brand/SQAlogo.png" as="image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -110,6 +111,7 @@
     .sidebar-logo {
       width: 9rem;
       height: 9rem;
+      aspect-ratio: 1 / 1;
       object-fit: contain;
       display: block;
       flex-shrink: 0;
@@ -875,7 +877,9 @@
   .splash-logo {
     width: 140px;
     height: 140px;
+    aspect-ratio: 1 / 1;
     object-fit: contain;
+    display: block;
     animation: splash-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     filter: drop-shadow(0 0 32px rgba(56,189,248,0.45)) drop-shadow(0 0 8px rgba(56,189,248,0.2));
   }
@@ -987,7 +991,7 @@
     <div class="splash-ring"></div>
     <div class="splash-ring splash-ring-2"></div>
     <div class="splash-ring splash-ring-3"></div>
-    <img class="splash-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas">
+    <img class="splash-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas" width="140" height="140" decoding="sync">
     <div class="splash-wordmark"><strong>Siam</strong>Quantum<strong> Atlas</strong></div>
     <div class="splash-sub">Thai Quantum Discourse Intelligence</div>
     <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
@@ -1028,7 +1032,7 @@
   <!-- ── SIDEBAR ──────────────────────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <a class="sidebar-brand" href="/" aria-label="SiamQuantum Atlas">
-      <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="">
+      <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="" width="144" height="144" decoding="async">
     </a>
 
     <nav class="sidebar-nav" aria-label="Main navigation">
