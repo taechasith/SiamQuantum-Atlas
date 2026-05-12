@@ -26,14 +26,8 @@
     border-radius: 14px;
   }
 
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.48fr) minmax(320px, 0.92fr);
-    gap: 1.3rem;
-    align-items: stretch;
-  }
-
-  .hero-card { padding: 1.45rem; min-height: 100%; }
+  .analytics-head { padding: 0.65rem 0 0.2rem; }
+  .analytics-head p { max-width: 72ch; margin-top: 0.25rem; }
 
   .eyebrow {
     color: var(--primary);
@@ -44,31 +38,48 @@
     margin-bottom: 0.65rem;
   }
 
-  .hero-card h1 {
+  .hero-card h1,
+  .analytics-head h1 {
     font-family: var(--font-heading);
     color: var(--text);
     font-size: clamp(1.5rem, 2.8vw, 2.4rem);
     font-weight: 400;
     line-height: 1.1;
     margin-bottom: 0.7rem;
+    margin-top: 0.35rem;
   }
 
-  .hero-card p, .card p, .brief-card p, .brief-card li { color: var(--muted); line-height: 1.6; font-size: 0.875rem; }
+  .hero-card p, .card p, .brief-card p, .brief-card li, .analytics-head p { color: var(--muted); line-height: 1.6; font-size: 0.875rem; }
 
-  .kpi-strip {
+  .kpi-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
-    margin-top: 1.2rem;
   }
 
   .kpi-block {
-    background: var(--surface-2);
+    background: linear-gradient(160deg, var(--surface-2), rgba(13, 22, 38, 0.8));
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
     position: relative;
     overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .kpi-block::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--tertiary));
+    border-radius: 12px 0 0 12px;
+    opacity: 0.7;
+  }
+
+  .kpi-block:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 4px 24px rgba(56, 189, 248, 0.07);
   }
 
   .kpi-badge {
@@ -95,11 +106,12 @@
 
   .kpi-value {
     color: var(--text);
-    font-family: var(--font-heading);
+    font-family: var(--font-mono);
     font-size: clamp(2rem, 4vw, 2.8rem);
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1;
     margin-bottom: 0.2rem;
+    letter-spacing: -0.02em;
   }
 
   .kpi-sub {
@@ -125,7 +137,10 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0.9rem 1rem;
+    transition: border-color 0.18s;
   }
+
+  .insight-card:hover { border-color: rgba(56, 189, 248, 0.22); }
 
   .stat-label, .insight-label {
     color: var(--muted);
@@ -142,16 +157,10 @@
     margin-top: 0.3rem;
   }
 
-  .side-stack,
   .validation-list,
   .community-strip {
     display: grid;
     gap: 1rem;
-  }
-
-  .brief-list {
-    margin: 0.55rem 0 0;
-    padding-left: 1rem;
   }
 
   .status-pill {
@@ -193,8 +202,30 @@
     align-items: start;
   }
 
-  .card { padding: 1.25rem; min-height: 100%; }
-  .card h3 { color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .card {
+    padding: 1.25rem;
+    min-height: 100%;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(56, 189, 248, 0.2); }
+  .card h3 {
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card h3::before {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 1em;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--primary), var(--tertiary));
+    flex-shrink: 0;
+  }
 
   .wide-card {
     grid-column: 1 / -1;
@@ -335,14 +366,12 @@
   }
 
   @media (max-width: 860px) {
-    .analytics-shell {
-      padding: 1rem;
-    }
-
-    .hero-grid,
-    .charts-grid {
-      grid-template-columns: 1fr;
-    }
+    .analytics-shell { padding: 1rem; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .kpi-row { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
@@ -359,70 +388,50 @@
     <span class="en-text">This page looks at Thai-linked quantum coverage with visible engagement. Use it to spot patterns, not to make causal claims.</span>
   </div>
 
-  <div class="hero-grid">
-    <div class="hero-card">
-      <div class="eyebrow">
-        <span class="th-text">การวิเคราะห์รายปี</span>
-        <span class="en-text">Yearly Trends</span>
-      </div>
-      <h1>
-        <span class="th-text">การมีส่วนร่วมตามหัวข้อและรูปแบบเนื้อหา</span>
-        <span class="en-text">Engagement by Topic &amp; Content Form</span>
-      </h1>
-      <p>
-        <span class="th-text">แยกการมีส่วนร่วมตามหัวข้อควอนตัมและรูปแบบเนื้อหา พร้อมการทดสอบทางสถิติเพื่อยืนยันความมีนัยสำคัญ กลุ่มแนวคิดที่พบเชื่อมโยงกับ Concept Network</span>
-        <span class="en-text">Compare engagement by topic and content form over time, then jump into related groups in the network view.</span>
-      </p>
-      <div class="kpi-strip">
-        <div class="kpi-block">
-          <div class="kpi-badge" id="kpi-years-badge">n=0</div>
-          <div class="kpi-label"><span class="th-text">แหล่งข้อมูลที่วิเคราะห์</span><span class="en-text">Sources Reviewed</span></div>
-          <div class="kpi-value" id="stat-sources">0</div>
-          <div class="kpi-sub">
-            <span id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: —</span><span class="en-text">Years with data: —</span></span>
-          </div>
-        </div>
-        <div class="kpi-block">
-          <div class="kpi-badge" id="kpi-sig-badge">α=0.05</div>
-          <div class="kpi-label"><span class="th-text">แนวโน้มที่พบ</span><span class="en-text">Signals Found</span></div>
-          <div class="kpi-value" id="stat-significance">0</div>
-          <div class="kpi-sub">
-            <span id="kpi-sig-sub"><span class="th-text">ผ่านการทดสอบทางสถิติ</span><span class="en-text">Signals passing the current tests</span></span>
-          </div>
-        </div>
-      </div>
-      <div style="display:none;">
-        <div id="stat-years">0</div>
-      </div>
-      <div class="status-pill" id="status-pill">
-        <span class="th-text">กำลังโหลด</span>
-        <span class="en-text">Loading</span>
-      </div>
+  <div class="analytics-head">
+    <div class="eyebrow">
+      <span class="th-text">การวิเคราะห์รายปี</span>
+      <span class="en-text">Yearly Trends</span>
     </div>
+    <h1>
+      <span class="th-text">การมีส่วนร่วมตามหัวข้อและรูปแบบเนื้อหา</span>
+      <span class="en-text">Engagement by Topic &amp; Content Form</span>
+    </h1>
+    <p>
+      <span class="th-text">แยกการมีส่วนร่วมตามหัวข้อควอนตัมและรูปแบบเนื้อหา พร้อมการทดสอบทางสถิติเพื่อยืนยันความมีนัยสำคัญ กลุ่มแนวคิดที่พบเชื่อมโยงกับ Concept Network</span>
+      <span class="en-text">Compare engagement by topic and content form over time, then jump into related groups in the network view.</span>
+    </p>
+  </div>
 
-    <div class="side-stack">
-      <div class="brief-card">
-        <h3><span class="th-text">หัวข้อควอนตัม</span><span class="en-text">By Topic</span></h3>
-        <p>
-          <span class="th-text">แสดงการมีส่วนร่วมตามหัวข้อย่อยของควอนตัม เช่น cryptography, computing, sensing</span>
-          <span class="en-text">Shows engagement split by quantum subject area (e.g. cryptography, computing, sensing).</span>
-        </p>
-      </div>
-      <div class="brief-card">
-        <h3><span class="th-text">รูปแบบเนื้อหา</span><span class="en-text">By Format</span></h3>
-        <p>
-          <span class="th-text">แสดงการมีส่วนร่วมตามรูปแบบ เช่น บทความ พอดแคสต์ วิดีโอ วิชาการ หรือฟิล์ม</span>
-          <span class="en-text">Breaks down engagement by format — article, podcast, video, academic paper, film, and more.</span>
-        </p>
-      </div>
-      <div class="brief-card">
-        <h3><span class="th-text">วิธีอ่านกราฟ</span><span class="en-text">How to Read</span></h3>
-        <p>
-          <span class="th-text">เส้นที่โดดเด่นบ่งชี้แนวโน้มที่น่าสนใจ แต่ควรดูการ์ดผลทดสอบด้านล่างเพื่อยืนยันนัยสำคัญทางสถิติ</span>
-          <span class="en-text">Strong lines suggest interesting patterns. Check the validation cards below each chart to confirm statistical significance.</span>
-        </p>
-      </div>
+  <div class="kpi-row">
+    <div class="kpi-block">
+      <div class="kpi-badge" id="kpi-years-badge">n=0</div>
+      <div class="kpi-label"><span class="th-text">แหล่งข้อมูลที่วิเคราะห์</span><span class="en-text">Sources Reviewed</span></div>
+      <div class="kpi-value" id="stat-sources">—</div>
+      <div class="kpi-sub"><span id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: —</span><span class="en-text">Years with data: —</span></span></div>
     </div>
+    <div class="kpi-block">
+      <div class="kpi-badge">TOPICS</div>
+      <div class="kpi-label"><span class="th-text">หัวข้อที่วิเคราะห์</span><span class="en-text">Topic Labels</span></div>
+      <div class="kpi-value" id="stat-topics">—</div>
+      <div class="kpi-sub"><span class="th-text">กลุ่มหัวข้อควอนตัม</span><span class="en-text">Quantum topic groups</span></div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-badge">YEARS</div>
+      <div class="kpi-label"><span class="th-text">ปีที่มีข้อมูล</span><span class="en-text">Years with Data</span></div>
+      <div class="kpi-value" id="stat-years">—</div>
+      <div class="kpi-sub"><span class="th-text">ช่วงการวิเคราะห์</span><span class="en-text">Analysis time span</span></div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-badge" id="kpi-sig-badge">α=0.05</div>
+      <div class="kpi-label"><span class="th-text">แนวโน้มที่พบ</span><span class="en-text">Signals Found</span></div>
+      <div class="kpi-value" id="stat-significance">0</div>
+      <div class="kpi-sub"><span id="kpi-sig-sub"><span class="th-text">ผ่านการทดสอบทางสถิติ</span><span class="en-text">Passing current tests</span></span></div>
+    </div>
+  </div>
+  <div class="status-pill" id="status-pill">
+    <span class="th-text">กำลังโหลด</span>
+    <span class="en-text">Loading</span>
   </div>
 
   <div class="insight-strip">
@@ -515,6 +524,7 @@
     status: document.getElementById("status-pill"),
     years: document.getElementById("stat-years"),
     sources: document.getElementById("stat-sources"),
+    topics: document.getElementById("stat-topics"),
     significance: document.getElementById("stat-significance"),
     empty: document.getElementById("empty-state"),
     error: document.getElementById("error-state"),
@@ -725,6 +735,8 @@
       const totalSources = years.reduce((sum, year) => sum + Number((counts[year] || {}).total || 0), 0);
       elements.years.textContent = String(topicAxis.years.length);
       elements.sources.textContent = String(totalSources);
+      const topicLabels = (topicAxis.labels || []).length;
+      if (elements.topics) elements.topics.textContent = String(topicLabels);
       const sigCount = countSignificant(topicAxis) + countSignificant(productionAxis);
       elements.significance.textContent = String(sigCount);
 

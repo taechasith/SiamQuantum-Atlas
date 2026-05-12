@@ -119,12 +119,12 @@
 
   .hero-panel {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.92fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.88fr);
     gap: 0.6rem;
-    padding: 1.9rem 1.8rem 1.75rem;
+    padding: 1.65rem 1.8rem 1.5rem;
     overflow: hidden;
     position: relative;
-    min-height: 22rem;
+    min-height: 20rem;
   }
 
   .hero-panel::before {
@@ -174,29 +174,37 @@
   }
 
   .hero-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.7rem;
-    margin-top: 1.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
   }
 
   .hero-stat {
-    border-radius: 0.9rem;
-    border: 1px solid rgba(121, 146, 189, 0.22);
-    background: rgba(13, 22, 38, 0.8);
-    padding: 0.9rem 0.95rem 0.8rem;
-    min-height: 6.15rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(121, 146, 189, 0.2);
+    background: rgba(13, 22, 38, 0.75);
+    padding: 0.62rem 0.85rem;
+    flex: 1;
+    min-width: 8.5rem;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  .hero-stat:hover {
+    border-color: rgba(79, 212, 255, 0.28);
+    background: rgba(13, 22, 38, 0.9);
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.06);
   }
 
   .hero-stat-top {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.5rem;
   }
 
   .hero-stat-icon {
-    width: 1.4rem;
-    height: 1.4rem;
+    width: 1rem;
+    height: 1rem;
     color: var(--overview-accent-2);
     flex-shrink: 0;
   }
@@ -213,21 +221,22 @@
 
   .hero-stat-value {
     color: var(--overview-text);
-    font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
     line-height: 1;
   }
 
   .hero-stat-label {
-    margin-top: 0.42rem;
-    color: #d5def0;
-    font-size: 0.82rem;
+    margin-top: 0.28rem;
+    color: #9baac6;
+    font-size: 0.72rem;
   }
 
   .hero-stat-meta {
-    margin-top: 0.55rem;
+    margin-top: 0.1rem;
     color: var(--overview-success);
-    font-size: 0.78rem;
+    font-size: 0.68rem;
   }
 
   .hero-visual {
@@ -417,13 +426,18 @@
     padding: 1.15rem 1.2rem;
     color: inherit;
     text-decoration: none;
-    transition: border-color 0.18s ease, transform 0.18s ease;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
 
   .module-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(79, 212, 255, 0.26);
+    transform: translateY(-3px);
+    border-color: rgba(79, 212, 255, 0.32);
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.05), rgba(10, 18, 32, 0.96));
+    box-shadow: 0 8px 32px rgba(56, 189, 248, 0.08), 0 24px 60px rgba(0, 0, 0, 0.22);
   }
+
+  .module-card:active { transform: translateY(-1px); }
 
   .module-icon {
     width: 1.8rem;
@@ -455,9 +469,16 @@
 
   .module-link {
     color: var(--overview-accent);
-    font-size: 0.92rem;
+    font-size: 0.85rem;
+    font-weight: 500;
     margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: gap 0.18s ease;
   }
+
+  .module-card:hover .module-link { gap: 0.5rem; }
 
   .bottom-grid {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.75fr) minmax(320px, 1.05fr);
@@ -466,7 +487,10 @@
   .detail-panel {
     padding: 1.15rem 1.2rem 1.15rem;
     min-height: 18rem;
+    transition: border-color 0.2s;
   }
+
+  .detail-panel:hover { border-color: rgba(56, 189, 248, 0.18); }
 
   .detail-title {
     color: var(--overview-text);
@@ -606,7 +630,6 @@
   }
 
   @media (max-width: 1280px) {
-    .hero-stats,
     .module-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -631,19 +654,19 @@
     }
     .hero-copy { max-width: none; }
     .module-grid,
-    .hero-stats,
     .ingestion-header,
     .ingestion-grid {
       grid-template-columns: 1fr;
     }
+    .hero-stats { gap: 0.4rem; }
+    .hero-stat { min-width: 7rem; }
     .hero-visual { min-height: 20rem; }
-    .hero-video {
-      transform: translateX(1%) translateY(5%) scale(0.72);
-      transform-origin: 60% 58%;
-    }
-    .hero-stage-chip.bottom {
-      bottom: 0.8rem;
-    }
+    .hero-stage-chip.bottom { bottom: 0.8rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-stats { flex-direction: column; }
+    .hero-stat { min-width: unset; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -723,10 +746,8 @@
         <span></span>
       </div>
       <div class="hero-stage" id="overview-cat-stage">
-        <div class="hero-stage-chip top"><span class="th-text">ผู้ช่วยแอตลาส</span><span class="en-text">Atlas Companion</span></div>
         <div class="hero-stage-orbit" aria-hidden="true"></div>
         <div id="three-cat-wrap" aria-label="Interactive quantum cat"></div>
-        <div class="hero-stage-chip bottom"><span class="th-text">คลิกเพื่อโต้ตอบ</span><span class="en-text">Click to interact</span></div>
       </div>
     </div>
   </section>

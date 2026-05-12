@@ -3,8 +3,13 @@
 {% set active = 'dashboard' %}
 
 {% block page_title %}
-  <span class="th-text">แผนที่แหล่งข้อมูล</span>
-  <span class="en-text">Source Map</span>
+<span class="th-text">แผนที่แหล่งข้อมูล</span><span class="en-text">Source Map</span>
+<div class="map-kpi-chips">
+  <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></span><span class="map-kpi-val" id="stat-count">-</span></div>
+  <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">ลิงก์แนวคิด</span><span class="en-text">Connections</span></span><span class="map-kpi-val" id="stat-triplets">-</span></div>
+  <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">พิกัดบนแผนที่</span><span class="en-text">Map Points</span></span><span class="map-kpi-val" id="stat-geo">-</span></div>
+  <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">ช่วงปี</span><span class="en-text">Year Range</span></span><span class="map-kpi-val" id="stat-years">-</span></div>
+</div>
 {% endblock %}
 
 {% block head %}
@@ -37,6 +42,45 @@
     --map-rose: #ff8aa3;
   }
 
+  /* ── topbar KPI chips ── */
+  .topbar-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .map-kpi-chips {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 1;
+  }
+
+  .map-kpi-chips::-webkit-scrollbar { display: none; }
+
+  .map-kpi-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    height: 30px;
+    padding: 0 0.62rem;
+    border-radius: 7px;
+    border: 1px solid var(--map-border);
+    background: rgba(17, 26, 45, 0.82);
+    white-space: nowrap;
+    font-size: 0.73rem;
+    flex-shrink: 0;
+  }
+
+  .map-kpi-lbl { color: var(--map-copy); }
+  .map-kpi-val { color: var(--map-copy-strong); font-weight: 600; font-family: var(--font-mono); }
+
+  @media (max-width: 1080px) { .map-kpi-chips { display: none; } }
+
   .dashboard-shell { display: grid; gap: 1rem; }
 
   .mission-brief {
@@ -51,6 +95,12 @@
     border-radius: 18px;
     padding: 1.15rem 1.25rem;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .brief-card:hover {
+    border-color: rgba(117, 193, 255, 0.26);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 24px rgba(56, 189, 248, 0.06);
   }
 
   .eyebrow {
@@ -140,7 +190,7 @@
 
   .map-stage {
     position: relative;
-    min-height: 720px;
+    min-height: max(680px, calc(100svh - var(--header-h) - 3rem));
     background: linear-gradient(180deg, rgba(12, 19, 34, 0.98), rgba(13, 19, 33, 1));
     border: 1px solid var(--map-border);
     border-radius: 22px;
@@ -217,7 +267,7 @@
 
   #dashboard-map {
     height: 100%;
-    min-height: 720px;
+    min-height: max(680px, calc(100svh - var(--header-h) - 3rem));
     width: 100%;
   }
 
@@ -568,20 +618,46 @@
     font-weight: 700;
   }
 
+  /* ── ops-panel mobile bottom sheet ── */
+  .ops-panel-handle {
+    display: none;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--map-border);
+    margin: 0 auto 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
   @media (max-width: 720px) {
-    .mission-brief,
-    .ops-layout {
-      grid-template-columns: 1fr;
-    }
+    .ops-layout { grid-template-columns: 1fr; }
 
     .map-stage,
-    #dashboard-map {
-      min-height: 480px;
+    #dashboard-map { min-height: calc(100svh - var(--header-h) - 4.5rem); }
+
+    .ops-panel {
+      position: fixed;
+      bottom: 56px;
+      left: 0;
+      right: 0;
+      z-index: 120;
+      border-radius: 20px 20px 0 0;
+      max-height: 62vh;
+      overflow-y: auto;
+      transform: translateY(calc(100% - 72px));
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      padding-top: 0.75rem;
+    }
+
+    .ops-panel.is-expanded { transform: translateY(0); }
+
+    .ops-panel-handle {
+      display: block;
     }
 
     .focus-tags,
-    .panel-actions,
-    .brief-metrics { grid-template-columns: 1fr; }
+    .panel-actions { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
@@ -589,55 +665,6 @@
 {% block body %}
   <span style="display:none">Thai Quantum Geo Dashboard</span>
   <section class="dashboard-shell">
-  <div class="mission-brief">
-    <div class="brief-card">
-      <div class="eyebrow">
-        <span class="th-text">สัญญาณควอนตัมในประเทศไทย</span>
-        <span class="en-text">Thailand Quantum Signals</span>
-      </div>
-      <div class="mission-title">
-        <span class="th-text">แผนที่ตำแหน่งแหล่งข้อมูล</span>
-        <span class="en-text">Source Map</span>
-      </div>
-      <div class="mission-copy">
-        <span class="th-text">อ่านตำแหน่งแหล่งข้อมูลควอนตัมที่เชื่อมกับประเทศไทยแบบมุมมองปฏิบัติการ แผนที่นี้เน้นจุดกำเนิดของสัญญาณ แหล่งที่มาของข้อมูล และการเชื่อมต่อเชิงพื้นที่ที่ควรติดตามต่อ</span>
-        <span class="en-text">Read Thai-linked quantum sources in an operations-style map view. This page emphasizes where signals originate, which sources they came from, and what geographic patterns deserve follow-up.</span>
-      </div>
-      <div class="brief-pills">
-        <span class="brief-pill">
-          <span class="th-text">คลิกจุดเพื่อเปิดคอนโซลข้อมูล</span>
-          <span class="en-text">Click a point to update the signal console</span>
-        </span>
-        <span class="brief-pill">
-          <span class="th-text">ค่าเริ่มต้นซ่อนแถว CDN</span>
-          <span class="en-text">CDN-based rows stay hidden by default</span>
-        </span>
-      </div>
-    </div>
-    <div class="brief-metrics">
-      <div class="metric-block">
-        <div class="metric-label"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></div>
-        <div class="metric-value" id="stat-count">-</div>
-        <div class="metric-note"><span class="th-text">อยู่ในขอบเขตควอนตัมไทย</span><span class="en-text">Within Thai quantum scope</span></div>
-      </div>
-      <div class="metric-block">
-        <div class="metric-label"><span class="th-text">ลิงก์แนวคิด</span><span class="en-text">Connections</span></div>
-        <div class="metric-value" id="stat-triplets">-</div>
-        <div class="metric-note"><span class="th-text">พร้อมสำหรับมุมมองเครือข่าย</span><span class="en-text">Ready for network inspection</span></div>
-      </div>
-      <div class="metric-block">
-        <div class="metric-label"><span class="th-text">ตำแหน่งบนแผนที่</span><span class="en-text">Mapped</span></div>
-        <div class="metric-value" id="stat-geo">-</div>
-        <div class="metric-note"><span class="th-text">ซ่อน CDN ตามค่าเริ่มต้น</span><span class="en-text">CDN rows hidden by default</span></div>
-      </div>
-      <div class="metric-block">
-        <div class="metric-label"><span class="th-text">ช่วงปี</span><span class="en-text">Year Range</span></div>
-        <div class="metric-value" id="stat-years">-</div>
-        <div class="metric-note"><span class="th-text">อัปเดตล่าสุด <span id="stat-fetch">-</span></span><span class="en-text">Latest refresh <span id="stat-fetch-en">-</span></span></div>
-      </div>
-    </div>
-  </div>
-
   <div class="ops-layout">
     <div class="map-stage">
       <div class="map-controls">
@@ -680,7 +707,8 @@
       </div>
     </div>
 
-    <aside class="ops-panel">
+    <aside class="ops-panel" id="ops-panel">
+      <div class="ops-panel-handle" id="ops-panel-handle" aria-label="Toggle detail panel" role="button" tabindex="0"></div>
       <div class="panel-head">
         <div class="panel-status" id="panel-status">
           <span class="th-text">ออนไลน์ • ซิงก์ข้อมูล</span>
@@ -1042,6 +1070,10 @@
         marker.bindPopup(popupHtml(item));
         marker.on("click", function () {
           applySelectedRow(item);
+          if (window.innerWidth < 720) {
+            const opsPanel = document.getElementById("ops-panel");
+            if (opsPanel) opsPanel.classList.add("is-expanded");
+          }
         });
         clusters.addLayer(marker);
       });
@@ -1061,5 +1093,16 @@
   loadSummary();
   loadPipeline();
   loadGeo();
+
+  // Mobile bottom sheet handle toggle
+  (function () {
+    const panel = document.getElementById("ops-panel");
+    const handle = document.getElementById("ops-panel-handle");
+    if (!panel || !handle) return;
+    handle.addEventListener("click", function () { panel.classList.toggle("is-expanded"); });
+    handle.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); panel.classList.toggle("is-expanded"); }
+    });
+  })();
 </script>
 {% endblock %}

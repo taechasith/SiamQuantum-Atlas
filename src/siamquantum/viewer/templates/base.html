@@ -11,7 +11,7 @@
   <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg:            #070B17;
@@ -33,13 +33,19 @@
       --ring:          rgba(56, 189, 248, 0.4);
       --font-body:     "IBM Plex Sans Thai", system-ui, sans-serif;
       --font-heading:  "IBM Plex Sans Thai", system-ui, sans-serif;
-      --font-mono:     "IBM Plex Sans Thai", monospace;
-      --sidebar-w:     248px;
+      --font-mono:     "JetBrains Mono", "IBM Plex Sans Thai", monospace;
+      --sidebar-w:     280px;
       --header-h:      72px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(114, 143, 198, 0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.38); }
+    * { scrollbar-width: thin; scrollbar-color: rgba(114, 143, 198, 0.22) transparent; }
 
     body {
       font-family: var(--font-body);
@@ -90,7 +96,7 @@
     }
 
     .sidebar-brand {
-      padding: 1.4rem 1.15rem 1.2rem;
+      padding: 1.1rem 1.15rem 1rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -101,9 +107,16 @@
     }
 
     .sidebar-logo {
-      width: 5.4rem;
-      height: auto;
+      width: 3.2rem;
+      height: 3.2rem;
+      object-fit: contain;
       flex-shrink: 0;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.25));
+      transition: filter 0.2s ease;
+    }
+
+    .sidebar-brand:hover .sidebar-logo {
+      filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.45));
     }
 
     .sidebar-brand-name {
@@ -121,11 +134,7 @@
       margin-top: 0.1rem;
     }
 
-    .sidebar-brand-name,
-    .sidebar-brand-sub,
-    .sidebar-brand > div {
-      display: none;
-    }
+    .sidebar-brand > div { display: block; }
 
     .sidebar-nav {
       flex: 1;
@@ -155,7 +164,7 @@
       text-decoration: none;
       font-size: 0.88rem;
       font-weight: 500;
-      transition: background 0.16s, color 0.16s, border-color 0.16s;
+      transition: background 0.16s, color 0.16s, border-color 0.16s, box-shadow 0.16s;
       cursor: pointer;
       border: 1px solid transparent;
       background: transparent;
@@ -168,13 +177,15 @@
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
       border-color: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 2px 0 0 rgba(56, 189, 248, 0.3);
     }
 
     .nav-item.active {
-      background: rgba(56, 189, 248, 0.12);
+      background: rgba(56, 189, 248, 0.1);
       color: var(--primary);
-      border-color: rgba(56, 189, 248, 0.22);
+      border-color: rgba(56, 189, 248, 0.2);
       font-weight: 600;
+      box-shadow: inset 3px 0 0 var(--primary);
     }
 
     .nav-icon {
@@ -217,10 +228,11 @@
       justify-content: space-between;
       gap: 1rem;
       padding: 0 1.7rem;
-      background: rgba(8, 12, 24, 0.86);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: rgba(8, 12, 24, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 rgba(114, 143, 198, 0.06), 0 8px 32px rgba(0, 0, 0, 0.22);
     }
 
     .topbar-title {
@@ -295,9 +307,15 @@
       background: var(--surface);
       color: var(--muted-strong);
       font-size: 0.77rem;
-      cursor: default;
+      cursor: pointer;
       user-select: none;
       text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .profile-badge:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-strong);
     }
 
     .profile-avatar {
@@ -414,15 +432,16 @@
       border: 1px solid var(--border-strong);
       background: rgba(11, 17, 32, 0.95);
       backdrop-filter: blur(16px);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(56, 189, 248, 0.04);
       cursor: pointer;
       color: var(--muted-strong);
-      transition: transform 0.18s, box-shadow 0.18s;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
     }
 
     .live-fab-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.12), 0 0 18px rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.38);
     }
 
     .live-fab-dot {
@@ -637,11 +656,67 @@
       .sidebar.is-open { transform: translateX(0); }
       .main-wrap { margin-left: 0; }
       .topbar { padding: 0 1rem; }
+      .live-fab { display: none; }
+      .page-content { padding-bottom: 4.5rem !important; }
     }
 
     @media (max-width: 640px) {
-      .page-content { padding: 1rem 1rem 1.4rem; }
-      .live-fab { bottom: 1rem; right: 1rem; }
+      .page-content { padding: 0.75rem 0.9rem 4.5rem !important; }
+    }
+
+    /* ── MOBILE BOTTOM NAV ───────────────────────────────────────────────────── */
+    .mobile-bottom-nav { display: none; }
+
+    @media (max-width: 900px) {
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 150;
+        height: 56px;
+        background: rgba(5, 8, 17, 0.97);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        padding: 0 0.25rem;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .mobile-nav-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.18rem;
+        padding: 0.3rem 0.4rem;
+        border-radius: 10px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.56rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        transition: color 0.15s;
+        flex: 1;
+        text-align: center;
+      }
+
+      .mobile-nav-btn.active { color: var(--primary); }
+
+      .mobile-nav-btn svg {
+        width: 1.2rem;
+        height: 1.2rem;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.75;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: block;
+        margin: 0 auto;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -662,13 +737,6 @@
   <aside class="sidebar" id="sidebar">
     <a class="sidebar-brand" href="/" aria-label="SiamQuantum Atlas">
       <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="">
-      <div>
-        <div class="sidebar-brand-name">SiamQuantum Atlas</div>
-        <div class="sidebar-brand-sub">
-          <span class="th-text">แพลตฟอร์มวิจัยควอนตัมไทย</span>
-          <span class="en-text">Thai Quantum Research Platform</span>
-        </div>
-      </div>
     </a>
 
     <nav class="sidebar-nav" aria-label="Main navigation">
@@ -794,6 +862,34 @@
       <span class="live-fab-chevron">▲</span>
     </button>
   </div>
+
+  <!-- ── MOBILE BOTTOM NAV ────────────────────────────────────────────────── -->
+  <nav class="mobile-bottom-nav" aria-label="Bottom navigation">
+    <a class="mobile-nav-btn {% if active == 'overview' %}active{% endif %}" href="/overview" aria-label="Overview">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5Z"/><path d="M9 21V12h6v9"/></svg>
+      <span class="th-text">ภาพรวม</span><span class="en-text">Home</span>
+    </a>
+    <a class="mobile-nav-btn {% if active == 'dashboard' %}active{% endif %}" href="/dashboard" aria-label="Source Map">
+      <svg viewBox="0 0 24 24"><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20Z"/><path d="M9 4v13.5"/><path d="M15 6.5V20"/></svg>
+      <span class="th-text">แผนที่</span><span class="en-text">Map</span>
+    </a>
+    <a class="mobile-nav-btn {% if active == 'network' %}active{% endif %}" href="/network" aria-label="Topic Network">
+      <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="17" r="2.2"/><path d="M8 8.2L10.5 15"/><path d="M16 7.2L13.5 15"/><path d="M8.2 7h7.6"/></svg>
+      <span class="th-text">เครือข่าย</span><span class="en-text">Network</span>
+    </a>
+    <a class="mobile-nav-btn {% if active == 'analytics' %}active{% endif %}" href="/analytics" aria-label="Trends">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span class="th-text">สถิติ</span><span class="en-text">Trends</span>
+    </a>
+    <a class="mobile-nav-btn {% if active == 'database' %}active{% endif %}" href="/database" aria-label="Source Library">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"/><path d="M5 11.5v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5"/></svg>
+      <span class="th-text">ฐานข้อมูล</span><span class="en-text">Library</span>
+    </a>
+    <a class="mobile-nav-btn {% if active == 'community' %}active{% endif %}" href="/submit-data" aria-label="Submit Data">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit</span>
+    </a>
+  </nav>
 
   <!-- ── DESKTOP MODAL ─────────────────────────────────────────────────────── -->
   <div class="desktop-modal" id="desktop-modal" role="dialog" aria-modal="true" aria-labelledby="desktop-modal-title">

@@ -35,7 +35,7 @@
   .hero {
     padding: 1.45rem;
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.96fr);
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.96fr);
     gap: 1.15rem;
     align-items: stretch;
   }
@@ -79,38 +79,74 @@
 
   .summary-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 0.95rem;
     align-content: start;
   }
 
   .summary-card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(160deg, rgba(56, 189, 248, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(56, 189, 248, 0.14);
     border-radius: 18px;
-    padding: 1rem;
-    min-height: 144px;
+    padding: 1.1rem 1rem;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .summary-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    border-radius: 18px 0 0 18px;
+  }
+
+  .summary-card:hover {
+    border-color: rgba(56, 189, 248, 0.28);
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.08);
   }
 
   .summary-card .label {
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     letter-spacing: 0.09em;
     text-transform: uppercase;
   }
 
   .summary-card .value {
-    color: var(--text);
-    font-size: 1.9rem;
+    color: var(--primary);
+    font-size: 2.8rem;
     font-weight: 700;
-    margin-top: 0.35rem;
+    margin-top: 0.2rem;
+    font-family: var(--font-mono);
+    letter-spacing: -0.02em;
+    line-height: 1;
   }
 
   .summary-card .subcopy {
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     line-height: 1.55;
-    margin-top: 0.35rem;
+    margin-top: 0.4rem;
+  }
+
+  .net-guide {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    padding: 1rem;
+  }
+
+  .net-guide h3 {
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .surface {
@@ -694,27 +730,25 @@
     </div>
     <div class="summary-grid">
       <article class="summary-card">
-        <div class="label"><span class="th-text">โหนดที่แสดง</span><span class="en-text">Topics Shown</span></div>
+        <div class="label"><span class="th-text">โหนดทั้งหมด</span><span class="en-text">Total Nodes</span></div>
         <div class="value" id="stat-nodes">-</div>
-        <div class="subcopy"><span class="th-text">จำนวนโหนดในฉากปัจจุบันหลังกรอง leaf node และเปลี่ยนสถานะการโต้ตอบ</span><span class="en-text">Current scene after leaf filtering and interaction changes.</span></div>
+        <div class="subcopy"><span class="th-text">แนวคิดหลังกรอง leaf node</span><span class="en-text">Concepts shown after leaf filtering.</span></div>
       </article>
       <article class="summary-card">
-        <div class="label"><span class="th-text">เส้นเชื่อมที่แสดง</span><span class="en-text">Links Shown</span></div>
+        <div class="label"><span class="th-text">เส้นเชื่อม</span><span class="en-text">Connections</span></div>
         <div class="value" id="stat-links">-</div>
-        <div class="subcopy"><span class="th-text">ความสัมพันธ์แบบมีทิศทางที่กำลังแสดงอยู่ในมุมมอง 3 มิติ</span><span class="en-text">Directed relations currently shown in the 3D view.</span></div>
+        <div class="subcopy"><span class="th-text">ความสัมพันธ์ในมุมมอง 3 มิติ</span><span class="en-text">Relations in the 3D view.</span></div>
       </article>
-      <article class="summary-card">
-        <div class="label"><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected Topic</span></div>
-        <div class="value" id="stat-selection">None</div>
-        <div class="subcopy"><span class="th-text">คลิกโหนดเพื่อเปิดแผงรายละเอียดเชิงวิจัย</span><span class="en-text">Click a node to open the research detail drawer.</span></div>
-      </article>
-      <article class="summary-card">
-        <div class="label"><span class="th-text">คู่มือการอ่าน</span><span class="en-text">Quick Guide</span></div>
-        <div class="subcopy">
-          <span class="th-text">ฮับที่มี degree สูงแสดงจุดที่ได้รับความสนใจหนาแน่น ส่วนฮับที่มี betweenness สูงแสดงแนวคิดสะพานที่เชื่อมหัวข้อซึ่งแยกจากกัน</span>
-          <span class="en-text">Degree hubs show dense attention. Betweenness hubs show bridge concepts connecting topic islands.</span>
-        </div>
-      </article>
+    </div>
+    <span id="stat-selection" style="display:none">None</span>
+    <div class="net-guide">
+      <h3><span class="th-text">วิธีอ่านกราฟ</span><span class="en-text">How to Read</span></h3>
+      <div class="legend-key">
+        <div class="legend-row"><span class="legend-dot" style="background:#78c9ff;color:#78c9ff;"></span><span class="th-text">ป้ายอักษรไทย</span><span class="en-text">Thai-script label</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#5ff2c8;color:#5ff2c8;"></span><span class="th-text">ป้ายอักษรละติน</span><span class="en-text">Latin-script label</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#c8a8ff;color:#c8a8ff;"></span><span class="th-text">สคริปต์ผสม</span><span class="en-text">Mixed script</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#ffb86b;color:#ffb86b;"></span><span class="th-text">แนวคิดที่เลือก</span><span class="en-text">Selected concept</span></div>
+      </div>
     </div>
   </section>
 
