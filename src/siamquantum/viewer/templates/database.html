@@ -544,6 +544,15 @@
     </div>
     <div class="filters">
       <div class="field">
+        <label for="filter-relevance"><span class="th-text">ขอบเขตความเกี่ยวข้อง</span><span class="en-text">Relevance Scope</span></label>
+        <select id="filter-relevance">
+          <option value="all"><span class="th-text">ทั้งหมด (815 รายการ)</span><span class="en-text">All sources</span></option>
+          <option value="quantum"><span class="th-text">ควอนตัม</span><span class="en-text">Quantum only</span></option>
+          <option value="thailand"><span class="th-text">ไทย</span><span class="en-text">Thailand only</span></option>
+          <option value="strict"><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum + Thailand</span></option>
+        </select>
+      </div>
+      <div class="field">
         <label for="filter-year"><span class="th-text">ปี</span><span class="en-text">Year</span></label>
         <select id="filter-year">
           <option value=""><span class="th-text">ทุกปี</span><span class="en-text">All years</span></option>
@@ -638,6 +647,7 @@
   };
 
   const elements = {
+    filterRelevance: document.getElementById("filter-relevance"),
     filterYear: document.getElementById("filter-year"),
     filterPlatform: document.getElementById("filter-platform"),
     filterContentType: document.getElementById("filter-content-type"),
@@ -671,6 +681,8 @@
       params.set("page", String(state.page));
       params.set("page_size", String(state.pageSize));
     }
+    const scope = (elements.filterRelevance && elements.filterRelevance.value) || "all";
+    params.set("relevance_scope", scope);
     if (elements.filterYear.value) params.set("year", elements.filterYear.value);
     if (elements.filterPlatform.value) params.set("platform", elements.filterPlatform.value);
     if (elements.filterContentType.value) params.set("content_type", elements.filterContentType.value);
@@ -734,6 +746,13 @@
     return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null;
   }
 
+  function relevanceTier(item) {
+    if (item.is_quantum_tech && item.is_thailand_related) return { label: "QT+TH", color: "#38BDF8" };
+    if (item.is_quantum_tech) return { label: "Quantum", color: "#10B981" };
+    if (item.is_thailand_related) return { label: "Thailand", color: "#F59E0B" };
+    return { label: "Unscoped", color: "#94A3B8" };
+  }
+
   function renderCard(item) {
     const title = item.title || item.url || `Source ${item.id}`;
     const thumb = item.platform === "youtube" ? getYoutubeThumbnail(item.url) : null;
@@ -744,9 +763,11 @@
       item.engagement_level || "unknown engagement"
     ];
     const taxChips = [];
+    const tier = relevanceTier(item);
+    taxChips.push(`<span class="chip" style="border-color:${tier.color}40;color:${tier.color};background:${tier.color}12">${tier.label}</span>`);
     if (item.media_format) taxChips.push(`<span class="chip chip-format">${item.media_format}</span>`);
     if (item.user_intent) taxChips.push(`<span class="chip chip-intent">${item.user_intent.replace(/_/g," ")}</span>`);
-    if (item.quantum_domain) taxChips.push(`<span class="chip chip-domain">${item.quantum_domain.replace(/_/g," ")}</span>`);
+    if (item.quantum_domain && item.quantum_domain !== "not_applicable") taxChips.push(`<span class="chip chip-domain">${item.quantum_domain.replace(/_/g," ")}</span>`);
     const counts = [];
     if (item.view_count != null) counts.push(`👁 ${Number(item.view_count).toLocaleString()}`);
     if (item.like_count != null) counts.push(`♥ ${Number(item.like_count).toLocaleString()}`);

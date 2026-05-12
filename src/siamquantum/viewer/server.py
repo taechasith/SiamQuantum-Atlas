@@ -954,15 +954,27 @@ def page_admin_submitted_data(request: Request) -> Any:
 @app.get("/api/geo/list")
 def api_geo_list(
     cdn: bool = Query(False, description="Include CDN-resolved rows"),
-    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
+    include_filtered: bool = Query(True, description="Include all rows (default). Set false for operational corpus only."),
+    scope: str = Query("all", description="Filter scope: all | quantum | thailand | strict"),
 ) -> JSONResponse:
     """
     Returns geo rows joined with source metadata.
-    Default (cdn=false): only origin IPs (is_cdn_resolved=0 or NULL).
-    Default: only corpus-scope rows (is_quantum_tech=1 AND is_thailand_related=1).
+    Default: all geo-tagged sources (include_filtered=true).
+    scope=strict → is_quantum_tech=1 AND is_thailand_related=1
+    scope=quantum → is_quantum_tech=1
+    scope=thailand → is_thailand_related=1
+    scope=all → no relevance filter
     """
     db = _db()
-    relevance_clause = "" if include_filtered else "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1"
+    scope_clauses = {
+        "strict": "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1",
+        "quantum": "AND s.is_quantum_tech = 1",
+        "thailand": "AND s.is_thailand_related = 1",
+        "all": "",
+    }
+    relevance_clause = scope_clauses.get(scope, "")
+    if not include_filtered:
+        relevance_clause = scope_clauses["strict"]
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
@@ -971,27 +983,29 @@ def api_geo_list(
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
                            s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
-                           s.channel_title, s.channel_country
+                           s.channel_title, s.channel_country,
+                           s.is_quantum_tech, s.is_thailand_related
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                     {relevance_clause}
                     ORDER BY s.published_year DESC, g.source_id DESC
-                    LIMIT 500
+                    LIMIT 2000
                 """).fetchall()
             else:
                 rows = conn.execute(f"""
                     SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                            g.isp, g.asn_org, g.is_cdn_resolved,
                            s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
-                           s.channel_title, s.channel_country
+                           s.channel_title, s.channel_country,
+                           s.is_quantum_tech, s.is_thailand_related
                     FROM geo g
                     JOIN sources s ON g.source_id = s.id
                     WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                       AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
                     {relevance_clause}
                     ORDER BY s.published_year DESC, g.source_id DESC
-                    LIMIT 500
+                    LIMIT 2000
                 """).fetchall()
     except Exception as exc:
         return JSONResponse(
@@ -1496,18 +1510,24 @@ def api_sources(
     media_format: str | None = Query(None),
     user_intent: str | None = Query(None),
     quantum_domain: str | None = Query(None),
-    include_filtered: bool = Query(False, description="Include rows outside the operational corpus-scope filter"),
+    include_filtered: bool = Query(True, description="Show all sources by default. Set false for strict corpus filter only."),
+    relevance_scope: str = Query("all", description="all | quantum | thailand | strict"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> JSONResponse:
-    """Paginated source list with optional filters. Default: operational corpus-scope rows only."""
+    """Paginated source list with optional filters. Default: all sources (include_filtered=true)."""
     db = _db()
     conditions = []
     params: list[Any] = []
 
-    if not include_filtered:
+    if not include_filtered or relevance_scope == "strict":
         conditions.append("s.is_quantum_tech = 1")
         conditions.append("s.is_thailand_related = 1")
+    elif relevance_scope == "quantum":
+        conditions.append("s.is_quantum_tech = 1")
+    elif relevance_scope == "thailand":
+        conditions.append("s.is_thailand_related = 1")
+
     if year is not None:
         conditions.append("s.published_year = ?")
         params.append(year)
@@ -1544,6 +1564,7 @@ def api_sources(
                        s.view_count, s.like_count, s.comment_count,
                        s.quantum_domain, s.fetched_at,
                        s.channel_id, s.channel_title, s.channel_country, s.channel_default_language,
+                       s.is_quantum_tech, s.is_thailand_related,
                        e.content_type, e.production_type, e.area, e.engagement_level,
                        e.media_format, e.user_intent
                 FROM sources s

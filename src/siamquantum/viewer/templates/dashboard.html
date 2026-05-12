@@ -574,24 +574,47 @@
     box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 0 14px currentColor;
   }
 
-  .marker-gdelt {
-    color: var(--map-cyan);
-    background: var(--map-cyan);
+  /* relevance-tier colors */
+  .marker-strict   { color: #38BDF8; background: #38BDF8; } /* qt+th */
+  .marker-quantum  { color: #10B981; background: #10B981; } /* qt only */
+  .marker-thailand { color: #F59E0B; background: #F59E0B; } /* th only */
+  .marker-unscoped { color: #94A3B8; background: #94A3B8; } /* neither */
+
+  .map-scope-bar {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0.45rem 0.6rem;
+    background: rgba(13, 20, 35, 0.92);
+    border-radius: 8px;
+    border: 1px solid var(--map-border);
   }
 
-  .marker-youtube {
-    color: var(--map-rose);
-    background: var(--map-rose);
+  .map-scope-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.22rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--map-copy);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.14s, color 0.14s, border-color 0.14s;
+    white-space: nowrap;
   }
 
-  .marker-web {
-    color: #fbbf24;
-    background: #fbbf24;
-  }
+  .map-scope-btn.is-active { background: rgba(56,189,248,0.12); color: var(--map-cyan); border-color: rgba(56,189,248,0.28); }
+  .map-scope-btn:hover:not(.is-active) { background: rgba(255,255,255,0.05); color: var(--map-copy-strong); }
 
-  .marker-other {
-    color: #b59cff;
-    background: #b59cff;
+  .scope-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
 
   .leaflet-control-zoom a {
@@ -680,6 +703,12 @@
           <strong><span class="th-text">จุดที่มองเห็น</span><span class="en-text">Visible Nodes</span></strong>
           <span id="map-badge-count"><span class="th-text">กำลังโหลด</span><span class="en-text">Loading</span></span>
         </div>
+      </div>
+      <div class="map-scope-bar" style="margin-bottom:0.5rem;">
+        <button class="map-scope-btn is-active" data-scope="all" type="button"><span class="scope-dot" style="background:#94A3B8"></span><span class="th-text">ทั้งหมด</span><span class="en-text">All</span></button>
+        <button class="map-scope-btn" data-scope="quantum" type="button"><span class="scope-dot" style="background:#10B981"></span><span class="th-text">ควอนตัม</span><span class="en-text">Quantum</span></button>
+        <button class="map-scope-btn" data-scope="thailand" type="button"><span class="scope-dot" style="background:#F59E0B"></span><span class="th-text">ไทย</span><span class="en-text">Thailand</span></button>
+        <button class="map-scope-btn" data-scope="strict" type="button"><span class="scope-dot" style="background:#38BDF8"></span><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum+TH</span></button>
       </div>
       <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
       <div class="map-label" id="status-pill"><span class="th-text">กำลังโหลดแผนที่</span><span class="en-text">Loading map</span></div>
@@ -857,12 +886,16 @@
 
   let geoRows = [];
   let selectedRow = null;
+  let currentScope = "all";
 
-  const platformClass = {
-    gdelt: "marker-gdelt",
-    youtube: "marker-youtube",
-    web: "marker-web"
-  };
+  function relevanceClass(item) {
+    const qt = item.is_quantum_tech;
+    const th = item.is_thailand_related;
+    if (qt && th) return "marker-strict";
+    if (qt) return "marker-quantum";
+    if (th) return "marker-thailand";
+    return "marker-unscoped";
+  }
 
   function copyForLang(th, en) { return document.documentElement.dataset.lang === 'th' ? th : en; }
 
@@ -897,9 +930,8 @@
     elements.error.classList.remove("is-visible");
   }
 
-  function markerHtml(platform) {
-    const klass = platformClass[platform] || "marker-other";
-    return `<div class="quantum-marker ${klass}"></div>`;
+  function markerHtml(item) {
+    return `<div class="quantum-marker ${relevanceClass(item)}"></div>`;
   }
 
   function popupHtml(item) {
@@ -1043,9 +1075,10 @@
     }
   }
 
-  async function loadGeo() {
+  async function loadGeo(scope = "all") {
+    currentScope = scope;
     try {
-      const response = await fetch("/api/geo/list");
+      const response = await fetch(`/api/geo/list?scope=${encodeURIComponent(scope)}&cdn=false`);
       const payload = await response.json();
 
       if (!response.ok || !payload.ok) {
@@ -1070,7 +1103,7 @@
         const marker = L.marker([item.lat, item.lng], {
           icon: L.divIcon({
             className: "",
-            html: markerHtml(item.platform),
+            html: markerHtml(item),
             iconSize: [16, 16],
             iconAnchor: [8, 8]
           })
@@ -1100,7 +1133,16 @@
 
   loadSummary();
   loadPipeline();
-  loadGeo();
+  loadGeo("all");
+
+  // Scope filter buttons
+  document.querySelectorAll("[data-scope]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("[data-scope]").forEach(function(b) { b.classList.remove("is-active"); });
+      btn.classList.add("is-active");
+      loadGeo(btn.dataset.scope);
+    });
+  });
 
   // Mobile bottom sheet handle toggle
   (function () {
