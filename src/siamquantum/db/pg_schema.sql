@@ -91,6 +91,35 @@ CREATE TABLE IF NOT EXISTS pipeline_meta (
     updated_at TIMESTAMPTZ NOT NULL
 );
 
+-- User profiles (mirrors Supabase auth.users — one row per user)
+CREATE TABLE IF NOT EXISTS profiles (
+    id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email        TEXT,
+    display_name TEXT,
+    avatar_url   TEXT,
+    bio          TEXT,
+    website_url  TEXT,
+    role         TEXT NOT NULL DEFAULT 'user',
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- RLS: users can only read/write their own profile; service-role bypasses all
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY IF NOT EXISTS "profiles_select_own"
+    ON profiles FOR SELECT
+    USING (auth.uid() = id);
+
+CREATE POLICY IF NOT EXISTS "profiles_insert_own"
+    ON profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+CREATE POLICY IF NOT EXISTS "profiles_update_own"
+    ON profiles FOR UPDATE
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_sources_year        ON sources(published_year);
 CREATE INDEX IF NOT EXISTS idx_sources_platform    ON sources(platform);
