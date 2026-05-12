@@ -165,8 +165,6 @@ export function applyAuthToLayout(state) {
   const avatarTargets = document.querySelectorAll("[data-profile-avatar]");
   const authTargets = document.querySelectorAll("[data-auth-state]");
   const profileTextTargets = document.querySelectorAll("[data-profile-link] .th-text, [data-profile-link] .en-text");
-  const submitNav = document.querySelector('a[href="/submit-data"]');
-
   profileLinks.forEach((node) => {
     node.setAttribute("href", "/profile");
   });
@@ -174,13 +172,6 @@ export function applyAuthToLayout(state) {
   profileTextTargets.forEach((node) => {
     node.textContent = user ? displayName : "Profile";
   });
-
-  if (submitNav) {
-    const spans = submitNav.querySelectorAll(".th-text, .en-text");
-    spans.forEach((node) => {
-      node.textContent = "Submit Data";
-    });
-  }
 
   nameTargets.forEach((node) => {
     node.textContent = user ? displayName : "Profile";

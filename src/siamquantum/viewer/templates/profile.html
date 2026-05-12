@@ -100,7 +100,7 @@
     font-size: .84rem;
   }
 
-  /* Google button — primary CTA */
+  /* Google button */
   .btn-google {
     width: 100%;
     display: flex;
@@ -216,6 +216,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: .35rem;
     height: 44px;
     padding: 0 1.2rem;
     border-radius: 10px;
@@ -318,6 +319,22 @@
   .avatar-email { color: var(--muted); font-size: .84rem; margin-top: .18rem; }
   .avatar-meta  { color: var(--muted); font-size: .78rem; margin-top: .25rem; }
 
+  /* Status pills (submissions) */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: .28rem;
+    padding: .18rem .55rem; border-radius: 999px;
+    font-size: .68rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  }
+  .status-pill::before { content:""; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .sp-wait { background: rgba(245,158,11,.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,.2); }
+  .sp-wait::before  { background: #fbbf24; }
+  .sp-rev  { background: rgba(56,189,248,.1);  color: #7dd3fc; border: 1px solid rgba(56,189,248,.2); }
+  .sp-rev::before   { background: #7dd3fc; box-shadow:0 0 4px rgba(56,189,248,.6); }
+  .sp-live { background: rgba(16,185,129,.1);  color: #34d399; border: 1px solid rgba(16,185,129,.2); }
+  .sp-live::before  { background: #34d399; }
+  .sp-fail { background: rgba(248,113,113,.08); color: #fca5a5; border: 1px solid rgba(248,113,113,.2); }
+  .sp-fail::before  { background: #fca5a5; }
+
   /* Submissions */
   .submissions-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .35rem; }
   .submissions-copy  { color: var(--muted); font-size: .84rem; margin-bottom: 1rem; }
@@ -341,16 +358,6 @@
     line-height: 1.6;
     margin-top: .25rem;
   }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    padding: .15rem .55rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.1);
-    font-size: .7rem;
-    color: var(--muted-strong);
-    white-space: nowrap;
-  }
 
   .hidden { display: none !important; }
   @media (max-width: 980px) {
@@ -363,9 +370,18 @@
 <section class="profile-shell">
 
   <article class="profile-card profile-hero">
-    <div class="profile-kicker">Identity Workspace</div>
-    <div class="profile-title">Your Atlas Account</div>
-    <div class="profile-copy">Access the research workspace, manage your public profile, and keep submitted data tied to a persistent identity.</div>
+    <div class="profile-kicker">
+      <span class="th-text">พื้นที่ข้อมูลส่วนตัว</span>
+      <span class="en-text">Identity Workspace</span>
+    </div>
+    <div class="profile-title">
+      <span class="th-text">บัญชี Atlas ของคุณ</span>
+      <span class="en-text">Your Atlas Account</span>
+    </div>
+    <div class="profile-copy">
+      <span class="th-text">เข้าถึงพื้นที่วิจัย จัดการโปรไฟล์สาธารณะ และเชื่อมข้อมูลที่ส่งกับตัวตนของคุณ</span>
+      <span class="en-text">Access the research workspace, manage your public profile, and keep submitted data tied to a persistent identity.</span>
+    </div>
   </article>
 
   <div class="profile-grid">
@@ -379,8 +395,14 @@
 
           <div class="auth-brand">
             <div class="auth-brand-icon">⚛</div>
-            <div class="auth-brand-title">Sign in to Atlas</div>
-            <div class="auth-brand-sub">Access your research workspace and submissions</div>
+            <div class="auth-brand-title">
+              <span class="th-text">เข้าสู่ระบบ Atlas</span>
+              <span class="en-text">Sign in to Atlas</span>
+            </div>
+            <div class="auth-brand-sub">
+              <span class="th-text">เข้าถึงพื้นที่วิจัยและข้อมูลที่คุณส่ง</span>
+              <span class="en-text">Access your research workspace and submissions</span>
+            </div>
           </div>
 
           <!-- Google — primary CTA -->
@@ -392,30 +414,49 @@
                 <path fill="#4A90E2" d="M6.53 13.95A5.99 5.99 0 0 1 6.22 12c0-.68.12-1.34.31-1.95V7.42H3.12A10 10 0 0 0 2 12c0 1.61.38 3.14 1.12 4.58l3.41-2.63z"/>
                 <path fill="#FBBC05" d="M12 6.02c1.47 0 2.79.51 3.83 1.5l2.87-2.87C16.95 3.01 14.69 2 12 2A9.98 9.98 0 0 0 3.12 7.42l3.41 2.63C7.3 7.74 9.46 6.02 12 6.02z"/>
               </svg>
-              Continue with Google
+              <span class="th-text">เข้าสู่ระบบด้วย Google</span>
+              <span class="en-text">Continue with Google</span>
             </button>
           </div>
 
-          <div class="auth-or">or</div>
+          <div class="auth-or">
+            <span class="th-text">หรือ</span>
+            <span class="en-text">or</span>
+          </div>
 
           <!-- Tabs -->
           <div class="auth-tabs">
-            <button class="auth-tab active" data-tab="login" type="button">Sign in</button>
-            <button class="auth-tab" data-tab="signup" type="button">Create account</button>
+            <button class="auth-tab active" data-tab="login" type="button">
+              <span class="th-text">เข้าสู่ระบบ</span>
+              <span class="en-text">Sign in</span>
+            </button>
+            <button class="auth-tab" data-tab="signup" type="button">
+              <span class="th-text">สร้างบัญชี</span>
+              <span class="en-text">Create account</span>
+            </button>
           </div>
 
           <!-- Login panel -->
           <div class="auth-panel active" id="panel-login">
             <form id="login-form">
               <div class="field">
-                <label for="login-email">Email</label>
+                <label for="login-email">
+                  <span class="th-text">อีเมล</span>
+                  <span class="en-text">Email</span>
+                </label>
                 <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required>
               </div>
               <div class="field">
-                <label for="login-password">Password</label>
+                <label for="login-password">
+                  <span class="th-text">รหัสผ่าน</span>
+                  <span class="en-text">Password</span>
+                </label>
                 <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
               </div>
-              <button class="btn-primary btn-full" id="login-btn" type="submit">Sign in</button>
+              <button class="btn-primary btn-full" id="login-btn" type="submit">
+                <span class="th-text">เข้าสู่ระบบ</span>
+                <span class="en-text">Sign in</span>
+              </button>
             </form>
           </div>
 
@@ -423,14 +464,23 @@
           <div class="auth-panel" id="panel-signup">
             <form id="signup-form">
               <div class="field">
-                <label for="signup-email">Email</label>
+                <label for="signup-email">
+                  <span class="th-text">อีเมล</span>
+                  <span class="en-text">Email</span>
+                </label>
                 <input id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" required>
               </div>
               <div class="field">
-                <label for="signup-password">Password</label>
-                <input id="signup-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
+                <label for="signup-password">
+                  <span class="th-text">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</span>
+                  <span class="en-text">Password (at least 6 characters)</span>
+                </label>
+                <input id="signup-password" type="password" autocomplete="new-password" placeholder="••••••••" minlength="6" required>
               </div>
-              <button class="btn-primary btn-full" id="signup-btn" type="submit">Create account</button>
+              <button class="btn-primary btn-full" id="signup-btn" type="submit">
+                <span class="th-text">สร้างบัญชี</span>
+                <span class="en-text">Create account</span>
+              </button>
             </form>
           </div>
 
@@ -447,7 +497,8 @@
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M8 2v9M4 7l4-5 4 5M2 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              เปลี่ยนรูป / Change photo
+              <span class="th-text">เปลี่ยนรูป</span>
+              <span class="en-text">Change photo</span>
             </label>
             <input id="avatar-file-input" type="file" accept="image/*" style="display:none">
             <div class="avatar-upload-progress hidden" id="avatar-upload-status"></div>
@@ -461,46 +512,57 @@
 
         <form id="profile-form" style="margin-top:1.25rem">
           <div style="font-size:.78rem;color:var(--muted);margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,.07)">
-            แก้ไขข้อมูลแล้วกด "บันทึก" &nbsp;·&nbsp; Edit your info below then hit Save
+            <span class="th-text">แก้ไขข้อมูลแล้วกด "บันทึก"</span>
+            <span class="en-text">Edit your info below then hit Save</span>
           </div>
 
           <div class="field">
             <label for="display_name">
-              ชื่อที่แสดง <span style="color:var(--muted);font-weight:400;font-size:.76rem">/ Display name</span>
+              <span class="th-text">ชื่อที่แสดง</span>
+              <span class="en-text">Display name</span>
             </label>
             <input id="display_name" name="display_name" type="text"
               placeholder="ชื่อที่จะแสดงบนข้อมูลที่คุณส่ง"
+              data-placeholder-th="ชื่อที่จะแสดงบนข้อมูลที่คุณส่ง"
+              data-placeholder-en="Name shown on your submissions"
               autocomplete="name">
           </div>
 
           <div class="field">
-            <label for="bio" style="justify-content:space-between">
-              <span>แนะนำตัว <span style="color:var(--muted);font-weight:400;font-size:.76rem">/ Bio</span></span>
+            <label for="bio" style="display:flex;justify-content:space-between;align-items:center">
+              <span>
+                <span class="th-text">แนะนำตัว</span>
+                <span class="en-text">Bio</span>
+              </span>
               <span style="color:var(--muted);font-size:.73rem" id="bio-count">0 / 160</span>
             </label>
             <textarea id="bio" name="bio"
-              placeholder="เกี่ยวกับคุณในไม่กี่ประโยค… / A few sentences about you…"
+              placeholder="เกี่ยวกับคุณในไม่กี่ประโยค…"
+              data-placeholder-th="เกี่ยวกับคุณในไม่กี่ประโยค…"
+              data-placeholder-en="A few sentences about you…"
               maxlength="160" style="min-height:80px"></textarea>
           </div>
 
           <div class="field">
             <label for="website_url">
-              เว็บไซต์ / โซเชียล <span style="color:var(--muted);font-weight:400;font-size:.76rem">/ Website or social link</span>
+              <span class="th-text">เว็บไซต์หรือโซเชียล</span>
+              <span class="en-text">Website or social link</span>
             </label>
             <input id="website_url" name="website_url" type="url" placeholder="https://">
           </div>
 
-          <div class="field">
-            <label for="avatar_url">
-              ลิงก์รูปโปรไฟล์ <span style="color:var(--muted);font-weight:400;font-size:.76rem">/ Or paste an image URL</span>
-            </label>
-            <input id="avatar_url" name="avatar_url" type="url"
-              placeholder="https://example.com/photo.jpg">
-          </div>
+          <!-- hidden — set programmatically by avatar upload -->
+          <input type="hidden" id="avatar_url" name="avatar_url">
 
           <div class="btn-row">
-            <button class="btn-primary" id="profile-save-btn" type="submit">บันทึก / Save</button>
-            <button class="btn-danger" id="logout-btn" type="button">ออกจากระบบ / Sign out</button>
+            <button class="btn-primary" id="profile-save-btn" type="submit">
+              <span class="th-text">บันทึก</span>
+              <span class="en-text">Save</span>
+            </button>
+            <button class="btn-danger" id="logout-btn" type="button">
+              <span class="th-text">ออกจากระบบ</span>
+              <span class="en-text">Sign out</span>
+            </button>
           </div>
         </form>
 
@@ -511,11 +573,20 @@
 
     <!-- ── Right column: submissions ── -->
     <aside class="profile-card">
-      <div class="submissions-title">Submitted Data</div>
-      <div class="submissions-copy">Private submissions remain visible here while pending review.</div>
+      <div class="submissions-title">
+        <span class="th-text">ข้อมูลที่ส่ง</span>
+        <span class="en-text">Submitted Data</span>
+      </div>
+      <div class="submissions-copy">
+        <span class="th-text">รายการที่รอตรวจสอบยังคงแสดงที่นี่ระหว่างรอการตรวจสอบ</span>
+        <span class="en-text">Private submissions remain visible here while pending review.</span>
+      </div>
       <div class="submission-list" id="submission-list">
         <div class="submission-item">
-          <div class="submission-copy">Sign in to view your submissions.</div>
+          <div class="submission-copy">
+            <span class="th-text">เข้าสู่ระบบเพื่อดูข้อมูลที่ส่ง</span>
+            <span class="en-text">Sign in to view your submissions.</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -547,6 +618,26 @@
   const googleLoginButton = document.getElementById("google-login-btn");
   const googleLoginPanel  = document.getElementById("google-oauth-panel");
 
+  function isTH() { return document.documentElement.dataset.lang !== "en"; }
+  function t(th, en) { return isTH() ? th : en; }
+
+  function setBtnState(btn, loading, th, en) {
+    const thSpan = btn.querySelector(".th-text");
+    const enSpan = btn.querySelector(".en-text");
+    btn.disabled = loading;
+    if (thSpan) thSpan.textContent = th;
+    if (enSpan) enSpan.textContent = en;
+  }
+
+  // ── Placeholders ──
+  function setPlaceholders() {
+    document.querySelectorAll("[data-placeholder-th]").forEach((el) => {
+      el.placeholder = isTH() ? el.dataset.placeholderTh : el.dataset.placeholderEn;
+    });
+  }
+  setPlaceholders();
+  window.__sq_apply_language = setPlaceholders;
+
   // ── Bio character counter ──
   const bioField = document.getElementById("bio");
   const bioCount = document.getElementById("bio-count");
@@ -567,7 +658,7 @@
   });
 
   function normalizeAuthError(error) {
-    return String(error?.message || error || "Request failed");
+    return String(error?.message || error || t("ผิดพลาด", "Request failed"));
   }
 
   function showStatus(message, kind) {
@@ -586,19 +677,29 @@
     profileAvatarPreview.textContent = initials;
   }
 
+  function statusPill(status, analysis_status) {
+    if (status === "approved" && analysis_status === "completed")
+      return `<span class="status-pill sp-live">${t("เผยแพร่แล้ว","Published")}</span>`;
+    if (status === "rejected" || analysis_status === "failed")
+      return `<span class="status-pill sp-fail">${t("ไม่ผ่าน","Not accepted")}</span>`;
+    if (analysis_status === "processing")
+      return `<span class="status-pill sp-rev">${t("กำลังตรวจสอบ","Reviewing")}</span>`;
+    return `<span class="status-pill sp-wait">${t("รอตรวจสอบ","Waiting")}</span>`;
+  }
+
   function renderSubmissions(items) {
     if (!items?.length) {
-      submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">No submissions yet.</div></div>';
+      submissionList.innerHTML = `<div class="submission-item"><div class="submission-copy">${t("ยังไม่มีรายการ","No submissions yet.")}</div></div>`;
       return;
     }
     submissionList.innerHTML = items.map((item) => `
       <article class="submission-item">
         <div class="submission-top">
           <div class="submission-title">${item.title}</div>
-          <span class="pill">${item.status} / ${item.analysis_status}</span>
+          ${statusPill(item.status, item.analysis_status)}
         </div>
-        <div class="submission-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}</div>
-        <div class="submission-copy">${item.description || item.source_url || ""}</div>
+        <div class="submission-meta">${item.category || ""}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        ${item.description || item.source_url ? `<div class="submission-copy">${item.description || item.source_url}</div>` : ""}
       </article>
     `).join("");
   }
@@ -609,11 +710,11 @@
     profileDisplayHeading.textContent = displayName;
     profileEmail.textContent = profile?.email || user?.email || "";
     profileCreatedAt.textContent = (profile?.created_at || user?.created_at)
-      ? `Joined ${new Date(profile?.created_at || user?.created_at).toLocaleDateString("en-GB", { year:"numeric", month:"short" })}`
+      ? `${t("เข้าร่วม","Joined")} ${new Date(profile?.created_at || user?.created_at).toLocaleDateString(isTH() ? "th-TH" : "en-GB", { year:"numeric", month:"short" })}`
       : "";
     document.getElementById("display_name").value = profile?.display_name || "";
     const bioVal = profile?.bio || "";
-    document.getElementById("bio").value          = bioVal;
+    document.getElementById("bio").value = bioVal;
     if (bioCount) bioCount.textContent = `${bioVal.length} / 160`;
     document.getElementById("website_url").value  = profile?.website_url || "";
     document.getElementById("avatar_url").value   = profile?.avatar_url || avatarUrl;
@@ -634,16 +735,16 @@
       if (!authState?.enabled) {
         loggedOutView.classList.remove("hidden");
         loggedInView.classList.add("hidden");
-        submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">Supabase is not configured for this environment.</div></div>';
-        showStatus("Supabase is not configured on the server.", "warning");
+        submissionList.innerHTML = `<div class="submission-item"><div class="submission-copy">${t("ยังไม่ได้ตั้งค่า Supabase","Supabase is not configured for this environment.")}</div></div>`;
+        showStatus(t("ยังไม่ได้ตั้งค่า Supabase บนเซิร์ฟเวอร์","Supabase is not configured on the server."), "warning");
         return;
       }
 
       if (!authState?.user) {
         loggedOutView.classList.remove("hidden");
         loggedInView.classList.add("hidden");
-        submissionList.innerHTML = '<div class="submission-item"><div class="submission-copy">Sign in to view your submissions.</div></div>';
-        if (authState?.degraded) showStatus("Could not verify auth state. Refresh and try again.", "warning");
+        submissionList.innerHTML = `<div class="submission-item"><div class="submission-copy">${t("เข้าสู่ระบบเพื่อดูข้อมูลที่ส่ง","Sign in to view your submissions.")}</div></div>`;
+        if (authState?.degraded) showStatus(t("ไม่สามารถยืนยันสถานะการเข้าสู่ระบบได้ โปรดรีเฟรชแล้วลองใหม่","Could not verify auth state. Refresh and try again."), "warning");
         return;
       }
 
@@ -661,7 +762,7 @@
   document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = document.getElementById("login-btn");
-    btn.disabled = true; btn.textContent = "Signing in…";
+    setBtnState(btn, true, "กำลังเข้าสู่ระบบ…", "Signing in…");
     try {
       await loginWithPassword(
         document.getElementById("login-email").value.trim(),
@@ -671,29 +772,29 @@
     } catch (error) {
       showStatus(normalizeAuthError(error), "error");
     } finally {
-      btn.disabled = false; btn.textContent = "Sign in";
+      setBtnState(btn, false, "เข้าสู่ระบบ", "Sign in");
     }
   });
 
   document.getElementById("signup-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = document.getElementById("signup-btn");
-    btn.disabled = true; btn.textContent = "Creating…";
+    setBtnState(btn, true, "กำลังสร้างบัญชี…", "Creating…");
     try {
       const result = await registerWithPassword(
         document.getElementById("signup-email").value.trim(),
         document.getElementById("signup-password").value
       );
       if (result?.signupPendingConfirmation) {
-        showStatus(`Check ${result.signupEmail || "your inbox"} to confirm before signing in.`, "success");
+        showStatus(t(`ตรวจสอบกล่องจดหมาย ${result.signupEmail || ""} เพื่อยืนยันก่อนเข้าสู่ระบบ`, `Check ${result.signupEmail || "your inbox"} to confirm before signing in.`), "success");
       } else {
-        showStatus("Account created. Welcome!", "success");
+        showStatus(t("สร้างบัญชีสำเร็จ ยินดีต้อนรับ!","Account created. Welcome!"), "success");
       }
       await refreshPage();
     } catch (error) {
       showStatus(normalizeAuthError(error), "error");
     } finally {
-      btn.disabled = false; btn.textContent = "Create account";
+      setBtnState(btn, false, "สร้างบัญชี", "Create account");
     }
   });
 
@@ -708,7 +809,7 @@
   profileForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = document.getElementById("profile-save-btn");
-    btn.disabled = true; btn.textContent = "Saving…";
+    setBtnState(btn, true, "กำลังบันทึก…", "Saving…");
     try {
       const data = await apiFetch("/api/profile", {
         method: "PATCH",
@@ -716,16 +817,16 @@
           display_name: document.getElementById("display_name").value.trim(),
           bio:          document.getElementById("bio").value.trim(),
           website_url:  document.getElementById("website_url").value.trim(),
-          avatar_url:   document.getElementById("avatar_url").value.trim(),
+          avatar_url:   document.getElementById("avatar_url").value.trim() || null,
         }),
       });
       const authState = await loadAuthState();
       fillProfile(data?.profile, authState?.user);
-      showStatus("Profile saved.", "success");
+      showStatus(t("บันทึกโปรไฟล์แล้ว","Profile saved."), "success");
     } catch (error) {
       showStatus(normalizeAuthError(error), "error");
     } finally {
-      btn.disabled = false; btn.textContent = "Save changes";
+      setBtnState(btn, false, "บันทึก", "Save");
     }
   });
 
@@ -739,23 +840,22 @@
   });
 
   // ── Avatar file upload ──
-  const avatarFileInput  = document.getElementById("avatar-file-input");
+  const avatarFileInput    = document.getElementById("avatar-file-input");
   const avatarUploadStatus = document.getElementById("avatar-upload-status");
 
   avatarFileInput.addEventListener("change", async () => {
     const file = avatarFileInput.files?.[0];
     if (!file) return;
-    avatarUploadStatus.textContent = "Uploading…";
+    avatarUploadStatus.textContent = t("กำลังอัปโหลด…","Uploading…");
     avatarUploadStatus.classList.remove("hidden");
     try {
       let publicUrl;
       if (supabase) {
         const authState = window.__sqAuth;
         const userId = authState?.user?.id;
-        if (!userId) throw new Error("Not signed in.");
+        if (!userId) throw new Error(t("ยังไม่ได้เข้าสู่ระบบ","Not signed in."));
         publicUrl = await uploadAvatar(userId, file);
       } else {
-        // Local fallback: data URL
         publicUrl = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (e) => resolve(e.target.result);
@@ -765,9 +865,21 @@
       }
       document.getElementById("avatar_url").value = publicUrl;
       renderAvatar(publicUrl, profileDisplayHeading.textContent);
-      avatarUploadStatus.textContent = "Uploaded — save profile to apply.";
+      avatarUploadStatus.textContent = t("อัปโหลดสำเร็จ — กำลังบันทึก…","Uploaded — saving…");
+
+      // Auto-save avatar immediately
+      try {
+        await apiFetch("/api/profile", {
+          method: "PATCH",
+          body: JSON.stringify({ avatar_url: publicUrl }),
+        });
+        avatarUploadStatus.textContent = t("อัปเดตรูปโปรไฟล์แล้ว","Profile photo updated.");
+        setTimeout(() => avatarUploadStatus.classList.add("hidden"), 3000);
+      } catch (_) {
+        avatarUploadStatus.textContent = t("อัปโหลดแล้ว — กด 'บันทึก' เพื่อยืนยัน","Uploaded — press Save to apply.");
+      }
     } catch (err) {
-      avatarUploadStatus.textContent = `Upload failed: ${err.message}`;
+      avatarUploadStatus.textContent = `${t("อัปโหลดไม่สำเร็จ","Upload failed")}: ${err.message}`;
     }
     avatarFileInput.value = "";
   });

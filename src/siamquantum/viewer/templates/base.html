@@ -757,9 +757,13 @@
     <div class="live-fab-panel" id="live-fab-panel" role="region" aria-label="Live page data" aria-hidden="true">
       <div class="live-fab-panel-head">
         <div class="live-fab-panel-top">
-          <div class="global-live-title" id="global-live-title">Page Status</div>
+          <div class="global-live-title" id="global-live-title">
+            <span class="th-text">สถานะหน้านี้</span><span class="en-text">Page Status</span>
+          </div>
           <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
-            <div class="global-live-status" id="global-live-status">Loading</div>
+            <div class="global-live-status" id="global-live-status">
+              <span class="th-text">กำลังโหลด</span><span class="en-text">Loading</span>
+            </div>
             <button class="live-fab-refresh" id="global-live-refresh" type="button" title="Refresh data" aria-label="Refresh live data">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -768,7 +772,10 @@
             </button>
           </div>
         </div>
-        <div class="global-live-copy" id="global-live-copy">Reading the latest data for this page.</div>
+        <div class="global-live-copy" id="global-live-copy">
+          <span class="th-text">กำลังอ่านข้อมูลล่าสุดของหน้านี้</span>
+          <span class="en-text">Reading the latest data for this page.</span>
+        </div>
       </div>
       <div class="global-live-metrics" id="global-live-metrics">
         <div class="live-placeholder" aria-hidden="true"></div>
@@ -783,7 +790,7 @@
     </div>
     <button class="live-fab-btn" id="global-live-toggle" type="button" aria-expanded="false" aria-controls="live-fab-panel" aria-label="Toggle live data panel">
       <span class="live-fab-dot"></span>
-      <span class="live-fab-label">STATUS</span>
+      <span class="live-fab-label"><span class="th-text">สถานะ</span><span class="en-text">STATUS</span></span>
       <span class="live-fab-chevron">▲</span>
     </button>
   </div>
