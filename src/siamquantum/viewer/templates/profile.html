@@ -843,31 +843,54 @@
   const avatarFileInput    = document.getElementById("avatar-file-input");
   const avatarUploadStatus = document.getElementById("avatar-upload-status");
 
+  function resizeToDataUrl(file, maxPx = 256, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   avatarFileInput.addEventListener("change", async () => {
     const file = avatarFileInput.files?.[0];
     if (!file) return;
     avatarUploadStatus.textContent = t("กำลังอัปโหลด…","Uploading…");
     avatarUploadStatus.classList.remove("hidden");
     try {
-      let publicUrl;
+      let publicUrl = null;
+
+      // Try Supabase Storage first
       if (supabase) {
-        const authState = window.__sqAuth;
-        const userId = authState?.user?.id;
-        if (!userId) throw new Error(t("ยังไม่ได้เข้าสู่ระบบ","Not signed in."));
-        publicUrl = await uploadAvatar(userId, file);
-      } else {
-        publicUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        const userId = window.__sqAuth?.user?.id;
+        if (userId) {
+          try {
+            publicUrl = await uploadAvatar(userId, file);
+          } catch (_storageErr) {
+            publicUrl = null; // fall through to data URL
+          }
+        }
       }
+
+      // Fallback: resize + compress → data URL (always works, no bucket needed)
+      if (!publicUrl) {
+        publicUrl = await resizeToDataUrl(file);
+      }
+
       document.getElementById("avatar_url").value = publicUrl;
       renderAvatar(publicUrl, profileDisplayHeading.textContent);
       avatarUploadStatus.textContent = t("อัปโหลดสำเร็จ — กำลังบันทึก…","Uploaded — saving…");
 
-      // Auto-save avatar immediately
       try {
         await apiFetch("/api/profile", {
           method: "PATCH",
