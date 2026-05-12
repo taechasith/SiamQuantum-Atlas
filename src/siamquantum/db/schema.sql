@@ -65,8 +65,20 @@ CREATE TABLE IF NOT EXISTS denstream_state (
     updated_at TEXT    NOT NULL      -- ISO-8601
 );
 
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    flow_name   TEXT    NOT NULL,
+    task_name   TEXT    NOT NULL,
+    status      TEXT    NOT NULL DEFAULT 'running', -- 'running'|'success'|'failure'
+    started_at  TEXT    NOT NULL,                   -- ISO-8601 UTC
+    finished_at TEXT,                               -- ISO-8601 UTC, NULL while running
+    duration_s  REAL,
+    error_text  TEXT
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_sources_year        ON sources(published_year);
 CREATE INDEX IF NOT EXISTS idx_sources_platform    ON sources(platform);
 CREATE INDEX IF NOT EXISTS idx_triplets_source     ON triplets(source_id);
 CREATE INDEX IF NOT EXISTS idx_triplets_subj_obj   ON triplets(subject, object);
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_flow  ON pipeline_runs(flow_name, started_at);

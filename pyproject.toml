@@ -28,6 +28,7 @@ dependencies = [
     "pymannkendall>=1.4",
     "beautifulsoup4>=4.12",
     "networkx>=3.3",
+    "prefect>=3.0",
 ]
 
 [project.optional-dependencies]

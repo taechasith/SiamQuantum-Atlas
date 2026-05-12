@@ -20,3 +20,4 @@ dnspython>=2.6
 pymannkendall>=1.4
 networkx>=3.3
 beautifulsoup4>=4.12
+prefect>=3.0

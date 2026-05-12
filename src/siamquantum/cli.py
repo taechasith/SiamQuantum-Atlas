@@ -24,6 +24,14 @@ app.add_typer(ingest_app, name="ingest")
 app.add_typer(analyze_app, name="analyze")
 app.add_typer(filter_app, name="filter")
 
+# Orchestration (Prefect) — imported lazily so missing prefect doesn't break base CLI
+try:
+    from siamquantum.orchestration.cli import orch_app
+
+    app.add_typer(orch_app, name="orchestration")
+except ImportError:
+    pass
+
 
 # ---------------------------------------------------------------------------
 # db commands
