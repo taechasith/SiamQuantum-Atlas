@@ -60,3 +60,15 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
+
+export async function uploadAvatar(userId, file) {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${userId}/avatar.${ext}`;
+  const { error: upErr } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (upErr) throw upErr;
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  return data.publicUrl;
+}

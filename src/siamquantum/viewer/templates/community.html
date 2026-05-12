@@ -1,522 +1,896 @@
-﻿{% extends "base.html" %}
-{% block title %}Submit Data | SiamQuantum Atlas{% endblock %}
+{% extends "base.html" %}
+{% block title %}ส่งข้อมูล | SiamQuantum Atlas{% endblock %}
 {% set active = 'community' %}
 
 {% block page_title %}
   <span class="th-text">ส่งข้อมูล</span>
-  <span class="en-text">Submit Data</span>
+  <span class="en-text">Share Data</span>
 {% endblock %}
 
 {% block head %}
 <style>
-  .submit-shell { display: grid; gap: 1rem; font-family: var(--font-body); }
-  .submit-card, .submit-side, .submit-list-card {
+  /* ── Shell ── */
+  .share-shell { display: grid; gap: 1rem; }
+  .share-card {
     border-radius: 16px;
     border: 1px solid var(--border);
     background: var(--surface);
     box-shadow: var(--shadow);
+    padding: 1.4rem 1.5rem;
   }
-  .submit-card, .submit-side, .submit-list-card { padding: 1.2rem 1.25rem; }
-  .submit-hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
-    gap: 1rem;
+
+  /* ── Hero ── */
+  .share-hero {
+    background:
+      radial-gradient(circle at 8% 20%, rgba(79,212,255,.14), transparent 30%),
+      radial-gradient(circle at 90% 15%, rgba(96,165,250,.12), transparent 25%),
+      linear-gradient(145deg, rgba(10,18,33,.98), rgba(12,20,36,.94));
   }
-  .submit-eyebrow {
+  .hero-eyebrow {
     color: var(--primary);
-    font-size: 0.72rem;
+    font-size: .72rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    margin-bottom: 0.65rem;
+    margin-bottom: .55rem;
   }
-  .submit-title {
+  .hero-title {
     font-family: var(--font-heading);
-    font-size: clamp(1.7rem, 3vw, 2.55rem);
-    line-height: 1.08;
-    margin-bottom: 0.8rem;
+    font-size: clamp(1.55rem, 3vw, 2.3rem);
+    line-height: 1.12;
+    margin-bottom: .65rem;
   }
-  .submit-copy {
-    color: var(--muted);
-    line-height: 1.7;
-    max-width: 64ch;
-  }
-  .submit-grid {
+  .hero-copy { color: var(--muted); font-size: .9rem; line-height: 1.7; max-width: 58ch; }
+
+  /* ── Main cols ── */
+  .share-cols {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.95fr);
+    grid-template-columns: minmax(0,1.4fr) 320px;
     gap: 1rem;
+    align-items: start;
   }
-  .submit-section-title {
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    color: var(--text);
-    margin-bottom: 0.35rem;
-  }
-  .submit-section-copy {
-    color: var(--muted);
-    font-size: 0.88rem;
-    line-height: 1.6;
-    margin-bottom: 0.95rem;
-  }
-  .field { margin-top: 0.9rem; }
-  .field label {
-    display: block;
-    color: var(--muted-strong);
-    font-size: 0.82rem;
-    margin-bottom: 0.4rem;
-  }
-  .field input,
-  .field select,
-  .field textarea {
-    width: 100%;
-    min-height: 44px;
-    padding: 0.78rem 0.9rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.04);
-    color: var(--text);
-  }
-  .field textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
-  .field input:focus,
-  .field select:focus,
-  .field textarea:focus {
-    outline: none;
-    border-color: var(--border-strong);
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
-  }
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
-  }
-  .inline-actions {
+
+  /* ── Section labels ── */
+  .sec-title { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: .2rem; }
+  .sec-copy  { color: var(--muted); font-size: .82rem; line-height: 1.6; margin-bottom: 1rem; }
+
+  /* ── Auth gate ── */
+  .auth-gate {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
+    flex-direction: column;
     align-items: center;
-    margin-top: 1rem;
+    gap: .8rem;
+    padding: 2.2rem 1rem;
+    text-align: center;
   }
-  .primary-btn,
-  .secondary-btn {
-    min-height: 44px;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-strong);
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .primary-btn {
-    color: #04111e;
-    background: linear-gradient(135deg, #7ad7ff, #34baf0);
-  }
-  .secondary-btn {
-    color: var(--primary);
-    background: rgba(56, 189, 248, 0.09);
-  }
-  .secondary-btn[disabled],
-  .primary-btn[disabled] {
-    opacity: 0.65;
-    cursor: not-allowed;
-  }
-  .status-box {
-    display: none;
-    margin-top: 1rem;
-    padding: 0.85rem 0.95rem;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    font-size: 0.88rem;
-    line-height: 1.6;
-  }
-  .status-box.show { display: block; }
-  .status-box.success { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.22); color: #6ee7b7; }
-  .status-box.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22); color: #fda4af; }
-  .status-box.warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.22); color: #fcd34d; }
-  .pill {
+  .auth-gate-icon { font-size: 2.2rem; opacity: .35; }
+  .auth-gate-title { color: var(--text); font-size: 1rem; font-weight: 700; }
+  .auth-gate-sub   { color: var(--muted); font-size: .84rem; }
+  .auth-gate a {
     display: inline-flex;
     align-items: center;
-    padding: 0.18rem 0.62rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.12);
-    font-size: 0.72rem;
-    color: var(--muted-strong);
+    height: 40px;
+    padding: 0 1.2rem;
+    border-radius: 10px;
+    background: rgba(56,189,248,.1);
+    color: var(--primary);
+    border: 1px solid rgba(56,189,248,.22);
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s;
   }
-  .queue-list, .public-list { display: grid; gap: 0.8rem; margin-top: 0.9rem; }
-  .queue-item, .public-item {
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 0.9rem;
-    background: rgba(255,255,255,0.03);
-  }
-  .item-top {
+  .auth-gate a:hover { background: rgba(56,189,248,.17); }
+
+  /* ── Step indicator ── */
+  .steps {
     display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    align-items: flex-start;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: 1.25rem;
   }
-  .item-title {
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .72rem;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .step-dot.active {
+    background: var(--primary);
+    color: #04111e;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(56,189,248,.35);
+  }
+  .step-dot.done {
+    background: rgba(16,185,129,.15);
+    color: #34d399;
+    border-color: rgba(16,185,129,.3);
+  }
+  .step-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,.08);
+    max-width: 40px;
+  }
+  .step-label { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+
+  /* ── Page picker cards ── */
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: .55rem;
+    margin-bottom: 1.25rem;
+  }
+  .page-card {
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.03);
+    padding: .75rem .6rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all .18s;
+    user-select: none;
+  }
+  .page-card:hover {
+    border-color: rgba(56,189,248,.25);
+    background: rgba(56,189,248,.06);
+  }
+  .page-card.selected {
+    border-color: var(--primary);
+    background: rgba(56,189,248,.12);
+    box-shadow: 0 0 0 1px rgba(56,189,248,.2);
+  }
+  .page-card-icon { font-size: 1.4rem; margin-bottom: .3rem; }
+  .page-card-name { font-size: .72rem; font-weight: 600; color: var(--muted-strong); line-height: 1.3; }
+  .page-card.selected .page-card-name { color: var(--primary); }
+
+  /* ── Category chips ── */
+  .cat-section { margin-bottom: 1.25rem; }
+  .cat-label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted-strong);
+    margin-bottom: .6rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+  }
+  .chip {
+    height: 32px;
+    padding: 0 .75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.04);
+    color: var(--muted-strong);
+    font-size: .78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    border-color: rgba(56,189,248,.3);
+    background: rgba(56,189,248,.07);
     color: var(--text);
-    font-size: 0.95rem;
+  }
+  .chip.selected {
+    border-color: var(--primary);
+    background: rgba(56,189,248,.15);
+    color: var(--primary);
     font-weight: 600;
   }
-  .item-meta,
-  .item-copy {
+  .chip-add {
+    border-style: dashed;
+    border-color: rgba(255,255,255,.12);
     color: var(--muted);
-    font-size: 0.82rem;
+  }
+  .chip-add:hover { border-color: rgba(56,189,248,.3); color: var(--primary); }
+
+  /* custom category input */
+  .cat-custom-wrap {
+    display: none;
+    margin-top: .55rem;
+    gap: .5rem;
+  }
+  .cat-custom-wrap.show { display: flex; }
+  .cat-custom-wrap input {
+    flex: 1;
+    height: 38px;
+    padding: 0 .85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.05);
+    color: var(--text);
+    font-size: .85rem;
+  }
+  .cat-custom-wrap input:focus {
+    outline: none;
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
+  }
+  .btn-xs {
+    height: 38px;
+    padding: 0 .85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(56,189,248,.25);
+    background: rgba(56,189,248,.1);
+    color: var(--primary);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-xs:hover { background: rgba(56,189,248,.18); }
+
+  /* ── Form ── */
+  .submit-form { display: none; }
+  .submit-form.show { display: block; }
+  .selected-summary {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    padding: .7rem .9rem;
+    border-radius: 10px;
+    background: rgba(56,189,248,.07);
+    border: 1px solid rgba(56,189,248,.15);
+    margin-bottom: 1rem;
+    font-size: .82rem;
+    color: var(--muted-strong);
+  }
+  .selected-summary strong { color: var(--primary); }
+  .selected-summary .sep { color: rgba(255,255,255,.2); }
+
+  .field { margin-bottom: .85rem; }
+  .field label {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--muted-strong);
+    font-size: .8rem;
+    font-weight: 500;
+    margin-bottom: .42rem;
+  }
+  .field label .req  { color: var(--primary); }
+  .field label .opt  { color: var(--muted); font-weight: 400; font-size: .74rem; margin-left: auto; }
+  .field input, .field textarea {
+    width: 100%;
+    height: 44px;
+    padding: 0 .9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    font-size: .9rem;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field textarea { height: auto; min-height: 90px; padding: .75rem .9rem; resize: vertical; }
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
+  }
+  .field-hint { margin-top: .35rem; color: var(--muted); font-size: .74rem; }
+
+  /* Buttons */
+  .btn-primary, .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 1.3rem;
+    border-radius: 10px;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: filter .15s, background .15s;
+  }
+  .btn-primary { background: linear-gradient(135deg,#7ad7ff,#34baf0); color: #04111e; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: rgba(255,255,255,.05); color: var(--muted-strong); border-color: rgba(255,255,255,.1); }
+  .btn-ghost:hover { background: rgba(255,255,255,.09); }
+  .btn-primary[disabled] { opacity: .5; cursor: not-allowed; }
+  .btn-row { display: flex; gap: .65rem; margin-top: 1rem; }
+
+  /* Status */
+  .status-box {
+    display: none;
+    padding: .8rem .95rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: .84rem;
     line-height: 1.6;
-    margin-top: 0.3rem;
+    margin-top: .9rem;
   }
-  .badge-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
-  .hidden { display: none !important; }
-  @media (max-width: 980px) {
-    .submit-hero, .submit-grid, .field-row { grid-template-columns: 1fr; }
+  .status-box.show { display: block; }
+  .status-box.success { background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.2); color: #6ee7b7; }
+  .status-box.error   { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.2); color: #fda4af; }
+  .status-box.warning { background: rgba(245,158,11,.08);  border-color: rgba(245,158,11,.2);  color: #fcd34d; }
+
+  /* ── My submissions ── */
+  .my-list { display: grid; gap: .6rem; margin-top: .75rem; }
+  .my-item {
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.03);
+    padding: .8rem;
   }
+  .my-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+  .my-item-title { color: var(--text); font-size: .88rem; font-weight: 600; line-height: 1.4; }
+  .my-item-meta  { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: .28rem;
+    padding: .18rem .55rem; border-radius: 999px;
+    font-size: .68rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  }
+  .status-pill::before { content:""; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .sp-wait { background: rgba(245,158,11,.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,.2); }
+  .sp-wait::before  { background: #fbbf24; }
+  .sp-rev  { background: rgba(56,189,248,.1);  color: #7dd3fc; border: 1px solid rgba(56,189,248,.2); }
+  .sp-rev::before   { background: #7dd3fc; box-shadow:0 0 4px rgba(56,189,248,.6); }
+  .sp-live { background: rgba(16,185,129,.1);  color: #34d399; border: 1px solid rgba(16,185,129,.2); }
+  .sp-live::before  { background: #34d399; }
+  .sp-fail { background: rgba(248,113,113,.08); color: #fca5a5; border: 1px solid rgba(248,113,113,.2); }
+  .sp-fail::before  { background: #fca5a5; }
+
+  /* ── Public grid ── */
+  .public-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+    gap: .7rem;
+    margin-top: .85rem;
+  }
+  .pub-card {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03);
+    padding: .95rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .pub-card::before {
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, rgba(79,212,255,.5), rgba(96,165,250,.25), transparent);
+  }
+  .pub-by {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .16rem .52rem; border-radius: 999px;
+    background: rgba(79,212,255,.1); border: 1px solid rgba(79,212,255,.18);
+    color: #7dd3fc; font-size: .67rem; font-weight: 700;
+    letter-spacing: .03em; margin-bottom: .55rem;
+  }
+  .pub-title { color: var(--text); font-size: .9rem; font-weight: 600; line-height: 1.45; margin-bottom: .38rem; }
+  .pub-desc  { color: var(--muted); font-size: .8rem; line-height: 1.6; }
+  .pub-foot  { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:.65rem; }
+  .cat-tag   { padding:.13rem .48rem; border-radius:6px; background:rgba(255,255,255,.06); color:var(--muted-strong); font-size:.7rem; }
+  .pub-link  { color:var(--primary); font-size:.73rem; text-decoration:none; word-break:break-all; }
+  .pub-link:hover { text-decoration:underline; }
+  .pub-date  { color:var(--muted); font-size:.7rem; margin-left:auto; }
+
+  .empty-state { padding:1.5rem; text-align:center; color:var(--muted); font-size:.84rem; }
+
+  .hidden { display:none !important; }
+  @media (max-width:1024px) { .page-grid { grid-template-columns: repeat(3,1fr); } }
+  @media (max-width:900px)  { .share-cols { grid-template-columns: 1fr; } }
+  @media (max-width:640px)  { .page-grid { grid-template-columns: repeat(2,1fr); } }
 </style>
 {% endblock %}
 
 {% block body %}
-  <span style="display:none">Community Submission</span>
-  <section class="submit-shell">
-  <div class="submit-hero">
-    <article class="submit-card">
-      <div class="submit-eyebrow"><span class="th-text">พื้นที่ส่งข้อมูลของผู้ใช้</span><span class="en-text">User-Owned Intake</span></div>
-      <h1 class="submit-title"><span class="th-text">ส่งข้อมูลเข้าสู่คิววิเคราะห์ของ SiamQuantum</span><span class="en-text">Submit Data into the SiamQuantum analysis queue.</span></h1>
-      <p class="submit-copy"><span class="th-text">ผู้ใช้ที่เข้าสู่ระบบสามารถส่งข้อมูลแหล่งอ้างอิง ระบุหน้าปลายทาง และติดตามสถานะคิวได้ โดยหน้าสาธารณะจะแสดงเฉพาะรายการที่ผ่านการอนุมัติและวิเคราะห์เสร็จแล้วเท่านั้น</span><span class="en-text">Authenticated users can submit source data, assign it to a target page, and track its queue state. Public pages only surface items after review approval and completed analysis.</span></p>
+<section class="share-shell">
+
+  <!-- Hero -->
+  <article class="share-card share-hero">
+    <div class="hero-eyebrow">
+      <span class="th-text">ร่วมมือกับชุมชน</span>
+      <span class="en-text">Community Contributions</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="th-text">เพิ่มข้อมูลของคุณสู่ Atlas</span>
+      <span class="en-text">Add your data to the Atlas</span>
+    </h1>
+    <p class="hero-copy">
+      <span class="th-text">เลือกหน้าที่ต้องการเพิ่มข้อมูล → เลือกหมวดหมู่ → กรอกรายละเอียด ทีมงานจะตรวจสอบและเผยแพร่โดยระบุชื่อคุณ</span>
+      <span class="en-text">Pick a page → pick a category → fill in the details. The team reviews and publishes it with your name credited.</span>
+    </p>
+  </article>
+
+  <div class="share-cols">
+
+    <!-- ── Submit form column ── -->
+    <article class="share-card">
+
+      <!-- Auth gate -->
+      <div id="auth-gate">
+        <div class="auth-gate">
+          <div class="auth-gate-icon">🔒</div>
+          <div class="auth-gate-title">
+            <span class="th-text">เข้าสู่ระบบก่อนส่งข้อมูล</span>
+            <span class="en-text">Sign in to contribute</span>
+          </div>
+          <div class="auth-gate-sub">
+            <span class="th-text">ต้องมีบัญชีเพื่อส่งข้อมูลและติดตามสถานะ</span>
+            <span class="en-text">You need an account to submit and track your contributions.</span>
+          </div>
+          <a href="/profile">
+            <span class="th-text">เข้าสู่ระบบ / สร้างบัญชี</span>
+            <span class="en-text">Sign in or create account</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Submission wizard (logged in) -->
+      <div id="submit-wizard" class="hidden">
+
+        <!-- Step indicator -->
+        <div class="steps">
+          <div class="step-dot active" id="step-dot-1">1</div>
+          <div class="step-line"></div>
+          <span class="step-label"><span class="th-text">หน้า</span><span class="en-text">Page</span></span>
+          <div class="step-line"></div>
+          <div class="step-dot" id="step-dot-2">2</div>
+          <div class="step-line"></div>
+          <span class="step-label"><span class="th-text">หมวดหมู่</span><span class="en-text">Category</span></span>
+          <div class="step-line"></div>
+          <div class="step-dot" id="step-dot-3">3</div>
+          <div class="step-line"></div>
+          <span class="step-label"><span class="th-text">รายละเอียด</span><span class="en-text">Details</span></span>
+        </div>
+
+        <!-- Step 1 & 2: Page picker + categories (always visible, selection drives step 3) -->
+
+        <div class="sec-title" style="margin-bottom:.5rem">
+          <span class="th-text">เลือกหน้าที่ต้องการเพิ่มข้อมูล</span>
+          <span class="en-text">Where should this appear?</span>
+        </div>
+        <div class="page-grid" id="page-grid">
+          <div class="page-card" data-value="overview">
+            <div class="page-card-icon">🔭</div>
+            <div class="page-card-name"><span class="th-text">ภาพรวม<br>Atlas</span><span class="en-text">Atlas<br>Overview</span></div>
+          </div>
+          <div class="page-card" data-value="dashboard">
+            <div class="page-card-icon">📊</div>
+            <div class="page-card-name"><span class="th-text">แดชบอร์ด</span><span class="en-text">Dashboard</span></div>
+          </div>
+          <div class="page-card" data-value="network">
+            <div class="page-card-icon">🕸️</div>
+            <div class="page-card-name"><span class="th-text">แผนที่<br>วาทกรรม</span><span class="en-text">Network<br>Map</span></div>
+          </div>
+          <div class="page-card" data-value="analytics">
+            <div class="page-card-icon">📈</div>
+            <div class="page-card-name"><span class="th-text">การวิเคราะห์</span><span class="en-text">Analytics</span></div>
+          </div>
+          <div class="page-card" data-value="database">
+            <div class="page-card-icon">📚</div>
+            <div class="page-card-name"><span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span></div>
+          </div>
+        </div>
+
+        <!-- Category chips (dynamic by page) -->
+        <div class="cat-section" id="cat-section" style="display:none">
+          <div class="cat-label">
+            <span class="th-text">เลือกหมวดหมู่</span>
+            <span class="en-text">Pick a category</span>
+          </div>
+          <div class="chips-wrap" id="chips-wrap"></div>
+          <div class="cat-custom-wrap" id="cat-custom-wrap">
+            <input id="new-category" type="text"
+              placeholder="ชื่อหมวดหมู่ที่ต้องการ / Custom category name">
+            <button class="btn-xs" id="create-category-btn" type="button">
+              <span class="th-text">เพิ่ม</span><span class="en-text">Add</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Form details -->
+        <form id="submit-form" class="submit-form">
+          <div class="selected-summary" id="selected-summary"></div>
+
+          <div class="field">
+            <label for="title">
+              <span class="th-text">ชื่อเรื่อง</span><span class="en-text">Title</span>
+              <span class="req">*</span>
+            </label>
+            <input id="title" name="title" type="text"
+              placeholder="ชื่อบทความ วิดีโอ งานวิจัย หรือแหล่งข้อมูล"
+              data-placeholder-th="ชื่อบทความ วิดีโอ งานวิจัย หรือแหล่งข้อมูล"
+              data-placeholder-en="Article, video, research, or source title"
+              required>
+          </div>
+
+          <div class="field">
+            <label for="description">
+              <span class="th-text">คำอธิบาย</span><span class="en-text">Description</span>
+              <span class="opt"><span class="th-text">ไม่บังคับ</span><span class="en-text">optional</span></span>
+            </label>
+            <textarea id="description" name="description"
+              placeholder="บอกสั้น ๆ ว่าเนื้อหานี้เกี่ยวกับอะไร"
+              data-placeholder-th="บอกสั้น ๆ ว่าเนื้อหานี้เกี่ยวกับอะไร และทำไมถึงเกี่ยวข้องกับควอนตัมไทย"
+              data-placeholder-en="Briefly explain what this is and why it's relevant to Thai quantum research"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="source_url">
+              <span class="th-text">ลิงก์แหล่งข้อมูล</span><span class="en-text">Link</span>
+              <span class="opt"><span class="th-text">ไม่บังคับ</span><span class="en-text">optional</span></span>
+            </label>
+            <input id="source_url" name="source_url" type="url" placeholder="https://">
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="submit-btn" type="submit">
+              <span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit</span>
+            </button>
+            <button class="btn-ghost" id="reset-btn" type="button">
+              <span class="th-text">เริ่มใหม่</span><span class="en-text">Start over</span>
+            </button>
+          </div>
+
+          <div class="status-box" id="submit-status"></div>
+        </form>
+
+      </div>
     </article>
-    <aside class="submit-side">
-      <div class="submit-section-title"><span class="th-text">โครงสร้างคิว</span><span class="en-text">Queue model</span></div>
-      <p class="submit-section-copy"><span class="th-text">รายการใหม่จะเริ่มที่สถานะ <strong>pending</strong> และ <strong>analysis_status=queued</strong> จากนั้นอาจเปลี่ยนเป็นกำลังประมวลผล เสร็จสิ้น หรือไม่สำเร็จ และต้องผ่านการอนุมัติจากผู้ดูแลก่อนจะแสดงบนหน้าสาธารณะ</span><span class="en-text">New submissions start as <strong>pending</strong> with <strong>analysis_status=queued</strong>. They can progress through processing, completion, or failure, and require admin approval before they appear publicly.</span></p>
-      <div class="badge-row">
-        <span class="pill">queued</span>
-        <span class="pill">processing</span>
-        <span class="pill">completed</span>
-        <span class="pill">failed</span>
+
+    <!-- ── My submissions sidebar ── -->
+    <aside class="share-card" style="position:sticky;top:1rem">
+      <div class="sec-title">
+        <span class="th-text">ข้อมูลที่ฉันส่ง</span>
+        <span class="en-text">My submissions</span>
+      </div>
+      <div class="sec-copy">
+        <span class="th-text">ติดตามสถานะทุกรายการที่คุณส่ง</span>
+        <span class="en-text">Track everything you've submitted.</span>
+      </div>
+      <div class="my-list" id="my-submissions">
+        <div class="empty-state">
+          <span class="th-text">เข้าสู่ระบบเพื่อดูรายการ</span>
+          <span class="en-text">Sign in to see your submissions.</span>
+        </div>
       </div>
     </aside>
+
   </div>
 
-  <div class="submit-grid">
-    <article class="submit-card">
-      <div class="submit-section-title"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit Data</span></div>
-      <div class="submit-section-copy"><span class="th-text">คุณต้องเข้าสู่ระบบก่อนสร้างรายการส่งข้อมูล หมวดหมู่จะโหลดจาก Supabase และสามารถเพิ่มใหม่ได้ในหน้านี้ทันที</span><span class="en-text">You must be logged in to create a submission. Categories come from Supabase and can be extended inline.</span></div>
-
-      <div id="auth-required" class="status-box warning show">
-        <span class="th-text">ต้องเข้าสู่ระบบก่อนจึงจะส่งข้อมูลได้ ใช้หน้าโปรไฟล์เพื่อเข้าสู่ระบบหรือสร้างบัญชี</span>
-        <span class="en-text">Login is required before you can submit data. Use the Profile page to sign in or create an account.</span>
+  <!-- Public contributions -->
+  <article class="share-card">
+    <div class="sec-title">
+      <span class="th-text">ข้อมูลจากชุมชนที่ผ่านการตรวจสอบแล้ว</span>
+      <span class="en-text">Verified community contributions</span>
+    </div>
+    <div class="sec-copy">
+      <span class="th-text">ผ่านการตรวจสอบโดยทีมงานและใช้งานในระบบแล้ว</span>
+      <span class="en-text">Reviewed by the team and live in the Atlas.</span>
+    </div>
+    <div class="public-grid" id="public-submissions">
+      <div class="empty-state">
+        <span class="th-text">กำลังโหลด...</span><span class="en-text">Loading...</span>
       </div>
-
-      <div class="inline-actions" id="auth-actions">
-        <a class="secondary-btn" href="/profile"><span class="th-text">เปิดหน้าโปรไฟล์ / เข้าสู่ระบบ</span><span class="en-text">Open Profile / Login</span></a>
-      </div>
-
-      <form id="submit-data-form" class="hidden">
-        <div class="field">
-          <label for="title"><span class="th-text">ชื่อเรื่อง *</span><span class="en-text">Title *</span></label>
-          <input id="title" name="title" type="text" required>
-        </div>
-
-        <div class="field">
-          <label for="description"><span class="th-text">คำอธิบาย</span><span class="en-text">Description</span></label>
-          <textarea id="description" name="description" placeholder="บริบท ข้อค้นพบ หรือหมายเหตุความเกี่ยวข้อง" data-placeholder-th="บริบท ข้อค้นพบ หรือหมายเหตุความเกี่ยวข้อง" data-placeholder-en="Context, findings, or relevance notes"></textarea>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="source_url"><span class="th-text">ลิงก์แหล่งข้อมูล</span><span class="en-text">Source URL</span></label>
-            <input id="source_url" name="source_url" type="url" placeholder="https://example.com/source" data-placeholder-th="https://example.com/source" data-placeholder-en="https://example.com/source">
-          </div>
-          <div class="field">
-            <label for="page_target"><span class="th-text">หน้าปลายทาง</span><span class="en-text">Page Target</span></label>
-            <select id="page_target" name="page_target">
-              <option value="overview" data-th="ภาพรวมงานวิจัย" data-en="Research Atlas">Research Atlas</option>
-              <option value="dashboard" data-th="แดชบอร์ด" data-en="Dashboard">Dashboard</option>
-              <option value="network" data-th="แผนที่วาทกรรม" data-en="Discourse Map">Discourse Map</option>
-              <option value="analytics" data-th="การวิเคราะห์เชิงเวลา" data-en="Temporal Analysis">Temporal Analysis</option>
-              <option value="database" data-th="คลังแหล่งข้อมูล" data-en="Source Library">Source Library</option>
-              <option value="submit-data" data-th="ส่งข้อมูล" data-en="Submit Data">Submit Data</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="category"><span class="th-text">หมวดหมู่ *</span><span class="en-text">Category *</span></label>
-            <select id="category" name="category" required>
-              <option value="">กำลังโหลดหมวดหมู่...</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="new-category"><span class="th-text">เพิ่มหมวดหมู่ใหม่</span><span class="en-text">Add New Category</span></label>
-            <input id="new-category" name="new-category" type="text" placeholder="ชื่อหมวดหมู่ใหม่ (ถ้ามี)" data-placeholder-th="ชื่อหมวดหมู่ใหม่ (ถ้ามี)" data-placeholder-en="Optional new category name">
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="metadata"><span class="th-text">หมายเหตุเพิ่มเติม / เมทาดาทา</span><span class="en-text">Optional Notes / Metadata</span></label>
-          <textarea id="metadata" name="metadata" placeholder='JSON เพิ่มเติม เช่น {"priority":"high"}' data-placeholder-th='JSON เพิ่มเติม เช่น {"priority":"high"}' data-placeholder-en='JSON optional, e.g. {"priority":"high"}'></textarea>
-        </div>
-
-        <div class="inline-actions">
-          <button class="primary-btn" id="submit-data-btn" type="submit"><span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit Data</span></button>
-          <button class="secondary-btn" id="create-category-btn" type="button"><span class="th-text">สร้างหมวดหมู่เท่านั้น</span><span class="en-text">Create Category Only</span></button>
-        </div>
-
-        <div class="status-box" id="submit-status"></div>
-      </form>
-    </article>
-
-    <aside class="submit-side">
-      <div class="submit-section-title"><span class="th-text">ภาพรวมคิวของคุณ</span><span class="en-text">Your Queue Snapshot</span></div>
-      <div class="submit-section-copy"><span class="th-text">รายการล่าสุดที่เป็นของผู้ใช้ปัจจุบัน รายการที่ยังรอและที่ล้มเหลวจะยังคงเป็นข้อมูลส่วนตัวที่นี่และในหน้าโปรไฟล์</span><span class="en-text">Recent submissions owned by the current user. Pending and failed items stay private here and on the Profile page.</span></div>
-      <div class="queue-list" id="my-submissions">
-        <div class="queue-item"><div class="item-copy"><span class="th-text">เข้าสู่ระบบเพื่อโหลดรายการส่งข้อมูลของคุณ</span><span class="en-text">Login to load your submissions.</span></div></div>
-      </div>
-    </aside>
-  </div>
-
-  <article class="submit-list-card">
-    <div class="submit-section-title"><span class="th-text">รายการสาธารณะที่ผ่านอนุมัติแล้ว</span><span class="en-text">Approved Public Contributions</span></div>
-    <div class="submit-section-copy"><span class="th-text">จะแสดงเฉพาะรายการที่มี <strong>status=approved</strong> และ <strong>analysis_status=completed</strong> เท่านั้น</span><span class="en-text">Only submissions with <strong>status=approved</strong> and <strong>analysis_status=completed</strong> appear here.</span></div>
-    <div class="public-list" id="public-submissions">
-      <div class="public-item"><div class="item-copy"><span class="th-text">กำลังโหลดรายการสาธารณะ...</span><span class="en-text">Loading public contributions...</span></div></div>
     </div>
   </article>
+
 </section>
 
 <script type="module">
   import { apiFetch, loadAuthState } from "/static/js/auth.js";
 
-  const form = document.getElementById("submit-data-form");
-  const authRequired = document.getElementById("auth-required");
-  const authActions = document.getElementById("auth-actions");
-  const statusBox = document.getElementById("submit-status");
-  const categorySelect = document.getElementById("category");
-  const newCategoryInput = document.getElementById("new-category");
-  const metadataInput = document.getElementById("metadata");
-  const createCategoryButton = document.getElementById("create-category-btn");
-  const submitButton = document.getElementById("submit-data-btn");
-  const mySubmissions = document.getElementById("my-submissions");
-  const publicSubmissions = document.getElementById("public-submissions");
-  const pageTargetSelect = document.getElementById("page_target");
-  window.__sqMineItems = [];
+  // ── State ──
+  let selectedPage     = null;
+  let selectedCategory = null;
+  let dbCategories     = [];
+  window.__sqMineItems   = [];
   window.__sqPublicItems = [];
 
-  function isTH() {
-    return document.documentElement.dataset.lang !== "en";
+  // ── Predefined categories per page ──
+  const PAGE_CATS = {
+    overview:  ["Quantum Computing","Quantum Communication","Quantum Sensing","Thai University Research","Government Policy","International Collaboration","Startup / Industry","Education"],
+    dashboard: ["Statistics & Trends","Industry Reports","Funding Data","Publication Count","Event / Conference","Media Coverage"],
+    network:   ["Research Network","Academic Institution","Government Body","Industry Partner","International Org","Individual Researcher"],
+    analytics: ["Academic Paper","Historical Data","Citation Data","Conference Proceeding","Dataset","Survey / Report"],
+    database:  ["News Article","Video / Media","Research Paper","Official Document","Blog / Opinion","Book / Thesis"],
+  };
+
+  const PAGE_META = {
+    overview:  { th:"ภาพรวม Atlas",     en:"Atlas Overview" },
+    dashboard: { th:"แดชบอร์ด",          en:"Dashboard" },
+    network:   { th:"แผนที่วาทกรรม",     en:"Network Map" },
+    analytics: { th:"การวิเคราะห์",      en:"Analytics" },
+    database:  { th:"ฐานข้อมูล",         en:"Database" },
+  };
+
+  function isTH() { return document.documentElement.dataset.lang !== "en"; }
+  function t(th, en) { return isTH() ? th : en; }
+  function formatDate(iso) {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleDateString(isTH() ? "th-TH" : "en-GB", { day:"numeric", month:"short", year:"numeric" }); }
+    catch { return ""; }
   }
 
-  function copyForLang(th, en) {
-    return isTH() ? th : en;
-  }
+  // ── DOM refs ──
+  const authGate    = document.getElementById("auth-gate");
+  const wizard      = document.getElementById("submit-wizard");
+  const catSection  = document.getElementById("cat-section");
+  const chipsWrap   = document.getElementById("chips-wrap");
+  const catCustom   = document.getElementById("cat-custom-wrap");
+  const newCatInput = document.getElementById("new-category");
+  const createCatBtn= document.getElementById("create-category-btn");
+  const submitForm  = document.getElementById("submit-form");
+  const summary     = document.getElementById("selected-summary");
+  const submitBtn   = document.getElementById("submit-btn");
+  const resetBtn    = document.getElementById("reset-btn");
+  const statusBox   = document.getElementById("submit-status");
+  const myList      = document.getElementById("my-submissions");
+  const publicGrid  = document.getElementById("public-submissions");
 
-  function pageTargetLabel(value) {
-    const option = pageTargetSelect.querySelector(`option[value="${value}"]`);
-    if (!option) return value || copyForLang("ทั่วไป", "general");
-    return isTH() ? (option.dataset.th || option.textContent) : (option.dataset.en || option.textContent);
-  }
-
-  function setPlaceholders() {
-    document.querySelectorAll("[data-placeholder-th]").forEach((node) => {
-      node.placeholder = isTH() ? node.dataset.placeholderTh : node.dataset.placeholderEn;
+  // ── Step dots ──
+  function setStep(n) {
+    [1,2,3].forEach((i) => {
+      const dot = document.getElementById(`step-dot-${i}`);
+      dot.classList.remove("active","done");
+      if (i < n)  dot.classList.add("done");
+      if (i === n) dot.classList.add("active");
     });
-    pageTargetSelect.querySelectorAll("option").forEach((option) => {
-      option.textContent = isTH() ? (option.dataset.th || option.textContent) : (option.dataset.en || option.textContent);
+  }
+
+  // ── Page card selection ──
+  document.getElementById("page-grid").addEventListener("click", (e) => {
+    const card = e.target.closest(".page-card");
+    if (!card) return;
+    document.querySelectorAll(".page-card").forEach((c) => c.classList.remove("selected"));
+    card.classList.add("selected");
+    selectedPage = card.dataset.value;
+    selectedCategory = null;
+    renderCategoryChips();
+    catSection.style.display = "block";
+    submitForm.classList.remove("show");
+    setStep(2);
+  });
+
+  // ── Render chips ──
+  function renderCategoryChips() {
+    const suggested = PAGE_CATS[selectedPage] || [];
+    // merge suggested + db categories (deduplicate)
+    const dbNames = dbCategories.map((c) => c.name);
+    const all = [...new Set([...suggested, ...dbNames])];
+
+    chipsWrap.innerHTML = all.map((name) => {
+      const isSelected = name === selectedCategory;
+      return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+    }).join("") +
+    `<button class="chip chip-add" type="button" id="chip-add-btn">+ <span class="th-text">เพิ่มหมวดหมู่</span><span class="en-text">Add new</span></button>`;
+
+    document.querySelectorAll(".chip:not(.chip-add)").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        selectedCategory = chip.dataset.cat;
+        renderCategoryChips();
+        catCustom.classList.remove("show");
+        showFormDetails();
+      });
+    });
+    document.getElementById("chip-add-btn")?.addEventListener("click", () => {
+      catCustom.classList.toggle("show");
+      if (catCustom.classList.contains("show")) newCatInput.focus();
     });
   }
 
-  function showStatus(message, kind) {
-    statusBox.textContent = message;
+  function showFormDetails() {
+    if (!selectedPage || !selectedCategory) return;
+    const pageMeta = PAGE_META[selectedPage] || { th: selectedPage, en: selectedPage };
+    summary.innerHTML = `
+      <span class="th-text">หน้า: <strong>${pageMeta.th}</strong></span>
+      <span class="en-text">Page: <strong>${pageMeta.en}</strong></span>
+      <span class="sep">·</span>
+      <span class="th-text">หมวดหมู่: <strong>${selectedCategory}</strong></span>
+      <span class="en-text">Category: <strong>${selectedCategory}</strong></span>
+    `;
+    submitForm.classList.add("show");
+    setStep(3);
+    setTimeout(() => submitForm.scrollIntoView({ behavior:"smooth", block:"nearest" }), 50);
+  }
+
+  // ── Create custom category ──
+  createCatBtn.addEventListener("click", async () => {
+    const name = newCatInput.value.trim();
+    if (!name) return;
+    createCatBtn.disabled = true;
+    try {
+      await apiFetch("/api/categories", { method:"POST", body: JSON.stringify({ name }) });
+      newCatInput.value = "";
+      catCustom.classList.remove("show");
+      await loadDbCategories();
+      selectedCategory = name;
+      renderCategoryChips();
+      showFormDetails();
+    } catch (err) {
+      showStatus(err.message, "error");
+    } finally {
+      createCatBtn.disabled = false;
+    }
+  });
+
+  async function loadDbCategories() {
+    try {
+      const data = await apiFetch("/api/categories");
+      dbCategories = data?.items || [];
+    } catch { dbCategories = []; }
+    if (selectedPage) renderCategoryChips();
+  }
+
+  // ── Status ──
+  function showStatus(msg, kind) {
+    statusBox.textContent = msg;
     statusBox.className = `status-box show ${kind}`;
   }
 
-  function renderMine(items) {
-    window.__sqMineItems = items || [];
-    if (!items?.length) {
-      mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("ยังไม่มีรายการส่วนตัว", "No private submissions yet.")}</div></div>`;
-      return;
-    }
-    mySubmissions.innerHTML = items.map((item) => `
-      <article class="queue-item">
-        <div class="item-top">
-          <div class="item-title">${item.title}</div>
-          <span class="pill">${item.status} / ${item.analysis_status}</span>
-        </div>
-        <div class="item-meta">${item.category}${item.page_target ? ` · ${pageTargetLabel(item.page_target)}` : ""}</div>
-        <div class="item-copy">${item.description || item.source_url || copyForLang("ไม่มีคำอธิบายเพิ่มเติม", "No extra description.")}</div>
-      </article>
-    `).join("");
-  }
-
-  function renderPublic(items) {
-    window.__sqPublicItems = items || [];
-    if (!items?.length) {
-      publicSubmissions.innerHTML = `<div class="public-item"><div class="item-copy">${copyForLang("ยังไม่มีรายการสาธารณะที่ผ่านอนุมัติ", "No approved public submissions yet.")}</div></div>`;
-      return;
-    }
-    publicSubmissions.innerHTML = items.map((item) => `
-      <article class="public-item">
-        <div class="item-top">
-          <div class="item-title">${item.title}</div>
-          <span class="pill">${item.category}</span>
-        </div>
-        <div class="item-meta">${pageTargetLabel(item.page_target)} · ${item.status} / ${item.analysis_status}</div>
-        <div class="item-copy">${item.description || item.source_url || copyForLang("ไม่มีคำอธิบายเพิ่มเติม", "No extra description.")}</div>
-      </article>
-    `).join("");
-  }
-
-  async function loadCategories() {
-    try {
-      const data = await apiFetch("/api/categories");
-      const items = data?.items || [];
-      if (!items.length) {
-        categorySelect.innerHTML = `<option value="">${copyForLang("ยังไม่มีหมวดหมู่", "No categories yet")}</option>`;
-        return;
-      }
-      categorySelect.innerHTML = `<option value="">${copyForLang("เลือกหมวดหมู่", "Select category")}</option>` + items.map((item) => `
-        <option value="${item.name}">${item.name}</option>
-      `).join("");
-    } catch (error) {
-      categorySelect.innerHTML = `<option value="">${copyForLang("ไม่สามารถโหลดหมวดหมู่ได้", "Categories unavailable")}</option>`;
-      throw error;
-    }
-  }
-
-  async function createCategoryFromInput() {
-    const name = newCategoryInput.value.trim();
-    if (!name) {
-      showStatus(copyForLang("กรอกชื่อหมวดหมู่ใหม่ก่อน", "Enter a new category name first."), "warning");
-      return null;
-    }
-    createCategoryButton.disabled = true;
-    try {
-      const data = await apiFetch("/api/categories", {
-        method: "POST",
-        body: JSON.stringify({ name }),
-      });
-      newCategoryInput.value = "";
-      await loadCategories();
-      if (data?.category?.name) {
-        categorySelect.value = data.category.name;
-      }
-      showStatus(copyForLang("สร้างหมวดหมู่และเพิ่มลงในรายการส่วนกลางแล้ว", "Category created and added to the shared list."), "success");
-      return data?.category || null;
-    } catch (error) {
-      showStatus(error.message, "error");
-      return null;
-    } finally {
-      createCategoryButton.disabled = false;
-    }
-  }
-
-  createCategoryButton.addEventListener("click", async () => {
-    await createCategoryFromInput();
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  // ── Reset ──
+  function resetWizard() {
+    selectedPage = null;
+    selectedCategory = null;
+    document.querySelectorAll(".page-card").forEach((c) => c.classList.remove("selected"));
+    catSection.style.display = "none";
+    submitForm.classList.remove("show");
+    catCustom.classList.remove("show");
     statusBox.className = "status-box";
+    if (submitForm) submitForm.reset();
+    setStep(1);
+  }
+  resetBtn.addEventListener("click", resetWizard);
 
-    if (newCategoryInput.value.trim()) {
-      const createdCategory = await createCategoryFromInput();
-      if (!createdCategory && !categorySelect.value) return;
+  // ── Submit ──
+  submitForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!selectedPage || !selectedCategory) {
+      showStatus(t("เลือกหน้าและหมวดหมู่ก่อน","Please select a page and category first."), "warning");
+      return;
     }
-
-    let metadata = {};
-    const metadataText = metadataInput.value.trim();
-    if (metadataText) {
-      try {
-        metadata = JSON.parse(metadataText);
-      } catch (_error) {
-        showStatus(copyForLang("หากระบุเมทาดาทา จะต้องเป็น JSON ที่ถูกต้อง", "Metadata must be valid JSON when provided."), "error");
-        return;
-      }
-    }
-
-    submitButton.disabled = true;
-    submitButton.textContent = copyForLang("กำลังส่ง...", "Submitting...");
+    submitBtn.disabled = true;
+    const thSpan = submitBtn.querySelector(".th-text");
+    const enSpan = submitBtn.querySelector(".en-text");
+    if (thSpan) thSpan.textContent = "กำลังส่ง...";
+    if (enSpan) enSpan.textContent = "Submitting...";
     try {
       await apiFetch("/api/submitted-data", {
         method: "POST",
         body: JSON.stringify({
-          title: document.getElementById("title").value.trim(),
-          description: document.getElementById("description").value.trim(),
-          source_url: document.getElementById("source_url").value.trim() || null,
-          category: categorySelect.value,
-          page_target: document.getElementById("page_target").value,
-          metadata,
+          title:       document.getElementById("title").value.trim(),
+          description: document.getElementById("description").value.trim() || null,
+          source_url:  document.getElementById("source_url").value.trim() || null,
+          category:    selectedCategory,
+          page_target: selectedPage,
+          metadata:    {},
         }),
       });
-      form.reset();
-      setPlaceholders();
-      await loadCategories();
-      showStatus(copyForLang("รับรายการส่งข้อมูลแล้ว และเพิ่มเข้าคิววิเคราะห์เรียบร้อย", "Submission accepted and queued for analysis."), "success");
+      resetWizard();
+      showStatus(t("ส่งข้อมูลสำเร็จ! ทีมงานจะตรวจสอบเร็ว ๆ นี้","Submitted! The team will review it soon."), "success");
       const mine = await apiFetch("/api/submitted-data/mine");
       renderMine(mine?.items || []);
-    } catch (error) {
-      showStatus(error.message, "error");
+    } catch (err) {
+      showStatus(err.message, "error");
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = copyForLang("ส่งข้อมูล", "Submit Data");
+      submitBtn.disabled = false;
+      if (thSpan) thSpan.textContent = "ส่งข้อมูล";
+      if (enSpan) enSpan.textContent = "Submit";
     }
   });
 
-  async function initialize() {
-    try {
-      const publicData = await apiFetch("/api/submitted-data/public");
-      renderPublic(publicData?.items || []);
-    } catch (_error) {
-      renderPublic([]);
+  // ── Status pill ──
+  function statusPill(status, analysis_status) {
+    if (status === "approved" && analysis_status === "completed")
+      return `<span class="status-pill sp-live">${t("เผยแพร่แล้ว","Published")}</span>`;
+    if (status === "rejected" || analysis_status === "failed")
+      return `<span class="status-pill sp-fail">${t("ไม่ผ่าน","Not accepted")}</span>`;
+    if (analysis_status === "processing")
+      return `<span class="status-pill sp-rev">${t("กำลังตรวจสอบ","Reviewing")}</span>`;
+    return `<span class="status-pill sp-wait">${t("รอตรวจสอบ","Waiting")}</span>`;
+  }
+
+  // ── Render my list ──
+  function renderMine(items) {
+    window.__sqMineItems = items || [];
+    if (!items?.length) {
+      myList.innerHTML = `<div class="empty-state">${t("ยังไม่มีรายการ","No submissions yet.")}</div>`;
+      return;
     }
+    myList.innerHTML = items.map((item) => {
+      const pageMeta = PAGE_META[item.page_target];
+      const pageLabel = pageMeta ? t(pageMeta.th, pageMeta.en) : (item.page_target || "");
+      return `
+        <article class="my-item">
+          <div class="my-item-top">
+            <div class="my-item-title">${item.title}</div>
+            ${statusPill(item.status, item.analysis_status)}
+          </div>
+          <div class="my-item-meta">
+            ${item.category ? `<span>${item.category}</span>` : ""}
+            ${pageLabel ? ` · ${pageLabel}` : ""}
+            ${item.created_at ? ` · ${formatDate(item.created_at)}` : ""}
+          </div>
+          ${item.source_url ? `<div class="my-item-meta" style="margin-top:.2rem">
+            <a style="color:var(--primary);font-size:.73rem;text-decoration:none" href="${item.source_url}" target="_blank" rel="noopener">${item.source_url}</a>
+          </div>` : ""}
+        </article>`;
+    }).join("");
+  }
+
+  // ── Render public ──
+  function renderPublic(items) {
+    window.__sqPublicItems = items || [];
+    if (!items?.length) {
+      publicGrid.innerHTML = `<div class="empty-state">${t("ยังไม่มีข้อมูลที่ผ่านการตรวจสอบ","No verified contributions yet.")}</div>`;
+      return;
+    }
+    publicGrid.innerHTML = items.map((item) => `
+      <article class="pub-card">
+        <div class="pub-by">👤 ${item.submitted_by ? `${t("ส่งโดย","By")} ${item.submitted_by}` : t("ชุมชน","Community")}</div>
+        <div class="pub-title">${item.title}</div>
+        ${item.description ? `<div class="pub-desc">${item.description}</div>` : ""}
+        <div class="pub-foot">
+          ${item.category ? `<span class="cat-tag">${item.category}</span>` : ""}
+          ${item.source_url ? `<a class="pub-link" href="${item.source_url}" target="_blank" rel="noopener">${item.source_url}</a>` : ""}
+          ${item.created_at ? `<span class="pub-date">${formatDate(item.created_at)}</span>` : ""}
+        </div>
+      </article>
+    `).join("");
+  }
+
+  // ── Placeholders ──
+  function setPlaceholders() {
+    document.querySelectorAll("[data-placeholder-th]").forEach((el) => {
+      el.placeholder = isTH() ? el.dataset.placeholderTh : el.dataset.placeholderEn;
+    });
+  }
+
+  // ── Init ──
+  async function init() {
+    setPlaceholders();
+    try {
+      const pub = await apiFetch("/api/submitted-data/public");
+      renderPublic(pub?.items || []);
+    } catch { renderPublic([]); }
+
+    const auth = await loadAuthState();
+    if (!auth?.user) {
+      authGate.classList.remove("hidden");
+      wizard.classList.add("hidden");
+      return;
+    }
+    authGate.classList.add("hidden");
+    wizard.classList.remove("hidden");
+    await loadDbCategories();
 
     try {
-      const authState = await loadAuthState();
-      if (!authState?.enabled) {
-        form.classList.add("hidden");
-        authRequired.classList.remove("hidden");
-        authActions.classList.remove("hidden");
-        mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("เซิร์ฟเวอร์นี้ยังไม่ได้ตั้งค่า Supabase", "Supabase is not configured on this server yet.")}</div></div>`;
-        showStatus(copyForLang("เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Supabase", "Supabase is not configured on the server."), "warning");
-        return;
-      }
-
-      if (!authState?.user) {
-        form.classList.add("hidden");
-        authRequired.classList.remove("hidden");
-        authActions.classList.remove("hidden");
-        mySubmissions.innerHTML = `<div class="queue-item"><div class="item-copy">${copyForLang("เข้าสู่ระบบเพื่อโหลดรายการส่งข้อมูลของคุณ", "Login to load your submissions.")}</div></div>`;
-        if (authState?.degraded) {
-          showStatus(copyForLang("ไม่สามารถยืนยันสถานะการเข้าสู่ระบบได้ รีเฟรชหน้าแล้วลองอีกครั้ง", "Authentication state could not be verified. Refresh the page and try again."), "warning");
-        }
-        return;
-      }
-
-      authRequired.classList.add("hidden");
-      authActions.classList.add("hidden");
-      form.classList.remove("hidden");
-
-      await loadCategories();
       const mine = await apiFetch("/api/submitted-data/mine");
       renderMine(mine?.items || []);
-    } catch (error) {
-      showStatus(error.message, "error");
-    }
+    } catch { renderMine([]); }
   }
 
   window.__sq_apply_language = function () {
     setPlaceholders();
-    submitButton.textContent = copyForLang("ส่งข้อมูล", "Submit Data");
-    if (!form.classList.contains("hidden")) {
-      loadCategories().catch(function () {});
-      renderMine(window.__sqMineItems || []);
-    }
+    renderMine(window.__sqMineItems || []);
     renderPublic(window.__sqPublicItems || []);
+    if (selectedPage) renderCategoryChips();
   };
 
-  setPlaceholders();
-  initialize();
+  init();
 </script>
 {% endblock %}

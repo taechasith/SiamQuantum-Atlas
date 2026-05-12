@@ -327,6 +327,7 @@ def _local_submission_payload(row: sqlite3.Row | dict[str, Any]) -> dict[str, An
         "analysis_status": raw.get("analysis_status"),
         "analysis_result": analysis_result_value,
         "metadata": metadata_value,
+        "submitted_by": str(metadata_value.get("submitted_by") or "").strip() or None,
         "created_at": raw.get("created_at"),
         "updated_at": raw.get("updated_at"),
     }
@@ -453,6 +454,12 @@ def _require_admin_user(request: Request) -> tuple[str, SupabaseUser, dict[str, 
 def _submitted_data_payload(row: dict[str, Any]) -> dict[str, Any]:
     created_at = row.get("created_at")
     updated_at = row.get("updated_at")
+    metadata = row.get("metadata") or {}
+    if isinstance(metadata, str):
+        try:
+            metadata = json.loads(metadata)
+        except Exception:
+            metadata = {}
     return {
         "id": row.get("id"),
         "user_id": row.get("user_id"),
@@ -464,7 +471,8 @@ def _submitted_data_payload(row: dict[str, Any]) -> dict[str, Any]:
         "status": row.get("status"),
         "analysis_status": row.get("analysis_status"),
         "analysis_result": row.get("analysis_result"),
-        "metadata": row.get("metadata") or {},
+        "metadata": metadata,
+        "submitted_by": str(metadata.get("submitted_by") or "").strip() or None,
         "created_at": created_at,
         "updated_at": updated_at,
     }
@@ -2196,6 +2204,7 @@ def api_submitted_data_create(
             return JSONResponse({"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}}, status_code=422)
         if not category:
             return JSONResponse({"ok": False, "data": None, "error": {"code": "category_required", "message": "Category is required."}}, status_code=422)
+        metadata["submitted_by"] = str(user.display_name or user.email or "").strip() or None
         now = _utcnow_iso()
         db = _db()
         with get_connection(db) as conn:
@@ -2234,6 +2243,8 @@ def api_submitted_data_create(
 
     try:
         profile = ensure_profile_for_user(access_token, user)
+        owner_label = str(profile.get("display_name") or user.display_name or user.email or "").strip() or None
+        metadata["submitted_by"] = owner_label
         rows = rest_insert(
             "submitted_data",
             {
@@ -2263,7 +2274,6 @@ def api_submitted_data_create(
             status_code=500,
         )
 
-    owner_label = str(profile.get("display_name") or user.display_name or user.email or "").strip() or None
     background_tasks.add_task(
         _enqueue_submitted_data_analysis,
         int(created["id"]),
