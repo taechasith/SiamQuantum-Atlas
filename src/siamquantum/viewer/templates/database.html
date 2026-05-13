@@ -606,8 +606,8 @@
       <div class="field">
         <label for="filter-relevance"><span class="th-text">ขอบเขตความเกี่ยวข้อง</span><span class="en-text">Relevance Scope</span></label>
         <select id="filter-relevance">
-          <option value="relevant" selected>Relevant (qt OR th) — 403 sources</option>
-          <option value="strict">Quantum + Thailand — 154 sources</option>
+          <option value="strict" selected>Quantum + Thailand (clean) — 154</option>
+          <option value="relevant">Relevant (qt OR th) — 403</option>
           <option value="quantum">Quantum only — 249</option>
           <option value="thailand">Thailand only — 120</option>
           <option value="all">All (incl. rejected) — 815</option>
@@ -744,7 +744,7 @@
       params.set("page", String(state.page));
       params.set("page_size", String(state.pageSize));
     }
-    const scope = (elements.filterRelevance && elements.filterRelevance.value) || "relevant";
+    const scope = (elements.filterRelevance && elements.filterRelevance.value) || "strict";
     params.set("relevance_scope", scope);
     if (elements.filterYear.value) params.set("year", elements.filterYear.value);
     if (elements.filterPlatform.value) params.set("platform", elements.filterPlatform.value);

@@ -954,16 +954,13 @@ def page_admin_submitted_data(request: Request) -> Any:
 @app.get("/api/geo/list")
 def api_geo_list(
     cdn: bool = Query(False, description="Include CDN-resolved rows"),
-    include_filtered: bool = Query(True, description="Include all rows (default). Set false for operational corpus only."),
-    scope: str = Query("all", description="Filter scope: all | quantum | thailand | strict"),
+    include_filtered: bool = Query(True, description="Deprecated — use scope instead."),
+    scope: str = Query("strict", description="strict (default, qt AND th) | quantum | thailand | all"),
 ) -> JSONResponse:
     """
     Returns geo rows joined with source metadata.
-    Default: all geo-tagged sources (include_filtered=true).
-    scope=strict → is_quantum_tech=1 AND is_thailand_related=1
-    scope=quantum → is_quantum_tech=1
-    scope=thailand → is_thailand_related=1
-    scope=all → no relevance filter
+    Default scope=strict: only sources where is_quantum_tech=1 AND is_thailand_related=1.
+    Broader scopes available via ?scope=quantum|thailand|all for research use.
     """
     db = _db()
     scope_clauses = {
@@ -972,9 +969,9 @@ def api_geo_list(
         "thailand": "AND s.is_thailand_related = 1",
         "all": "",
     }
-    relevance_clause = scope_clauses.get(scope, "")
-    if not include_filtered:
-        relevance_clause = scope_clauses["strict"]
+    # include_filtered=false forces strict regardless of scope param (backwards compat)
+    effective_scope = "strict" if not include_filtered else scope
+    relevance_clause = scope_clauses.get(effective_scope, scope_clauses["strict"])
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
@@ -1501,19 +1498,18 @@ def api_sources(
     source_id: int | None = Query(None, description="Direct lookup by source ID"),
     include_filtered: bool = Query(True, description="Deprecated — use relevance_scope."),
     relevance_scope: str = Query(
-        "relevant",
-        description="relevant (qt OR th, default) | strict (qt AND th) | quantum | thailand | all",
+        "strict",
+        description="strict (default, qt AND th) | relevant (qt OR th) | quantum | thailand | all",
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> JSONResponse:
-    """Paginated source list. Default scope='relevant' excludes fully-rejected sources."""
+    """Paginated source list. Default scope='strict' (qt=1 AND th=1 — 154 clean sources)."""
     db = _db()
     conditions: list[str] = []
     params: list[Any] = []
 
     # ── relevance scope ──────────────────────────────────────────────────────
-    # "relevant" = qt=1 OR th=1 — excludes the 292 fully-rejected (qt=0, th=0)
     effective_scope = relevance_scope if include_filtered else "strict"
     if effective_scope == "strict":
         conditions.append("s.is_quantum_tech = 1")

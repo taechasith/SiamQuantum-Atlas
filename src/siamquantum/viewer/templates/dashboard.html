@@ -711,10 +711,10 @@
         </div>
       </div>
       <div class="map-scope-bar" style="margin-bottom:0.5rem;">
-        <button class="map-scope-btn is-active" data-scope="all" type="button"><span class="scope-dot" style="background:#94A3B8"></span><span class="th-text">ทั้งหมด</span><span class="en-text">All</span></button>
+        <button class="map-scope-btn is-active" data-scope="strict" type="button"><span class="scope-dot" style="background:#38BDF8"></span><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum+TH</span></button>
         <button class="map-scope-btn" data-scope="quantum" type="button"><span class="scope-dot" style="background:#10B981"></span><span class="th-text">ควอนตัม</span><span class="en-text">Quantum</span></button>
         <button class="map-scope-btn" data-scope="thailand" type="button"><span class="scope-dot" style="background:#F59E0B"></span><span class="th-text">ไทย</span><span class="en-text">Thailand</span></button>
-        <button class="map-scope-btn" data-scope="strict" type="button"><span class="scope-dot" style="background:#38BDF8"></span><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum+TH</span></button>
+        <button class="map-scope-btn" data-scope="all" type="button"><span class="scope-dot" style="background:#94A3B8"></span><span class="th-text">ทั้งหมด</span><span class="en-text">All</span></button>
       </div>
       <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
       <div class="map-label" id="status-pill"><span class="th-text">กำลังโหลดแผนที่</span><span class="en-text">Loading map</span></div>
@@ -952,7 +952,7 @@
       ? `<br><span class="popup-meta">📺 ${item.channel_title}${item.channel_country ? " · " + item.channel_country : ""}</span>`
       : "";
     const dbLink = item.source_id
-      ? `<a class="popup-link" href="/database?id=${item.source_id}&scope=all" style="color:var(--warning)">📋 ${copyForLang("ดูในฐานข้อมูล", "View record")}</a> · `
+      ? `<a class="popup-link" href="/database?id=${item.source_id}" style="color:var(--warning)">📋 ${copyForLang("ดูในฐานข้อมูล", "View record")}</a> · `
       : "";
     return `
       <strong>${title}</strong><br>
@@ -1088,7 +1088,7 @@
     }
   }
 
-  async function loadGeo(scope = "all") {
+  async function loadGeo(scope = "strict") {
     currentScope = scope;
     try {
       const response = await fetch(`/api/geo/list?scope=${encodeURIComponent(scope)}&cdn=false`);
@@ -1146,7 +1146,7 @@
 
   loadSummary();
   loadPipeline();
-  loadGeo("all");
+  loadGeo("strict");
 
   // Scope filter buttons
   document.querySelectorAll("[data-scope]").forEach(function(btn) {
