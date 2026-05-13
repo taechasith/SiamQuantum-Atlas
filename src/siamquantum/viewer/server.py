@@ -961,7 +961,33 @@ def api_geo_list(
     Returns geo rows joined with source metadata.
     Default scope=strict: only sources where is_quantum_tech=1 AND is_thailand_related=1.
     Broader scopes available via ?scope=quantum|thailand|all for research use.
+
+    Two tiers of geo data are returned:
+      - is_approximate=0: real IP-resolved coordinates (authoritative)
+      - is_approximate=1: channel_country centroid fallback for CDN/missing-geo sources
+        (declared country of origin, not IP — shown differently on the map)
     """
+    # Country centroids used when IP resolves to a CDN or geo is missing entirely.
+    # Source: channel_country field (declared by the channel owner on YouTube).
+    _CENTROIDS: dict[str, tuple[float, float]] = {
+        "TH": (13.7563, 100.5018),
+        "US": (37.0902, -95.7129),
+        "CN": (35.8617, 104.1954),
+        "JP": (36.2048, 138.2529),
+        "GB": (55.3781, -3.4360),
+        "SG": (1.3521, 103.8198),
+        "DE": (51.1657, 10.4515),
+        "KR": (35.9078, 127.7669),
+        "AU": (-25.2744, 133.7751),
+        "IN": (20.5937, 78.9629),
+        "FR": (46.2276, 2.2137),
+        "CA": (56.1304, -106.3468),
+        "NL": (52.1326, 5.2913),
+        "CH": (46.8182, 8.2275),
+        "SE": (60.1282, 18.6435),
+        "IL": (31.0461, 34.8516),
+    }
+
     db = _db()
     scope_clauses = {
         "strict": "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1 AND (s.relevance_confidence IS NULL OR s.relevance_confidence >= 0.65)",
@@ -969,28 +995,67 @@ def api_geo_list(
         "thailand": "AND s.is_thailand_related = 1",
         "all": "",
     }
-    # include_filtered=false forces strict regardless of scope param (backwards compat)
     effective_scope = "strict" if not include_filtered else scope
     relevance_clause = scope_clauses.get(effective_scope, scope_clauses["strict"])
     try:
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
-            cdn_filter = "" if cdn else "AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)"
-            rows = conn.execute(f"""
-                SELECT g.source_id, g.lat, g.lng, g.city, g.region,
-                       g.isp, g.asn_org, g.is_cdn_resolved,
-                       s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
-                       s.channel_title, s.channel_country,
-                       s.is_quantum_tech, s.is_thailand_related,
-                       s.relevance_confidence, s.view_count
-                FROM geo g
-                JOIN sources s ON g.source_id = s.id
-                WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
-                {cdn_filter}
-                {relevance_clause}
-                ORDER BY s.published_year DESC, g.source_id DESC
-                LIMIT 2000
-            """).fetchall()
+
+            if cdn:
+                # Expert mode: return all geo rows including CDN-resolved (raw data, no approximate tier)
+                real_rows = conn.execute(f"""
+                    SELECT g.source_id, g.lat, g.lng, g.city, g.region,
+                           g.isp, g.asn_org, g.is_cdn_resolved,
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                           s.channel_title, s.channel_country,
+                           s.is_quantum_tech, s.is_thailand_related,
+                           s.relevance_confidence, s.view_count,
+                           0 AS is_approximate
+                    FROM geo g
+                    JOIN sources s ON g.source_id = s.id
+                    WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
+                      {relevance_clause}
+                    ORDER BY s.published_year DESC, g.source_id DESC
+                    LIMIT 2000
+                """).fetchall()
+                approx_candidates: list = []
+            else:
+                # Default: Tier 1 = real IP geo, Tier 2 = channel_country centroid fallback
+                real_rows = conn.execute(f"""
+                    SELECT g.source_id, g.lat, g.lng, g.city, g.region,
+                           g.isp, g.asn_org, g.is_cdn_resolved,
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                           s.channel_title, s.channel_country,
+                           s.is_quantum_tech, s.is_thailand_related,
+                           s.relevance_confidence, s.view_count,
+                           0 AS is_approximate
+                    FROM geo g
+                    JOIN sources s ON g.source_id = s.id
+                    WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
+                      AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
+                      {relevance_clause}
+                    ORDER BY s.published_year DESC, g.source_id DESC
+                    LIMIT 2000
+                """).fetchall()
+
+                # Sources with no real geo but have channel_country — synthesise centroid point
+                approx_candidates = conn.execute(f"""
+                    SELECT s.id AS source_id, s.channel_country,
+                           s.platform, s.url, s.title, s.published_year, s.quantum_domain, s.fetched_at,
+                           s.channel_title,
+                           s.is_quantum_tech, s.is_thailand_related,
+                           s.relevance_confidence, s.view_count
+                    FROM sources s
+                    WHERE s.channel_country IS NOT NULL
+                      {relevance_clause}
+                      AND s.id NOT IN (
+                          SELECT g2.source_id FROM geo g2
+                          WHERE g2.is_cdn_resolved = 0 OR g2.is_cdn_resolved IS NULL
+                      )
+                    ORDER BY s.published_year DESC, s.id DESC
+                    LIMIT 2000
+                """).fetchall()
+
     except Exception as exc:
         return JSONResponse(
             {
@@ -998,20 +1063,59 @@ def api_geo_list(
                 "data": [],
                 "count": 0,
                 "relevance": None,
-                "error": {
-                    "code": "geo_list_failed",
-                    "message": str(exc),
-                },
+                "error": {"code": "geo_list_failed", "message": str(exc)},
             },
             status_code=500,
         )
 
-    items = [dict(r) for r in rows]
+    import random, hashlib
+
+    def _jitter(source_id: int, base: float, spread: float = 0.6) -> float:
+        """Deterministic jitter so same source always lands at same offset."""
+        h = int(hashlib.md5(str(source_id).encode()).hexdigest(), 16)
+        rng = random.Random(h)
+        return base + rng.uniform(-spread, spread)
+
+    items: list[dict] = [dict(r) for r in real_rows]
+    real_ids = {r["source_id"] for r in items}
+
+    for r in approx_candidates:
+        d = dict(r)
+        country = d.get("channel_country") or ""
+        if country not in _CENTROIDS or d["source_id"] in real_ids:
+            continue
+        lat0, lng0 = _CENTROIDS[country]
+        items.append({
+            "source_id": d["source_id"],
+            "lat": _jitter(d["source_id"], lat0),
+            "lng": _jitter(d["source_id"] + 1, lng0),
+            "city": None,
+            "region": None,
+            "isp": None,
+            "asn_org": None,
+            "is_cdn_resolved": None,
+            "platform": d["platform"],
+            "url": d["url"],
+            "title": d["title"],
+            "published_year": d["published_year"],
+            "quantum_domain": d["quantum_domain"],
+            "fetched_at": d["fetched_at"],
+            "channel_title": d["channel_title"],
+            "channel_country": country,
+            "is_quantum_tech": d["is_quantum_tech"],
+            "is_thailand_related": d["is_thailand_related"],
+            "relevance_confidence": d["relevance_confidence"],
+            "view_count": d["view_count"],
+            "is_approximate": 1,
+        })
+
     return JSONResponse(
         {
             "ok": True,
             "data": items,
             "count": len(items),
+            "real_count": len(real_ids),
+            "approximate_count": len(items) - len(real_ids),
             "relevance": relevance,
             "error": None,
         }

@@ -575,10 +575,17 @@
   }
 
   /* relevance-tier colors */
-  .marker-strict   { color: #38BDF8; background: #38BDF8; } /* qt+th */
+  .marker-strict   { color: #38BDF8; background: #38BDF8; } /* qt+th, real IP */
   .marker-quantum  { color: #10B981; background: #10B981; } /* qt only */
   .marker-thailand { color: #F59E0B; background: #F59E0B; } /* th only */
   .marker-unscoped { color: #94A3B8; background: #94A3B8; } /* neither */
+  /* approximate = channel_country centroid, not real IP */
+  .marker-approx {
+    opacity: 0.45;
+    border-style: dashed;
+    border-color: rgba(56,189,248,0.5);
+    box-shadow: none;
+  }
 
   .map-scope-bar {
     display: flex;
@@ -937,14 +944,21 @@
   }
 
   function markerHtml(item) {
-    return `<div class="quantum-marker ${relevanceClass(item)}"></div>`;
+    const approxClass = item.is_approximate ? " marker-approx" : "";
+    return `<div class="quantum-marker ${relevanceClass(item)}${approxClass}"></div>`;
   }
 
   function popupHtml(item) {
-    const location = [item.city, item.region].filter(Boolean).join(", ") || "Unknown location";
+    const isApprox = item.is_approximate;
+    const location = isApprox
+      ? (item.channel_country ? `${item.channel_country} (declared origin)` : "Approximate")
+      : ([item.city, item.region].filter(Boolean).join(", ") || "Unknown location");
     const title = item.title || item.url || "Untitled source";
     const year = item.published_year ?? "Unknown year";
     const platform = (item.platform || "other").toUpperCase();
+    const approxNote = isApprox
+      ? `<br><span class="popup-meta" style="color:#F59E0B;font-size:.7rem">⚠ Approximate — based on channel country, not IP</span>`
+      : "";
     const domain = item.quantum_domain && item.quantum_domain !== "not_applicable"
       ? `<br><span class="popup-meta" style="color:var(--primary)">⬡ ${item.quantum_domain.replaceAll("_"," ")}</span>`
       : "";
@@ -957,7 +971,7 @@
     return `
       <strong>${title}</strong><br>
       <span class="popup-meta">${platform} | ${year} | ${location}</span><br>
-      <span class="popup-meta">${item.isp || item.asn_org || "Unknown ISP"}</span>${domain}${channel}<br>
+      ${isApprox ? "" : `<span class="popup-meta">${item.isp || item.asn_org || "Unknown ISP"}</span>`}${approxNote}${domain}${channel}<br>
       ${dbLink}<a class="popup-link" href="${item.url}" target="_blank" rel="noopener">${copyForLang("เปิดลิงก์", "Open link")}</a>
     `;
   }
@@ -1103,7 +1117,12 @@
       geoRows = rows.slice();
 
       if (elements.statGeo) elements.statGeo.textContent = String(payload.count || rows.length);
-      elements.footer.textContent = copyForLang("ค่าเริ่มต้นไม่รวมแถวที่ resolve ผ่าน CDN", "CDN-based rows are hidden by default");
+      const realCt = payload.real_count ?? rows.filter(r => !r.is_approximate).length;
+      const approxCt = payload.approximate_count ?? rows.filter(r => r.is_approximate).length;
+      elements.footer.textContent = copyForLang(
+        `${realCt} พิกัด IP จริง · ${approxCt} ประมาณตามประเทศช่อง (จุดโปร่งใส)`,
+        `${realCt} real IP coords · ${approxCt} approx from channel country (faded markers)`
+      );
 
       if (!rows.length) {
         showEmpty();
