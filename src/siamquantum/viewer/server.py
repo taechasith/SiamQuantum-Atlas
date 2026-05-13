@@ -1068,14 +1068,6 @@ def api_geo_list(
             status_code=500,
         )
 
-    import random, hashlib
-
-    def _jitter(source_id: int, base: float, spread: float = 0.6) -> float:
-        """Deterministic jitter so same source always lands at same offset."""
-        h = int(hashlib.md5(str(source_id).encode()).hexdigest(), 16)
-        rng = random.Random(h)
-        return base + rng.uniform(-spread, spread)
-
     items: list[dict] = [dict(r) for r in real_rows]
     real_ids = {r["source_id"] for r in items}
 
@@ -1087,8 +1079,8 @@ def api_geo_list(
         lat0, lng0 = _CENTROIDS[country]
         items.append({
             "source_id": d["source_id"],
-            "lat": _jitter(d["source_id"], lat0),
-            "lng": _jitter(d["source_id"] + 1, lng0),
+            "lat": lat0,
+            "lng": lng0,
             "city": None,
             "region": None,
             "isp": None,
