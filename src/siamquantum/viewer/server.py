@@ -2873,3 +2873,59 @@ def api_pipeline_live(limit: int = Query(8, ge=3, le=20)) -> JSONResponse:
             "error": None,
         }
     )
+
+
+# ---------------------------------------------------------------------------
+# API — Algorithm registry status  (for /api/system/algos)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/system/algos")
+def api_system_algos() -> JSONResponse:
+    """
+    Returns all registered algorithm versions and their performance scores.
+    Use this to monitor which algorithm version is currently 'best' and
+    to submit validation scores after ground-truth comparisons.
+    """
+    try:
+        from siamquantum.pipeline.algo_registry import algo_registry
+        return JSONResponse({"ok": True, "data": algo_registry.report(), "error": None})
+    except Exception as exc:
+        return JSONResponse({"ok": False, "data": {}, "error": {"code": "algo_report_failed", "message": str(exc)}}, status_code=500)
+
+
+@app.post("/api/system/algos/{name}/{version}/score")
+def api_system_algo_score(
+    name: str,
+    version: str,
+    score: float = Query(..., ge=0.0, le=1.0, description="Validation score 0–1"),
+) -> JSONResponse:
+    """
+    Submit a validation score for an algorithm version.
+    The registry uses accumulated scores to auto-select the best version.
+    Call this after comparing algorithm output against human-labeled ground truth.
+    """
+    try:
+        from siamquantum.pipeline.algo_registry import algo_registry
+        algo_registry.record_validation(name, version, score)
+        return JSONResponse({"ok": True, "data": {"name": name, "version": version, "score": score}, "error": None})
+    except KeyError as exc:
+        return JSONResponse({"ok": False, "data": None, "error": {"code": "algo_not_found", "message": str(exc)}}, status_code=404)
+
+
+# ---------------------------------------------------------------------------
+# API — Adapter registry  (for /api/system/adapters)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/system/adapters")
+def api_system_adapters() -> JSONResponse:
+    """Lists all registered source adapters (platform_id + display_name)."""
+    try:
+        from siamquantum.adapters import adapter_registry
+        adapters = [
+            {"platform_id": pid, "display_name": a.display_name}
+            for pid, a in adapter_registry.all().items()
+        ]
+        return JSONResponse({"ok": True, "data": {"adapters": adapters, "count": len(adapters)}, "error": None})
+    except Exception as exc:
+        return JSONResponse({"ok": False, "data": {"adapters": [], "count": 0}, "error": {"code": "adapters_failed", "message": str(exc)}}, status_code=500)
+

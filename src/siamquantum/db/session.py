@@ -165,42 +165,9 @@ def _configure_sqlite(conn: sqlite3.Connection, *, read_only: bool = False) -> N
 
 
 def _run_migrations(conn: sqlite3.Connection) -> None:
-    """ALTER TABLE migrations for columns added after initial schema creation."""
-    _migrations = [
-        "ALTER TABLE geo ADD COLUMN asn_org TEXT",
-        "ALTER TABLE geo ADD COLUMN is_cdn_resolved INTEGER",
-        "ALTER TABLE sources ADD COLUMN is_quantum_tech INTEGER",
-        "ALTER TABLE sources ADD COLUMN is_thailand_related INTEGER",
-        "ALTER TABLE sources ADD COLUMN quantum_domain TEXT",
-        "ALTER TABLE sources ADD COLUMN rejection_reason TEXT",
-        "ALTER TABLE sources ADD COLUMN relevance_confidence REAL",
-        "ALTER TABLE sources ADD COLUMN relevance_checked_at TEXT",
-        "CREATE INDEX IF NOT EXISTS idx_sources_relevant ON sources(is_quantum_tech, is_thailand_related)",
-        "ALTER TABLE sources ADD COLUMN channel_id TEXT",
-        "ALTER TABLE sources ADD COLUMN channel_title TEXT",
-        "ALTER TABLE sources ADD COLUMN channel_country TEXT",
-        "ALTER TABLE sources ADD COLUMN channel_default_language TEXT",
-        "CREATE INDEX IF NOT EXISTS idx_sources_channel ON sources(channel_id)",
-        "ALTER TABLE entities ADD COLUMN media_format TEXT",
-        "ALTER TABLE entities ADD COLUMN media_format_detail TEXT",
-        "ALTER TABLE entities ADD COLUMN user_intent TEXT",
-        "ALTER TABLE entities ADD COLUMN thai_cultural_angle TEXT",
-        "CREATE INDEX IF NOT EXISTS idx_entities_media_format ON entities(media_format)",
-        "CREATE INDEX IF NOT EXISTS idx_entities_user_intent ON entities(user_intent)",
-        """CREATE TABLE IF NOT EXISTS nlp_abstentions (
-            source_id  INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
-            status     TEXT NOT NULL DEFAULT 'abstained',
-            reason     TEXT,
-            updated_at TEXT
-        )""",
-        "CREATE INDEX IF NOT EXISTS idx_triplets_subj_obj ON triplets(subject, object)",
-    ]
-    for sql in _migrations:
-        try:
-            conn.execute(sql)
-            conn.commit()
-        except sqlite3.OperationalError:
-            pass
+    """Apply all pending versioned migrations from db/migrations/*.sql."""
+    from siamquantum.db.migrate import run_migrations
+    run_migrations(conn)
 
 
 def init_db(db_path: Path) -> None:

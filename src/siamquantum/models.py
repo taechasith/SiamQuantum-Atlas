@@ -143,7 +143,7 @@ class CommunitySubmissionCreate(BaseModel):
 # ---------------------------------------------------------------------------
 
 class SourceRaw(BaseModel):
-    """Raw record from GDELT or YouTube before DB insert."""
+    """Raw record from any source adapter before DB insert."""
     platform: str
     url: str
     title: str | None = None
@@ -156,6 +156,9 @@ class SourceRaw(BaseModel):
     channel_title: str | None = None
     channel_country: str | None = None
     channel_default_language: str | None = None
+    # Arbitrary source-type-specific metadata stored as JSON in source_meta column.
+    # Future adapters put their extra fields here — no ALTER TABLE ever needed.
+    source_meta: dict[str, Any] = Field(default_factory=dict)
 
 
 class GeoResult(BaseModel):
