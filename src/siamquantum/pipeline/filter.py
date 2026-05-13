@@ -133,3 +133,32 @@ def recheck_relevance(
         ).fetchall()
 
     return _classify_rows(db_path, rows, mode="stale_recheck")
+
+
+def recheck_low_confidence(
+    db_path: Path,
+    *,
+    max_confidence: float = 0.65,
+    limit: int = 100,
+) -> dict[str, int | float | str]:
+    """
+    Re-run the (now-tighter) classifier on sources accepted with low confidence.
+    Targets is_quantum_tech=1 AND relevance_confidence < max_confidence — the
+    most likely false positives in the corpus.
+    """
+    reset_usage()
+
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT id, platform, title, raw_text
+            FROM sources
+            WHERE is_quantum_tech = 1
+              AND relevance_confidence < ?
+            ORDER BY relevance_confidence ASC, id ASC
+            LIMIT ?
+            """,
+            (max_confidence, max(limit, 1)),
+        ).fetchall()
+
+    return _classify_rows(db_path, rows, mode="low_confidence_recheck")

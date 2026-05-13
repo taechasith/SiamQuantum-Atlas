@@ -964,7 +964,7 @@ def api_geo_list(
     """
     db = _db()
     scope_clauses = {
-        "strict": "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1",
+        "strict": "AND s.is_quantum_tech = 1 AND s.is_thailand_related = 1 AND (s.relevance_confidence IS NULL OR s.relevance_confidence >= 0.65)",
         "quantum": "AND s.is_quantum_tech = 1",
         "thailand": "AND s.is_thailand_related = 1",
         "all": "",
@@ -1514,6 +1514,8 @@ def api_sources(
     if effective_scope == "strict":
         conditions.append("s.is_quantum_tech = 1")
         conditions.append("s.is_thailand_related = 1")
+        # confidence floor: exclude borderline-accepted sources from public view
+        conditions.append("(s.relevance_confidence IS NULL OR s.relevance_confidence >= 0.65)")
     elif effective_scope == "quantum":
         conditions.append("s.is_quantum_tech = 1")
     elif effective_scope == "thailand":

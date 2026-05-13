@@ -538,6 +538,49 @@ def filter_relevance(
     )
 
 
+@filter_app.command("recheck-low-confidence")
+def filter_recheck_low_confidence(
+    max_confidence: float = typer.Option(0.65, "--max-confidence", help="Re-run sources accepted below this confidence"),
+    limit: int = typer.Option(100, "--limit", help="Max sources to recheck per run"),
+) -> None:
+    """Re-run the tighter classifier on low-confidence accepted sources (likely false positives)."""
+    db_path = db_path_from_url(settings.database_url)
+    from siamquantum.db.session import get_connection
+    with get_connection(db_path) as conn:
+        pending = conn.execute(
+            "SELECT COUNT(*) FROM sources WHERE is_quantum_tech=1 AND relevance_confidence < ?",
+            (max_confidence,),
+        ).fetchone()[0]
+
+    est_input_tok = min(pending, limit) * 400
+    est_output_tok = min(pending, limit) * 80
+    est_cost = est_input_tok * 3.0 / 1_000_000 + est_output_tok * 15.0 / 1_000_000
+    typer.echo(
+        f"Low-confidence qt=1 sources (conf < {max_confidence}): {pending}\n"
+        f"Will recheck up to {limit}. Cost estimate: ~${est_cost:.2f} USD"
+    )
+    if est_cost > 3.0:
+        typer.echo(f"BUDGET EXCEEDED: ${est_cost:.2f} > $3.00. Lower --limit or increase budget.", err=True)
+        raise typer.Exit(1)
+
+    from siamquantum.pipeline.filter import recheck_low_confidence
+    typer.echo("Running low-confidence recheck...")
+    counts = recheck_low_confidence(db_path, max_confidence=max_confidence, limit=limit)
+
+    actual_cost = counts.get("cost_usd_cents", 0) / 100
+    typer.echo(
+        f"\nDone.\n"
+        f"  checked:              {counts['checked']}\n"
+        f"  accepted (Q+TH):      {counts['accepted']}\n"
+        f"  rejected not quantum: {counts['rejected_not_quantum']}\n"
+        f"  rejected not thai:    {counts['rejected_not_thai']}\n"
+        f"  rejected both:        {counts['rejected_both']}\n"
+        f"  failed:               {counts['failed']}\n"
+        f"  tokens in/out: {counts.get('token_input', 0):,} / {counts.get('token_output', 0):,}\n"
+        f"  actual cost: ${actual_cost:.4f} USD"
+    )
+
+
 # ---------------------------------------------------------------------------
 # serve
 # ---------------------------------------------------------------------------
