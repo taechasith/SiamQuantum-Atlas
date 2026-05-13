@@ -979,8 +979,6 @@ def api_geo_list(
         with get_connection(db) as conn:
             relevance = _relevance_metadata(conn)
             cdn_filter = "" if cdn else "AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)"
-            # quality floor: exclude null/empty raw_text in non-all scopes
-            quality_filter = "" if scope == "all" else "AND (s.raw_text IS NOT NULL AND trim(s.raw_text) != '')"
             rows = conn.execute(f"""
                 SELECT g.source_id, g.lat, g.lng, g.city, g.region,
                        g.isp, g.asn_org, g.is_cdn_resolved,
@@ -993,7 +991,6 @@ def api_geo_list(
                 WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
                 {cdn_filter}
                 {relevance_clause}
-                {quality_filter}
                 ORDER BY s.published_year DESC, g.source_id DESC
                 LIMIT 2000
             """).fetchall()
@@ -1528,10 +1525,6 @@ def api_sources(
     elif effective_scope == "relevant":
         conditions.append("(s.is_quantum_tech = 1 OR s.is_thailand_related = 1)")
     # "all" → no relevance filter (includes fully-rejected)
-
-    # ── hard quality floor: exclude null/empty raw_text ──────────────────────
-    if effective_scope != "all":
-        conditions.append("(s.raw_text IS NOT NULL AND trim(s.raw_text) != '')")
 
     # ── field filters ────────────────────────────────────────────────────────
     if source_id is not None:
