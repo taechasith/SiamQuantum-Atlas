@@ -733,10 +733,10 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
             graph.neighbors(node_id),
             key=lambda item: (-degrees.get(item, 0), labels.get(item, item)),
         )[:8]
-        _label = labels.get(node_id, node_id)
+        _label = labels.get(node_id) or str(node_id)
         _role = _hub_role(_label)
         _top_rels = [r for r, _ in relation_counts_by_node.get(node_id, Counter()).most_common(3)]
-        _top_neighbors = [labels.get(n, n) for n in neighbor_ids[:3]]
+        _top_neighbors = [labels.get(n) or str(n) for n in neighbor_ids[:3]]
         _top_domains = [d for d, _ in domain_counts_by_node.get(node_id, Counter()).most_common(2)]
         _src_count = len(supporting_sources_by_node.get(node_id, []))
         _what = (
@@ -768,9 +768,9 @@ def _build_graph_node_detail_registry(conn: sqlite3.Connection) -> dict[str, Any
             "neighbors": [
                 {
                     "id": neighbor_id,
-                    "label": labels.get(neighbor_id, neighbor_id),
+                    "label": labels.get(neighbor_id) or str(neighbor_id),
                     "degree": degrees.get(neighbor_id, 0),
-                    "shared_links": neighbor_shared_counts_by_node.get(node_id, Counter()).get(labels.get(neighbor_id, neighbor_id), 0),
+                    "shared_links": neighbor_shared_counts_by_node.get(node_id, Counter()).get(labels.get(neighbor_id) or str(neighbor_id), 0),
                 }
                 for neighbor_id in neighbor_ids
             ],
@@ -1155,8 +1155,7 @@ def api_graph(
     # degree counter: norm_key → int
     degree: dict[str, int] = {}
     # edge aggregation: (src_key, tgt_key) → {relation, count, confidence_sum}
-    EdgeVal = dict[str, Any]
-    edge_agg: dict[tuple[str, str], EdgeVal] = {}
+    edge_agg: dict[tuple[str, str], dict[str, Any]] = {}
 
     for row in edge_rows:
         subj_raw = (row[0] or "").strip()
@@ -2252,7 +2251,7 @@ def api_submitted_data_mine(request: Request, limit: int = Query(20, ge=1, le=10
         return auth_result
     access_token, user = auth_result
     try:
-        rows = rest_select(
+        _rows = rest_select(
             "submitted_data",
             filters={"user_id": f"eq.{user.id}"},
             access_token=access_token,
@@ -2261,6 +2260,7 @@ def api_submitted_data_mine(request: Request, limit: int = Query(20, ge=1, le=10
         )
     except SupabaseError as exc:
         return _supabase_error_response(exc, code="submitted_data_load_failed", status_code=500)
+    rows: list[dict[str, Any]] = _rows if isinstance(_rows, list) else []
     return JSONResponse(
         {
             "ok": True,
@@ -2302,9 +2302,10 @@ def api_submitted_data_public(
     if category:
         filters["category"] = f"eq.{category.strip()}"
     try:
-        rows = rest_select("submitted_data", filters=filters, limit=limit, order="created_at.desc")
+        _rows = rest_select("submitted_data", filters=filters, limit=limit, order="created_at.desc")
     except SupabaseError as exc:
         return _supabase_error_response(exc, code="submitted_data_public_failed", status_code=500)
+    rows: list[dict[str, Any]] = _rows if isinstance(_rows, list) else []
     return JSONResponse(
         {
             "ok": True,
@@ -2329,7 +2330,8 @@ def api_submitted_data_create(
         source_url = str(payload.get("source_url") or "").strip() or None
         category = str(payload.get("category") or "").strip()
         page_target = str(payload.get("page_target") or "").strip() or None
-        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        _raw_meta = payload.get("metadata")
+        metadata: dict[str, Any] = _raw_meta if isinstance(_raw_meta, dict) else {}
         if not title:
             return JSONResponse({"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}}, status_code=422)
         if not category:
@@ -2359,7 +2361,8 @@ def api_submitted_data_create(
     source_url = str(payload.get("source_url") or "").strip() or None
     category = str(payload.get("category") or "").strip()
     page_target = str(payload.get("page_target") or "").strip() or None
-    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    _raw_meta = payload.get("metadata")
+    metadata: dict[str, Any] = _raw_meta if isinstance(_raw_meta, dict) else {}
     if not title:
         return JSONResponse(
             {"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}},
