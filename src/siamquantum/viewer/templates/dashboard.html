@@ -793,6 +793,14 @@
 
     /* panel actions: side-by-side buttons */
     .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    /* keep status label always above the panel peek (140px) + nav bar (64px) */
+    .map-label {
+      position: fixed;
+      bottom: calc(64px + 140px + 0.75rem);
+      left: 0.75rem;
+      z-index: 1190;
+    }
   }
 </style>
 {% endblock %}
