@@ -698,7 +698,11 @@
           <div class="submission-title">${item.title}</div>
           ${statusPill(item.status, item.analysis_status)}
         </div>
-        <div class="submission-meta">${item.category || ""}${item.page_target ? ` · ${item.page_target}` : ""}</div>
+        <div class="submission-meta">
+          ${item.category || ""}
+          ${(item.metadata?.tags?.length > 1) ? ` · ${item.metadata.tags.slice(1,3).join(", ")}` : ""}
+          ${item.page_target ? ` · ${item.page_target}` : ""}
+        </div>
         ${item.description || item.source_url ? `<div class="submission-copy">${item.description || item.source_url}</div>` : ""}
       </article>
     `).join("");

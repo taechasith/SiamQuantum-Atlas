@@ -195,7 +195,13 @@
           <div class="admin-item-title">${item.title}</div>
           <span class="pill">${item.status} / ${item.analysis_status}</span>
         </div>
-        <div class="admin-item-meta">${item.category}${item.page_target ? ` · ${item.page_target}` : ""}${item.source_url ? ` · ${item.source_url}` : ""}</div>
+        <div class="admin-item-meta">
+          ${item.category}
+          ${(item.metadata?.tags?.length > 1) ? ` · <span style="color:var(--primary);font-size:.75rem">${item.metadata.tags.slice(1).join(", ")}</span>` : ""}
+          ${item.page_target ? ` · ${item.page_target}` : ""}
+          ${item.source_url ? ` · <a href="${item.source_url}" target="_blank" rel="noopener" style="color:var(--primary);font-size:.75rem;word-break:break-all">${item.source_url}</a>` : ""}
+          ${item.metadata?.ai_analyzed ? ' · <span style="color:#a78bfa;font-size:.72rem">AI analyzed</span>' : ""}
+        </div>
         <div class="admin-item-copy">${item.description || "No description."}</div>
         <pre class="admin-json">${JSON.stringify(item.analysis_result || {}, null, 2)}</pre>
         <div class="action-row">

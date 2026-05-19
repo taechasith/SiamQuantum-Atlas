@@ -237,6 +237,92 @@
   }
   .btn-xs:hover { background: rgba(56,189,248,.18); }
 
+  /* ── URL step ── */
+  .url-input-row {
+    display: flex;
+    gap: .55rem;
+    align-items: stretch;
+  }
+  .url-input-row input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 .9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    font-size: .9rem;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .url-input-row input:focus {
+    outline: none;
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
+  }
+  .btn-ai {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    height: 44px;
+    padding: 0 1.1rem;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg,#7ad7ff,#34baf0);
+    color: #04111e;
+    font-size: .85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter .15s;
+    flex-shrink: 0;
+  }
+  .btn-ai:hover { filter: brightness(1.1); }
+  .btn-ai:disabled { opacity: .5; cursor: not-allowed; }
+  .ai-status {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-top: .65rem;
+    color: var(--primary);
+    font-size: .84rem;
+  }
+  .ai-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(56,189,248,.25);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .url-skip { margin-top: .7rem; }
+  .btn-skip {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: .8rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .btn-skip:hover { color: var(--muted-strong); }
+
+  /* ── AI-filled badge ── */
+  .ai-filled-badge {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .6rem .85rem;
+    border-radius: 10px;
+    background: rgba(16,185,129,.08);
+    border: 1px solid rgba(16,185,129,.2);
+    color: #6ee7b7;
+    font-size: .8rem;
+    margin-bottom: 1rem;
+  }
+
   /* ── Form ── */
   .submit-form { display: none; }
   .submit-form.show { display: block; }
@@ -464,32 +550,55 @@
         <div class="steps">
           <div class="step-dot active" id="step-dot-1">1</div>
           <div class="step-line"></div>
-          <span class="step-label"><span class="th-text">หมวดหมู่</span><span class="en-text">Category</span></span>
+          <span class="step-label"><span class="th-text">ลิงก์</span><span class="en-text">URL</span></span>
           <div class="step-line"></div>
           <div class="step-dot" id="step-dot-2">2</div>
           <div class="step-line"></div>
-          <span class="step-label"><span class="th-text">รายละเอียด</span><span class="en-text">Details</span></span>
+          <span class="step-label"><span class="th-text">ตรวจสอบ</span><span class="en-text">Review</span></span>
+          <div class="step-line"></div>
+          <div class="step-dot" id="step-dot-3">3</div>
+          <div class="step-line"></div>
+          <span class="step-label"><span class="th-text">ส่ง</span><span class="en-text">Submit</span></span>
         </div>
 
-        <!-- Step 1: Category chips -->
-        <div class="cat-section" id="cat-section">
-          <div class="cat-label">
-            <span class="th-text">เลือกประเภทเนื้อหา</span>
-            <span class="en-text">What type of content are you adding?</span>
+        <!-- Step 1: URL input -->
+        <div id="step1-section">
+          <div class="cat-label" style="margin-bottom:.7rem">
+            <span class="th-text">วางลิงก์แหล่งข้อมูลแล้วให้ AI วิเคราะห์ให้</span>
+            <span class="en-text">Paste a source URL and let AI fill in the details</span>
           </div>
-          <div class="chips-wrap" id="chips-wrap"></div>
-          <div class="cat-custom-wrap" id="cat-custom-wrap">
-            <input id="new-category" type="text"
-              placeholder="ชื่อหมวดหมู่ที่ต้องการ / Custom category name">
-            <button class="btn-xs" id="create-category-btn" type="button">
-              <span class="th-text">เพิ่ม</span><span class="en-text">Add</span>
+          <div class="url-input-row">
+            <input id="url-input" type="url" placeholder="https://..."
+              data-placeholder-th="วางลิงก์ที่นี่…"
+              data-placeholder-en="Paste URL here…">
+            <button class="btn-ai" id="analyze-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              <span class="th-text">วิเคราะห์ด้วย AI</span>
+              <span class="en-text">Analyze with AI</span>
+            </button>
+          </div>
+          <div class="ai-status hidden" id="ai-status">
+            <span class="ai-spinner"></span>
+            <span class="th-text">AI กำลังวิเคราะห์…</span>
+            <span class="en-text">AI is analyzing…</span>
+          </div>
+          <div class="url-skip">
+            <button class="btn-skip" id="skip-ai-btn" type="button">
+              <span class="th-text">ข้ามและกรอกเอง</span>
+              <span class="en-text">Skip — fill manually</span>
             </button>
           </div>
         </div>
 
-        <!-- Step 3: Form details -->
+        <!-- Step 2 + 3: Review form (hidden until step 1 done) -->
         <form id="submit-form" class="submit-form">
-          <div class="selected-summary" id="selected-summary"></div>
+          <div class="ai-filled-badge hidden" id="ai-filled-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="th-text">AI วิเคราะห์แล้ว — ตรวจสอบและแก้ไขได้</span>
+            <span class="en-text">AI-filled — review and edit before submitting</span>
+          </div>
 
           <div class="field">
             <label for="title">
@@ -522,9 +631,27 @@
             <input id="source_url" name="source_url" type="url" placeholder="https://">
           </div>
 
+          <!-- Multi-tag selection -->
+          <div class="field">
+            <label>
+              <span class="th-text">แท็กหมวดหมู่</span><span class="en-text">Category Tags</span>
+              <span class="opt"><span class="th-text">เลือกได้หลายรายการ</span><span class="en-text">select multiple</span></span>
+            </label>
+            <div class="chips-wrap" id="chips-wrap"></div>
+            <div class="cat-custom-wrap" id="cat-custom-wrap">
+              <input id="new-category" type="text"
+                placeholder="ชื่อหมวดหมู่ที่ต้องการ / Custom category name">
+              <button class="btn-xs" id="create-category-btn" type="button">
+                <span class="th-text">เพิ่ม</span><span class="en-text">Add</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="selected-summary hidden" id="selected-summary"></div>
+
           <div class="btn-row">
             <button class="btn-primary" id="submit-btn" type="submit">
-              <span class="th-text">ส่งข้อมูล</span><span class="en-text">Submit</span>
+              <span class="th-text">ส่งข้อมูลเพื่อตรวจสอบ</span><span class="en-text">Submit for Review</span>
             </button>
             <button class="btn-ghost" id="reset-btn" type="button">
               <span class="th-text">เริ่มใหม่</span><span class="en-text">Start over</span>
@@ -562,8 +689,9 @@
   import { apiFetch, loadAuthState } from "/static/js/auth.js";
 
   // ── State ──
-  let selectedCategory = null;
-  let dbCategories     = [];
+  let selectedTags   = new Set();
+  let dbCategories   = [];
+  let aiAnalyzed     = false;
   window.__sqMineItems   = [];
   window.__sqPublicItems = [];
 
@@ -591,7 +719,6 @@
     },
   ];
 
-  // Flat list for backward-compat (DB lookup, custom cats)
   const ALL_CATS = CAT_GROUPS.flatMap((g) => g.cats);
 
   function isTH() { return document.documentElement.dataset.lang !== "en"; }
@@ -603,31 +730,37 @@
   }
 
   // ── DOM refs ──
-  const authGate    = document.getElementById("auth-gate");
-  const wizard      = document.getElementById("submit-wizard");
-  const chipsWrap   = document.getElementById("chips-wrap");
-  const catCustom   = document.getElementById("cat-custom-wrap");
-  const newCatInput = document.getElementById("new-category");
-  const createCatBtn= document.getElementById("create-category-btn");
-  const submitForm  = document.getElementById("submit-form");
-  const summary     = document.getElementById("selected-summary");
-  const submitBtn   = document.getElementById("submit-btn");
-  const resetBtn    = document.getElementById("reset-btn");
-  const statusBox   = document.getElementById("submit-status");
-  const myList      = document.getElementById("my-submissions");
-  const publicGrid  = document.getElementById("public-submissions");
+  const authGate     = document.getElementById("auth-gate");
+  const wizard       = document.getElementById("submit-wizard");
+  const step1Section = document.getElementById("step1-section");
+  const urlInput     = document.getElementById("url-input");
+  const analyzeBtn   = document.getElementById("analyze-btn");
+  const aiStatusEl   = document.getElementById("ai-status");
+  const skipAiBtn    = document.getElementById("skip-ai-btn");
+  const chipsWrap    = document.getElementById("chips-wrap");
+  const catCustom    = document.getElementById("cat-custom-wrap");
+  const newCatInput  = document.getElementById("new-category");
+  const createCatBtn = document.getElementById("create-category-btn");
+  const submitForm   = document.getElementById("submit-form");
+  const summary      = document.getElementById("selected-summary");
+  const submitBtn    = document.getElementById("submit-btn");
+  const resetBtn     = document.getElementById("reset-btn");
+  const statusBox    = document.getElementById("submit-status");
+  const publicGrid   = document.getElementById("public-submissions");
+  const aiBadge      = document.getElementById("ai-filled-badge");
 
   // ── Step dots ──
   function setStep(n) {
-    [1,2].forEach((i) => {
+    [1,2,3].forEach((i) => {
       const dot = document.getElementById(`step-dot-${i}`);
+      if (!dot) return;
       dot.classList.remove("active","done");
       if (i < n)  dot.classList.add("done");
       if (i === n) dot.classList.add("active");
     });
   }
 
-  // ── Render chips (grouped) ──
+  // ── Render chips (multi-select) ──
   function renderCategoryChips() {
     const dbNames = dbCategories.map((c) => c.name);
     const extraCats = dbNames.filter((n) => !ALL_CATS.includes(n));
@@ -635,8 +768,8 @@
     const groupsHTML = CAT_GROUPS.map((g) => {
       const label = isTH() ? g.label.th : g.label.en;
       const chipsHTML = g.cats.map((name) => {
-        const isSelected = name === selectedCategory;
-        return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+        const isSel = selectedTags.has(name);
+        return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
       }).join("");
       return `<div class="cat-group"><div class="cat-group-label">${label}</div><div class="cat-group-chips">${chipsHTML}</div></div>`;
     }).join("");
@@ -646,8 +779,8 @@
         <div class="cat-group-label"><span class="th-text">หมวดหมู่เพิ่มเติม</span><span class="en-text">Custom</span></div>
         <div class="cat-group-chips">
           ${extraCats.map((name) => {
-            const isSelected = name === selectedCategory;
-            return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+            const isSel = selectedTags.has(name);
+            return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
           }).join("")}
         </div>
       </div>` : "";
@@ -657,10 +790,11 @@
 
     document.querySelectorAll(".chip:not(.chip-add)").forEach((chip) => {
       chip.addEventListener("click", () => {
-        selectedCategory = chip.dataset.cat;
+        const cat = chip.dataset.cat;
+        if (selectedTags.has(cat)) selectedTags.delete(cat);
+        else selectedTags.add(cat);
         renderCategoryChips();
-        catCustom.classList.remove("show");
-        showFormDetails();
+        updateTagSummary();
       });
     });
     document.getElementById("chip-add-btn")?.addEventListener("click", () => {
@@ -669,16 +803,67 @@
     });
   }
 
-  function showFormDetails() {
-    if (!selectedCategory) return;
-    summary.innerHTML = `
-      <span class="th-text">หมวดหมู่: <strong>${selectedCategory}</strong></span>
-      <span class="en-text">Category: <strong>${selectedCategory}</strong></span>
-    `;
+  function updateTagSummary() {
+    if (!selectedTags.size) {
+      summary.classList.add("hidden");
+      return;
+    }
+    const tagList = [...selectedTags].map((t) => `<strong>${t}</strong>`).join(" · ");
+    summary.innerHTML = `<span style="color:var(--muted-strong)">${t("แท็กที่เลือก:","Selected:")} ${tagList}</span>`;
+    summary.classList.remove("hidden");
+  }
+
+  // ── Show form (step 2/3) ──
+  function showReviewForm(ai = false) {
+    step1Section.classList.add("hidden");
     submitForm.classList.add("show");
-    setStep(2);
+    if (ai) {
+      aiBadge.classList.remove("hidden");
+      setStep(2);
+    } else {
+      aiBadge.classList.add("hidden");
+      setStep(2);
+    }
+    loadDbCategories();
     setTimeout(() => submitForm.scrollIntoView({ behavior:"smooth", block:"nearest" }), 50);
   }
+
+  // ── AI Analyze ──
+  analyzeBtn?.addEventListener("click", async () => {
+    const url = urlInput.value.trim();
+    if (!url) { urlInput.focus(); return; }
+    analyzeBtn.disabled = true;
+    aiStatusEl.classList.remove("hidden");
+    try {
+      const data = await apiFetch("/api/submitted-data/analyze-url", {
+        method: "POST",
+        body: JSON.stringify({ url }),
+      });
+      if (data?.title) document.getElementById("title").value = data.title;
+      if (data?.description) document.getElementById("description").value = data.description;
+      document.getElementById("source_url").value = url;
+      if (data?.tags?.length) {
+        data.tags.forEach((tag) => { if (ALL_CATS.includes(tag)) selectedTags.add(tag); });
+      }
+      if (data?.primary_category) selectedTags.add(data.primary_category);
+      aiAnalyzed = true;
+      showReviewForm(true);
+      renderCategoryChips();
+      updateTagSummary();
+    } catch (err) {
+      aiStatusEl.classList.add("hidden");
+      analyzeBtn.disabled = false;
+      showStatus(err.message || t("วิเคราะห์ไม่สำเร็จ","Analysis failed."), "error");
+    } finally {
+      aiStatusEl.classList.add("hidden");
+    }
+  });
+
+  skipAiBtn?.addEventListener("click", () => {
+    const url = urlInput.value.trim();
+    if (url) document.getElementById("source_url").value = url;
+    showReviewForm(false);
+  });
 
   // ── Create custom category ──
   createCatBtn.addEventListener("click", async () => {
@@ -689,10 +874,8 @@
       await apiFetch("/api/categories", { method:"POST", body: JSON.stringify({ name }) });
       newCatInput.value = "";
       catCustom.classList.remove("show");
+      selectedTags.add(name);
       await loadDbCategories();
-      selectedCategory = name;
-      renderCategoryChips();
-      showFormDetails();
     } catch (err) {
       showStatus(err.message, "error");
     } finally {
@@ -706,6 +889,7 @@
       dbCategories = data?.items || [];
     } catch { dbCategories = []; }
     renderCategoryChips();
+    updateTagSummary();
   }
 
   // ── Status ──
@@ -716,11 +900,18 @@
 
   // ── Reset ──
   function resetWizard() {
-    selectedCategory = null;
+    selectedTags.clear();
+    aiAnalyzed = false;
     submitForm.classList.remove("show");
     catCustom.classList.remove("show");
     statusBox.className = "status-box";
+    aiBadge.classList.add("hidden");
+    summary.classList.add("hidden");
     if (submitForm) submitForm.reset();
+    step1Section.classList.remove("hidden");
+    urlInput.value = "";
+    analyzeBtn.disabled = false;
+    aiStatusEl.classList.add("hidden");
     renderCategoryChips();
     setStep(1);
   }
@@ -729,10 +920,13 @@
   // ── Submit ──
   submitForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!selectedCategory) {
-      showStatus(t("เลือกหมวดหมู่ก่อน","Please select a category first."), "warning");
+    const titleVal = document.getElementById("title").value.trim();
+    if (!titleVal) {
+      showStatus(t("กรุณากรอกชื่อเรื่อง","Please enter a title."), "warning");
       return;
     }
+    const tags = [...selectedTags];
+    const primaryCategory = tags[0] || "News Article";
     submitBtn.disabled = true;
     const thSpan = submitBtn.querySelector(".th-text");
     const enSpan = submitBtn.querySelector(".en-text");
@@ -742,11 +936,14 @@
       await apiFetch("/api/submitted-data", {
         method: "POST",
         body: JSON.stringify({
-          title:       document.getElementById("title").value.trim(),
+          title:       titleVal,
           description: document.getElementById("description").value.trim() || null,
           source_url:  document.getElementById("source_url").value.trim() || null,
-          category:    selectedCategory,
-          metadata:    {},
+          category:    primaryCategory,
+          metadata:    {
+            tags,
+            ai_analyzed: aiAnalyzed,
+          },
         }),
       });
       resetWizard();
@@ -757,9 +954,10 @@
       showStatus(err.message, "error");
     } finally {
       submitBtn.disabled = false;
-      if (thSpan) thSpan.textContent = "ส่งข้อมูล";
-      if (enSpan) enSpan.textContent = "Submit";
+      if (thSpan) thSpan.textContent = "ส่งข้อมูลเพื่อตรวจสอบ";
+      if (enSpan) enSpan.textContent = "Submit for Review";
     }
+    setStep(3);
   });
 
   // ── Status pill ──
@@ -788,7 +986,7 @@
             ${statusPill(item.status, item.analysis_status)}
           </div>
           <div class="my-item-meta">
-            ${item.category ? `<span>${item.category}</span>` : ""}
+            ${(item.metadata?.tags?.length ? item.metadata.tags : (item.category ? [item.category] : [])).slice(0,3).map((tag) => `<span style="margin-right:.25rem">${tag}</span>`).join(" ·")}
             ${item.created_at ? ` · ${formatDate(item.created_at)}` : ""}
           </div>
           ${item.source_url ? `<div class="my-item-meta" style="margin-top:.2rem">
@@ -811,8 +1009,8 @@
         <div class="pub-title">${item.title}</div>
         ${item.description ? `<div class="pub-desc">${item.description}</div>` : ""}
         <div class="pub-foot">
-          ${item.category ? `<span class="cat-tag">${item.category}</span>` : ""}
-          ${item.source_url ? `<a class="pub-link" href="${item.source_url}" target="_blank" rel="noopener">${item.source_url}</a>` : ""}
+          ${(item.metadata?.tags?.length ? item.metadata.tags : (item.category ? [item.category] : [])).slice(0,3).map((tag) => `<span class="cat-tag">${tag}</span>`).join("")}
+          ${item.source_url ? `<a class="pub-link" href="${item.source_url}" target="_blank" rel="noopener">${item.source_url.replace(/^https?:\/\//, "").slice(0,45)}</a>` : ""}
           ${item.created_at ? `<span class="pub-date">${formatDate(item.created_at)}</span>` : ""}
         </div>
       </article>

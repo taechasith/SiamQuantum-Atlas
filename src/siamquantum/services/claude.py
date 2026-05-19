@@ -43,6 +43,21 @@ _DEDUPE_SYSTEM = """\
 Determine if these two texts describe the same piece of content (same article or video, possibly republished).
 Return ONLY valid JSON: {"is_duplicate": true} or {"is_duplicate": false}"""
 
+_URL_ANALYSIS_SYSTEM = """\
+You are an assistant that extracts structured metadata from web content about quantum technology.
+Given a URL and optionally a page text snippet, return ONLY valid JSON with no explanation or markdown:
+{
+  "title": "string — page or article title",
+  "description": "string — 1-3 sentence summary of what this content is about",
+  "primary_category": "string — one of: Quantum Computing, Quantum Communication, Quantum Sensing, Academic Paper, Research Paper, News Article, Video / Media, Blog / Opinion, Survey / Report, Official Document, Book / Thesis, Dataset, Statistics & Trends, Industry Reports, Funding Data, Publication Count, Historical Data, Citation Data, Conference Proceeding, Thai University Research, Government Policy, International Collaboration, Startup / Industry, Education, Event / Conference, Media Coverage",
+  "content_type": "string — one of: academic, news, educational, entertainment, report, policy",
+  "tags": ["array", "of", "relevant", "tags", "max 6"],
+  "estimated_reach": "string — rough audience scale: low / medium / high / viral",
+  "quantum_domain": "string — one of: quantum_computing, quantum_communication, quantum_sensing, quantum_materials, quantum_fundamentals, quantum_education, quantum_policy_industry, not_applicable",
+  "thai_relevance": true
+}
+If you cannot determine a field, use a reasonable default. Do not return null for required string fields."""
+
 _RELEVANCE_SYSTEM = """\
 You are a quantum technology content classifier for a Thai research platform.
 
@@ -422,6 +437,54 @@ def is_relevant_source(
             return _fallback_relevance(title, raw_text, platform)
 
     return None
+
+
+def analyze_url(url: str, page_text: str | None = None) -> dict[str, Any]:
+    """
+    Call Claude to extract structured metadata from a URL + optional page snippet.
+    Returns a dict with title, description, primary_category, content_type, tags, etc.
+    Never raises — returns a minimal fallback dict on any error.
+    """
+    user_content = f"URL: {url}"
+    if page_text:
+        user_content += f"\n\nPage text (excerpt):\n{page_text[:3000]}"
+
+    for attempt in range(2):
+        try:
+            raw = _call(_URL_ANALYSIS_SYSTEM, user_content)
+            data = _parse_json(raw)
+            return {
+                "title": str(data.get("title") or "").strip() or None,
+                "description": str(data.get("description") or "").strip() or None,
+                "primary_category": str(data.get("primary_category") or "News Article").strip(),
+                "content_type": str(data.get("content_type") or "news").strip(),
+                "tags": [str(t) for t in (data.get("tags") or []) if t][:6],
+                "estimated_reach": str(data.get("estimated_reach") or "low").strip(),
+                "quantum_domain": str(data.get("quantum_domain") or "not_applicable").strip(),
+                "thai_relevance": bool(data.get("thai_relevance", True)),
+            }
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            if attempt == 0:
+                logger.debug("analyze_url parse failed (attempt 1): %s", exc)
+                continue
+            logger.warning("analyze_url: parse failed after 2 attempts: %s", exc)
+        except _APIError as exc:
+            logger.warning("analyze_url: API error: %s", exc)
+            break
+        except Exception as exc:
+            logger.warning("analyze_url: unexpected error: %s", exc)
+            break
+
+    return {
+        "title": None,
+        "description": None,
+        "primary_category": "News Article",
+        "content_type": "news",
+        "tags": [],
+        "estimated_reach": "low",
+        "quantum_domain": "not_applicable",
+        "thai_relevance": True,
+    }
 
 
 def dedupe_check(text_a: str, text_b: str) -> bool:

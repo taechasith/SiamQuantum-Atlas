@@ -2315,6 +2315,54 @@ def api_submitted_data_public(
     )
 
 
+@app.post("/api/submitted-data/analyze-url")
+def api_submitted_data_analyze_url(
+    request: Request,
+    payload: dict[str, Any],
+) -> JSONResponse:
+    """Fetch URL page text then call Claude to extract title/description/tags."""
+    if _prefer_local_auth():
+        user = _require_local_user(request)
+        if isinstance(user, JSONResponse):
+            return user
+    else:
+        auth_result = _require_auth_user(request)
+        if isinstance(auth_result, JSONResponse):
+            return auth_result
+
+    url = str(payload.get("url") or "").strip()
+    if not url:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "url_required", "message": "url is required."}},
+            status_code=422,
+        )
+
+    page_text: str | None = None
+    try:
+        import httpx
+        with httpx.Client(timeout=8, follow_redirects=True) as client:
+            resp = client.get(url, headers={"User-Agent": "SiamQuantumAtlas/1.0"})
+            if resp.status_code < 400:
+                raw_html = resp.text[:12000]
+                import re as _re
+                page_text = _re.sub(r"<[^>]+>", " ", raw_html)
+                page_text = _re.sub(r"\s{2,}", " ", page_text).strip()[:4000]
+    except Exception as exc:
+        logger.warning("analyze_url: page fetch failed for %s: %s", url, exc)
+
+    from siamquantum.services import claude
+    try:
+        result = claude.analyze_url(url, page_text)
+    except Exception as exc:
+        logger.warning("analyze_url: claude call failed: %s", exc)
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "analysis_failed", "message": str(exc)}},
+            status_code=500,
+        )
+
+    return JSONResponse({"ok": True, "data": result, "error": None})
+
+
 @app.post("/api/submitted-data", status_code=201)
 def api_submitted_data_create(
     request: Request,
