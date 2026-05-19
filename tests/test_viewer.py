@@ -123,6 +123,86 @@ def test_pages_return_html(client: TestClient, path: str, expected: str) -> None
     assert expected in resp.text, f"{path} body missing {expected!r}"
 
 
+def test_community_category_groups_can_add_custom_categories(client: TestClient) -> None:
+    resp = client.get("/community")
+    assert resp.status_code == 200
+    assert 'data-add-group="${label}"' in resp.text
+    assert "ensureCategoryVisible" in resp.text
+    assert "User-added category in" in resp.text
+
+
+def test_analyze_url_passes_extracted_page_context_to_ai(client: TestClient) -> None:
+    client.post(
+        "/api/auth/local/register",
+        json={"email": "analyst@example.com", "password": "secret123"},
+    )
+    login = client.post(
+        "/api/auth/local/login",
+        json={"email": "analyst@example.com", "password": "secret123"},
+    )
+    assert login.status_code == 200
+
+    class FakeResponse:
+        status_code = 200
+        text = """
+        <html>
+          <head>
+            <title>Thai Quantum Lab Opens</title>
+            <meta name="description" content="NSTDA opens a Thai quantum research lab.">
+          </head>
+          <body>
+            <nav>Skip this</nav>
+            <main><p>Thailand researchers demonstrate quantum communication hardware for education.</p></main>
+          </body>
+        </html>
+        """
+
+        def raise_for_status(self) -> None:
+            return None
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs) -> None:
+            pass
+
+        def __enter__(self) -> "FakeClient":
+            return self
+
+        def __exit__(self, *args) -> None:
+            return None
+
+        def get(self, *args, **kwargs) -> FakeResponse:
+            return FakeResponse()
+
+    seen: dict[str, str | None] = {}
+
+    def fake_analyze(url: str, page_text: str | None = None) -> dict[str, object]:
+        seen["url"] = url
+        seen["page_text"] = page_text
+        return {
+            "title": None,
+            "description": None,
+            "primary_category": "Thai University Research",
+            "content_type": "news",
+            "tags": ["Quantum Communication", "Thai Quantum Lab"],
+            "estimated_reach": "medium",
+            "quantum_domain": "quantum_communication",
+            "thai_relevance": True,
+        }
+
+    with patch("httpx.Client", FakeClient):
+        with patch("siamquantum.services.claude.analyze_url", side_effect=fake_analyze):
+            resp = client.post("/api/submitted-data/analyze-url", json={"url": "https://example.com/quantum"})
+
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["ok"] is True
+    assert payload["data"]["title"] == "Thai Quantum Lab Opens"
+    assert payload["data"]["description"] == "NSTDA opens a Thai quantum research lab."
+    assert payload["data"]["source_access"]["ok"] is True
+    assert seen["url"] == "https://example.com/quantum"
+    assert "Thailand researchers demonstrate quantum communication hardware" in (seen["page_text"] or "")
+
+
 def test_dashboard_does_not_shadow_leaflet_global(client: TestClient) -> None:
     resp = client.get("/dashboard")
     assert resp.status_code == 200

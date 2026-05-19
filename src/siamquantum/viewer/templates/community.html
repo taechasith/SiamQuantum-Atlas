@@ -692,6 +692,7 @@
   let selectedTags   = new Set();
   let dbCategories   = [];
   let aiAnalyzed     = false;
+  let activeCategoryGroup = null;
   window.__sqMineItems   = [];
   window.__sqPublicItems = [];
 
@@ -723,6 +724,16 @@
 
   function isTH() { return document.documentElement.dataset.lang !== "en"; }
   function t(th, en) { return isTH() ? th : en; }
+  function categoryNames() {
+    return [...new Set([...ALL_CATS, ...dbCategories.map((c) => c.name).filter(Boolean)])];
+  }
+  function ensureCategoryVisible(name) {
+    const clean = String(name || "").trim();
+    if (!clean) return;
+    if (!categoryNames().includes(clean)) {
+      dbCategories.push({ id: `suggested-${clean}`, name: clean, slug: clean.toLowerCase().replace(/[^a-z0-9]+/g, "-"), suggested: true });
+    }
+  }
   function formatDate(iso) {
     if (!iso) return "";
     try { return new Date(iso).toLocaleDateString(isTH() ? "th-TH" : "en-GB", { day:"numeric", month:"short", year:"numeric" }); }
@@ -770,7 +781,8 @@
       const chipsHTML = g.cats.map((name) => {
         const isSel = selectedTags.has(name);
         return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
-      }).join("");
+      }).join("") +
+        `<button class="chip chip-add" type="button" data-add-group="${label}">+ <span class="th-text">เพิ่ม</span><span class="en-text">Add</span></button>`;
       return `<div class="cat-group"><div class="cat-group-label">${label}</div><div class="cat-group-chips">${chipsHTML}</div></div>`;
     }).join("");
 
@@ -798,8 +810,20 @@
       });
     });
     document.getElementById("chip-add-btn")?.addEventListener("click", () => {
+      activeCategoryGroup = null;
       catCustom.classList.toggle("show");
+      newCatInput.placeholder = t("ชื่อหมวดหมู่ที่ต้องการ / Custom category name", "Custom category name");
       if (catCustom.classList.contains("show")) newCatInput.focus();
+    });
+    document.querySelectorAll("[data-add-group]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeCategoryGroup = btn.dataset.addGroup || null;
+        catCustom.classList.add("show");
+        newCatInput.placeholder = activeCategoryGroup
+          ? t(`เพิ่มหมวดใน ${activeCategoryGroup}`, `Add a category in ${activeCategoryGroup}`)
+          : t("ชื่อหมวดหมู่ที่ต้องการ / Custom category name", "Custom category name");
+        newCatInput.focus();
+      });
     });
   }
 
@@ -843,9 +867,18 @@
       if (data?.description) document.getElementById("description").value = data.description;
       document.getElementById("source_url").value = url;
       if (data?.tags?.length) {
-        data.tags.forEach((tag) => { if (ALL_CATS.includes(tag)) selectedTags.add(tag); });
+        data.tags.forEach((tag) => {
+          const clean = String(tag || "").trim();
+          if (!clean) return;
+          ensureCategoryVisible(clean);
+          selectedTags.add(clean);
+        });
       }
-      if (data?.primary_category) selectedTags.add(data.primary_category);
+      if (data?.primary_category) {
+        const clean = String(data.primary_category || "").trim();
+        ensureCategoryVisible(clean);
+        if (clean) selectedTags.add(clean);
+      }
       aiAnalyzed = true;
       showReviewForm(true);
       renderCategoryChips();
@@ -871,14 +904,29 @@
     if (!name) return;
     createCatBtn.disabled = true;
     try {
-      await apiFetch("/api/categories", { method:"POST", body: JSON.stringify({ name }) });
+      await apiFetch("/api/categories", {
+        method:"POST",
+        body: JSON.stringify({
+          name,
+          description: activeCategoryGroup ? `User-added category in ${activeCategoryGroup}` : null,
+        }),
+      });
       newCatInput.value = "";
       catCustom.classList.remove("show");
       selectedTags.add(name);
       await loadDbCategories();
     } catch (err) {
-      showStatus(err.message, "error");
+      if (String(err.message || "").toLowerCase().includes("already exists")) {
+        ensureCategoryVisible(name);
+        selectedTags.add(name);
+        newCatInput.value = "";
+        catCustom.classList.remove("show");
+        await loadDbCategories();
+      } else {
+        showStatus(err.message, "error");
+      }
     } finally {
+      activeCategoryGroup = null;
       createCatBtn.disabled = false;
     }
   });
@@ -888,6 +936,7 @@
       const data = await apiFetch("/api/categories");
       dbCategories = data?.items || [];
     } catch { dbCategories = []; }
+    selectedTags.forEach((tag) => ensureCategoryVisible(tag));
     renderCategoryChips();
     updateTagSummary();
   }

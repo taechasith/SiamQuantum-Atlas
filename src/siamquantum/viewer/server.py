@@ -12,9 +12,10 @@ import time
 from collections import Counter
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -52,6 +53,12 @@ from siamquantum.stats.yearly_taxonomy_analytics import build_yearly_taxonomy_an
 logger = logging.getLogger(__name__)
 _LOCAL_SESSION_COOKIE = "sq_local_session"
 _ingest_lock = asyncio.Lock()
+
+_PAGE_FETCH_HEADERS = {
+    "User-Agent": "SiamQuantumAtlas/1.0 (+https://siamquantum.org; research metadata fetch)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "th,en;q=0.9",
+}
 
 
 @dataclass
@@ -345,6 +352,7 @@ def _local_current_user(request: Request) -> LocalAuthUser | None:
             FROM local_sessions s
             JOIN local_users u ON u.id = s.user_id
             WHERE s.token = ?
+              AND (s.expires_at IS NULL OR datetime(s.expires_at) > datetime('now'))
             """,
             (token,),
         ).fetchone()
@@ -498,6 +506,109 @@ def _submission_categories_from_payload(payload: dict[str, Any]) -> tuple[str, l
 
     deduped = list(dict.fromkeys(categories))
     return (deduped[0] if deduped else "", deduped)
+
+
+def _youtube_video_id(url: str) -> str | None:
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    if host.endswith("youtu.be"):
+        return parsed.path.strip("/") or None
+    if "youtube.com" in host:
+        query = parse_qs(parsed.query)
+        if query.get("v"):
+            return str(query["v"][0] or "").strip() or None
+        if parsed.path.startswith("/shorts/") or parsed.path.startswith("/embed/"):
+            parts = [part for part in parsed.path.split("/") if part]
+            return parts[1] if len(parts) > 1 else None
+    return None
+
+
+def _clean_page_text(html: str, *, limit: int = 8000) -> tuple[str | None, str | None, str | None]:
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style", "noscript", "svg", "nav", "footer", "header", "form"]):
+        tag.decompose()
+
+    title = None
+    if soup.title and soup.title.string:
+        title = " ".join(soup.title.string.split()).strip() or None
+    meta_description = None
+    for selector in (
+        {"name": "description"},
+        {"property": "og:description"},
+        {"name": "twitter:description"},
+    ):
+        tag = soup.find("meta", attrs=selector)
+        content = str(tag.get("content") or "").strip() if tag else ""
+        if content:
+            meta_description = " ".join(content.split())
+            break
+
+    chunks: list[str] = []
+    for selector in ("article", "main", "[role='main']"):
+        for node in soup.select(selector):
+            text = " ".join(node.get_text(" ", strip=True).split())
+            if len(text) > 120:
+                chunks.append(text)
+    if not chunks:
+        chunks.append(" ".join(soup.get_text(" ", strip=True).split()))
+
+    text = " ".join(chunks).strip()
+    return title, meta_description, text[:limit] if text else None
+
+
+def _fetch_url_analysis_context(url: str) -> dict[str, Any]:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("URL must start with http:// or https://.")
+
+    context: dict[str, Any] = {
+        "url": url,
+        "title": None,
+        "description": None,
+        "text": None,
+        "source_access": {"ok": False, "method": None, "status_code": None, "message": None},
+    }
+
+    video_id = _youtube_video_id(url)
+    if video_id:
+        import httpx
+
+        try:
+            with httpx.Client(timeout=8, follow_redirects=True) as client:
+                response = client.get(
+                    "https://www.youtube.com/oembed",
+                    params={"url": url, "format": "json"},
+                    headers=_PAGE_FETCH_HEADERS,
+                )
+                context["source_access"].update({"method": "youtube_oembed", "status_code": response.status_code})
+                if response.status_code < 400:
+                    data = response.json()
+                    title = str(data.get("title") or "").strip() or None
+                    author = str(data.get("author_name") or "").strip() or None
+                    context["title"] = title
+                    context["description"] = f"YouTube video by {author}" if author else "YouTube video"
+                    context["text"] = "\n".join(part for part in (title, context["description"], f"Video ID: {video_id}") if part)
+                    context["source_access"].update({"ok": True, "message": "Read YouTube oEmbed metadata."})
+                    return context
+        except Exception as exc:
+            context["source_access"].update({"method": "youtube_oembed", "message": str(exc)})
+
+    import httpx
+
+    try:
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
+            response = client.get(url, headers=_PAGE_FETCH_HEADERS)
+            context["source_access"].update({"method": "html", "status_code": response.status_code})
+            response.raise_for_status()
+            title, description, text = _clean_page_text(response.text)
+            context.update({"title": title, "description": description, "text": text})
+            context["source_access"].update({"ok": bool(text or title or description), "message": "Read page HTML."})
+    except Exception as exc:
+        context["source_access"].update({"message": str(exc)})
+
+    return context
 
 
 def _profile_payload(profile: dict[str, Any] | None, user: SupabaseUser) -> dict[str, Any]:
@@ -1997,7 +2108,8 @@ def api_local_auth_login(payload: dict[str, Any]) -> JSONResponse:
         if not hmac.compare_digest(expected, row["password_hash"]):
             return JSONResponse({"ok": False, "data": None, "error": {"code": "auth_invalid", "message": "Invalid email or password."}}, status_code=401)
         token = secrets.token_urlsafe(32)
-        conn.execute("INSERT INTO local_sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, NULL)", (token, row["id"], _utcnow_iso()))
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        conn.execute("INSERT INTO local_sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", (token, row["id"], _utcnow_iso(), expires_at))
         conn.commit()
     response = JSONResponse({"ok": True, "data": {"user": _local_profile_payload(row)}, "error": None})
     response.set_cookie(_LOCAL_SESSION_COOKIE, token, httponly=True, samesite="lax", secure=False, path="/")
@@ -2359,21 +2471,34 @@ def api_submitted_data_analyze_url(
             status_code=422,
         )
 
-    page_text: str | None = None
     try:
-        import httpx
-        with httpx.Client(timeout=8, follow_redirects=True) as client:
-            resp = client.get(url, headers={"User-Agent": "SiamQuantumAtlas/1.0"})
-            if resp.status_code < 400:
-                raw_html = resp.text[:12000]
-                import re as _re
-                page_text = _re.sub(r"<[^>]+>", " ", raw_html)
-                page_text = _re.sub(r"\s{2,}", " ", page_text).strip()[:4000]
+        context = _fetch_url_analysis_context(url)
+    except ValueError as exc:
+        return JSONResponse(
+            {"ok": False, "data": None, "error": {"code": "url_invalid", "message": str(exc)}},
+            status_code=422,
+        )
     except Exception as exc:
         logger.warning("analyze_url: page fetch failed for %s: %s", url, exc)
+        context = {
+            "url": url,
+            "title": None,
+            "description": None,
+            "text": None,
+            "source_access": {"ok": False, "method": None, "status_code": None, "message": str(exc)},
+        }
 
     from siamquantum.services import claude
     try:
+        page_text = "\n\n".join(
+            part
+            for part in (
+                f"Title: {context.get('title')}" if context.get("title") else None,
+                f"Description: {context.get('description')}" if context.get("description") else None,
+                str(context.get("text") or "").strip() or None,
+            )
+            if part
+        ) or None
         result = claude.analyze_url(url, page_text)
     except Exception as exc:
         logger.warning("analyze_url: claude call failed: %s", exc)
@@ -2381,6 +2506,11 @@ def api_submitted_data_analyze_url(
             {"ok": False, "data": None, "error": {"code": "analysis_failed", "message": str(exc)}},
             status_code=500,
         )
+    if not result.get("title") and context.get("title"):
+        result["title"] = context["title"]
+    if not result.get("description") and context.get("description"):
+        result["description"] = context["description"]
+    result["source_access"] = context.get("source_access")
 
     return JSONResponse({"ok": True, "data": result, "error": None})
 
