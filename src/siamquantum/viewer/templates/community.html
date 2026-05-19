@@ -926,7 +926,11 @@
       return;
     }
     const tags = [...selectedTags];
-    const primaryCategory = tags[0] || "News Article";
+    if (!tags.length) {
+      showStatus(t("กรุณาเลือกหมวดหมู่อย่างน้อยหนึ่งรายการ","Please select at least one category."), "warning");
+      return;
+    }
+    const primaryCategory = tags[0];
     submitBtn.disabled = true;
     const thSpan = submitBtn.querySelector(".th-text");
     const enSpan = submitBtn.querySelector(".en-text");
@@ -940,8 +944,10 @@
           description: document.getElementById("description").value.trim() || null,
           source_url:  document.getElementById("source_url").value.trim() || null,
           category:    primaryCategory,
+          categories:  tags,
           metadata:    {
             tags,
+            categories: tags,
             ai_analyzed: aiAnalyzed,
           },
         }),

@@ -460,6 +460,7 @@
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    min-width: 0;
     transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
   }
 
@@ -519,6 +520,7 @@
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    overflow-wrap: anywhere;
   }
 
   .module-copy {
@@ -687,9 +689,10 @@
 
   .home-bar-row {
     display: grid;
-    grid-template-columns: 9rem 1fr 3rem;
+    grid-template-columns: minmax(0, 9rem) minmax(2.5rem, 1fr) minmax(2.5rem, 3rem);
     align-items: center;
     gap: 0.5rem;
+    min-width: 0;
   }
 
   .home-bar-label {
@@ -784,6 +787,10 @@
       box-sizing: border-box;
     }
 
+    .page-content {
+      padding-inline: max(0.75rem, env(safe-area-inset-left));
+    }
+
     .hero-panel { padding: 1.2rem 1rem 1rem; min-height: unset; }
 
     .hero-title,
@@ -845,7 +852,58 @@
     .module-copy { display: none; }
 
     /* bottom grid: stack */
-    .bottom-grid { grid-template-columns: 1fr; }
+    .bottom-grid,
+    .overview-lower {
+      grid-template-columns: 1fr !important;
+    }
+
+    .home-bar-row {
+      grid-template-columns: minmax(0, 5.5rem) minmax(2.5rem, 1fr) minmax(2.25rem, auto);
+      gap: 0.4rem;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .page-content {
+      padding-inline: max(0.55rem, env(safe-area-inset-left));
+    }
+
+    .hero-panel {
+      padding: 1rem 0.75rem 0.9rem;
+      border-radius: 0.8rem;
+    }
+
+    .hero-title { font-size: clamp(1.45rem, 7.5vw, 1.9rem); }
+
+    .hero-stats,
+    .module-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-stat {
+      padding: 0.62rem 0.72rem;
+    }
+
+    .module-card {
+      min-height: auto;
+      padding: 0.9rem;
+      border-radius: 0.8rem;
+    }
+
+    .home-coverage-card {
+      padding: 0.9rem;
+      border-radius: 0.8rem;
+    }
+
+    .home-bar-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.35rem 0.5rem;
+    }
+
+    .home-bar-track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

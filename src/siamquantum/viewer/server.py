@@ -478,6 +478,28 @@ def _submitted_data_payload(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _submission_categories_from_payload(payload: dict[str, Any]) -> tuple[str, list[str]]:
+    raw_categories = payload.get("categories")
+    categories: list[str] = []
+    if isinstance(raw_categories, list):
+        categories = [str(item).strip() for item in raw_categories if str(item or "").strip()]
+    elif isinstance(raw_categories, str):
+        categories = [raw_categories.strip()] if raw_categories.strip() else []
+
+    raw_meta = payload.get("metadata")
+    metadata = raw_meta if isinstance(raw_meta, dict) else {}
+    raw_tags = metadata.get("tags")
+    if isinstance(raw_tags, list):
+        categories.extend(str(item).strip() for item in raw_tags if str(item or "").strip())
+
+    legacy_category = str(payload.get("category") or "").strip()
+    if legacy_category:
+        categories.insert(0, legacy_category)
+
+    deduped = list(dict.fromkeys(categories))
+    return (deduped[0] if deduped else "", deduped)
+
+
 def _profile_payload(profile: dict[str, Any] | None, user: SupabaseUser) -> dict[str, Any]:
     profile_map = profile or {}
     return {
@@ -2376,7 +2398,7 @@ def api_submitted_data_create(
         title = str(payload.get("title") or "").strip()
         description = str(payload.get("description") or "").strip() or None
         source_url = str(payload.get("source_url") or "").strip() or None
-        category = str(payload.get("category") or "").strip()
+        category, categories = _submission_categories_from_payload(payload)
         page_target = str(payload.get("page_target") or "").strip() or None
         _raw_meta = payload.get("metadata")
         metadata: dict[str, Any] = _raw_meta if isinstance(_raw_meta, dict) else {}
@@ -2384,6 +2406,8 @@ def api_submitted_data_create(
             return JSONResponse({"ok": False, "data": None, "error": {"code": "title_required", "message": "Title is required."}}, status_code=422)
         if not category:
             return JSONResponse({"ok": False, "data": None, "error": {"code": "category_required", "message": "Category is required."}}, status_code=422)
+        metadata["tags"] = categories
+        metadata["categories"] = categories
         metadata["submitted_by"] = str(user.display_name or user.email or "").strip() or None
         now = _utcnow_iso()
         db = _db()
@@ -2407,7 +2431,7 @@ def api_submitted_data_create(
     title = str(payload.get("title") or "").strip()
     description = str(payload.get("description") or "").strip() or None
     source_url = str(payload.get("source_url") or "").strip() or None
-    category = str(payload.get("category") or "").strip()
+    category, categories = _submission_categories_from_payload(payload)
     page_target = str(payload.get("page_target") or "").strip() or None
     _raw_meta = payload.get("metadata")
     metadata: dict[str, Any] = _raw_meta if isinstance(_raw_meta, dict) else {}
@@ -2421,6 +2445,8 @@ def api_submitted_data_create(
             {"ok": False, "data": None, "error": {"code": "category_required", "message": "Category is required."}},
             status_code=422,
         )
+    metadata["tags"] = categories
+    metadata["categories"] = categories
 
     try:
         profile = ensure_profile_for_user(access_token, user)
@@ -3077,4 +3103,3 @@ def api_system_adapters() -> JSONResponse:
         return JSONResponse({"ok": True, "data": {"adapters": adapters, "count": len(adapters)}, "error": None})
     except Exception as exc:
         return JSONResponse({"ok": False, "data": {"adapters": [], "count": 0}, "error": {"code": "adapters_failed", "message": str(exc)}}, status_code=500)
-

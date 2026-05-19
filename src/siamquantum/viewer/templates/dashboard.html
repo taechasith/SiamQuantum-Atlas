@@ -704,10 +704,10 @@
   @media (max-width: 720px) {
     .map-toggle-btn {
       display: flex;
-      position: absolute;
+      position: fixed;
       top: 0.75rem;
       right: 0.75rem;
-      z-index: 130;
+      z-index: 140;
       align-items: center;
       gap: 0.4rem;
       height: 36px;
@@ -721,13 +721,12 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.15s, opacity 0.2s;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .ops-panel.is-expanded ~ .map-toggle-btn,
-    .map-toggle-btn.is-visible {
       opacity: 1;
       pointer-events: auto;
+    }
+    .map-toggle-btn.is-visible,
+    .map-toggle-btn:hover {
+      background: rgba(8, 18, 32, 0.96);
     }
     .map-toggle-btn svg {
       width: 14px;
@@ -840,10 +839,10 @@
       </div>
     </div>
 
-    <!-- mobile: floating "View Map" button appears when panel is expanded -->
-    <button class="map-toggle-btn" id="map-toggle-btn" type="button" aria-label="Collapse panel, show map">
+    <!-- mobile: persistent map/details toggle -->
+    <button class="map-toggle-btn" id="map-toggle-btn" type="button" aria-label="Open details panel">
       <svg viewBox="0 0 24 24"><polyline points="4 14 12 6 20 14"/></svg>
-      <span class="th-text">แผนที่</span><span class="en-text">Map</span>
+      <span class="th-text">รายละเอียด</span><span class="en-text">Details</span>
     </button>
 
     <aside class="ops-panel" id="ops-panel">
@@ -1292,6 +1291,11 @@
       if (!mapToggleBtn) return;
       const expanded = panel.classList.contains("is-expanded");
       mapToggleBtn.classList.toggle("is-visible", expanded);
+      mapToggleBtn.setAttribute("aria-label", expanded ? "Close details panel, show map" : "Open details panel");
+      const thText = mapToggleBtn.querySelector(".th-text");
+      const enText = mapToggleBtn.querySelector(".en-text");
+      if (thText) thText.textContent = expanded ? "แผนที่" : "รายละเอียด";
+      if (enText) enText.textContent = expanded ? "Map" : "Details";
     }
 
     handle.addEventListener("click", function () {
@@ -1306,10 +1310,10 @@
       }
     });
 
-    // "View Map" button collapses the panel fully
+    // Toggle between the map and the detail sheet on phones.
     if (mapToggleBtn) {
       mapToggleBtn.addEventListener("click", function () {
-        panel.classList.remove("is-expanded");
+        panel.classList.toggle("is-expanded");
         syncMapToggle();
       });
     }
@@ -1317,6 +1321,7 @@
     // Also update toggle when marker auto-expands the panel
     const observer = new MutationObserver(syncMapToggle);
     observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
+    syncMapToggle();
   })();
 </script>
 {% endblock %}
