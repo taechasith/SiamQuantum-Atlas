@@ -43,20 +43,74 @@ _DEDUPE_SYSTEM = """\
 Determine if these two texts describe the same piece of content (same article or video, possibly republished).
 Return ONLY valid JSON: {"is_duplicate": true} or {"is_duplicate": false}"""
 
-_URL_ANALYSIS_SYSTEM = """\
-You are an assistant that extracts structured metadata from web content about quantum technology.
-Given a URL and optionally a page text snippet, return ONLY valid JSON with no explanation or markdown:
-{
-  "title": "string — page or article title",
-  "description": "string — 1-3 sentence summary of what this content is about",
-  "primary_category": "string — one of: Quantum Computing, Quantum Communication, Quantum Sensing, Academic Paper, Research Paper, News Article, Video / Media, Blog / Opinion, Survey / Report, Official Document, Book / Thesis, Dataset, Statistics & Trends, Industry Reports, Funding Data, Publication Count, Historical Data, Citation Data, Conference Proceeding, Thai University Research, Government Policy, International Collaboration, Startup / Industry, Education, Event / Conference, Media Coverage",
-  "content_type": "string — one of: academic, news, educational, entertainment, report, policy",
-  "tags": ["array", "of", "relevant", "tags", "max 6"],
-  "estimated_reach": "string — rough audience scale: low / medium / high / viral",
-  "quantum_domain": "string — one of: quantum_computing, quantum_communication, quantum_sensing, quantum_materials, quantum_fundamentals, quantum_education, quantum_policy_industry, not_applicable",
-  "thai_relevance": true
+_URL_ANALYSIS_CATEGORIES = (
+    "Quantum Computing",
+    "Quantum Communication",
+    "Quantum Sensing",
+    "Academic Paper",
+    "Research Paper",
+    "News Article",
+    "Video / Media",
+    "Blog / Opinion",
+    "Survey / Report",
+    "Official Document",
+    "Book / Thesis",
+    "Dataset",
+    "Statistics & Trends",
+    "Industry Reports",
+    "Funding Data",
+    "Publication Count",
+    "Historical Data",
+    "Citation Data",
+    "Conference Proceeding",
+    "Thai University Research",
+    "Government Policy",
+    "International Collaboration",
+    "Startup / Industry",
+    "Education",
+    "Event / Conference",
+    "Media Coverage",
+)
+_URL_ANALYSIS_CONTENT_TYPES = {"academic", "news", "educational", "entertainment", "report", "policy"}
+_URL_ANALYSIS_DOMAINS = {
+    "quantum_computing",
+    "quantum_communication",
+    "quantum_sensing",
+    "quantum_materials",
+    "quantum_fundamentals",
+    "quantum_education",
+    "quantum_policy_industry",
+    "not_applicable",
 }
-If you cannot determine a field, use a reasonable default. Do not return null for required string fields."""
+_URL_ANALYSIS_REACH = {"low", "medium", "high", "viral"}
+_URL_ANALYSIS_QUALITY = {"high", "medium", "low"}
+
+_URL_ANALYSIS_SYSTEM = f"""\
+You extract sustainable, review-ready metadata from web content for a Thai quantum research atlas.
+Use ONLY the supplied URL, page title, meta description, and page excerpt. Do not add facts that are
+not present in the supplied text. Do not invent authors, institutions, dates, countries, claims,
+funding amounts, or research outcomes. If evidence is thin, say that in analysis_notes and set
+confidence/data_quality accordingly.
+
+Return ONLY valid JSON with no explanation or markdown:
+{{
+  "title": "string or null - exact page/content title from the supplied text",
+  "description": "string or null - 2-4 grounded sentences summarizing only what the source states and why it matters for Thai quantum analysis",
+  "primary_category": "string - exactly one of: {', '.join(_URL_ANALYSIS_CATEGORIES)}",
+  "content_type": "string - one of: academic, news, educational, entertainment, report, policy",
+  "tags": ["array", "of", "evidence-supported", "category tags", "max 6"],
+  "estimated_reach": "string - rough audience scale: low / medium / high / viral",
+  "quantum_domain": "string - one of: quantum_computing, quantum_communication, quantum_sensing, quantum_materials, quantum_fundamentals, quantum_education, quantum_policy_industry, not_applicable",
+  "thai_relevance": true,
+  "evidence_quotes": ["up to 3 short snippets copied from the supplied text that justify the title/category/description"],
+  "analysis_notes": "short note on evidence strength, missing context, and review concerns",
+  "data_quality": "high|medium|low",
+  "confidence": 0.0,
+  "needs_review": true
+}}
+If the page text is too sparse, prefer null for title/description rather than guessing.
+For uncertain category, choose the broadest evidence-supported category such as News Article,
+Video / Media, Education, or Media Coverage. Never create a new category name."""
 
 _RELEVANCE_SYSTEM = """\
 You are a quantum technology content classifier for a Thai research platform.
@@ -173,6 +227,96 @@ def _parse_json(text: str) -> Any:
         if text.startswith("json"):
             text = text[4:]
     return json.loads(text.strip())
+
+
+def _clean_optional_string(value: Any, *, max_len: int | None = None) -> str | None:
+    if value is None:
+        return None
+    cleaned = " ".join(str(value).split()).strip()
+    if not cleaned or cleaned.lower() in {"null", "none", "unknown", "n/a"}:
+        return None
+    if max_len and len(cleaned) > max_len:
+        return cleaned[: max_len - 1].rstrip() + "..."
+    return cleaned
+
+
+def _allowed_string(value: Any, allowed: set[str] | tuple[str, ...], default: str) -> str:
+    cleaned = _clean_optional_string(value)
+    return cleaned if cleaned in allowed else default
+
+
+def _bounded_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return min(1.0, max(0.0, float(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _clean_string_list(value: Any, *, max_items: int, max_len: int = 80) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    items: list[str] = []
+    seen: set[str] = set()
+    for raw in value:
+        item = _clean_optional_string(raw, max_len=max_len)
+        if not item:
+            continue
+        key = item.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+        if len(items) >= max_items:
+            break
+    return items
+
+
+def _default_url_analysis() -> dict[str, Any]:
+    return {
+        "title": None,
+        "description": None,
+        "primary_category": "News Article",
+        "content_type": "news",
+        "tags": [],
+        "estimated_reach": "low",
+        "quantum_domain": "not_applicable",
+        "thai_relevance": False,
+        "evidence_quotes": [],
+        "analysis_notes": "AI analysis unavailable; reviewer should inspect the source manually.",
+        "data_quality": "low",
+        "confidence": 0.0,
+        "needs_review": True,
+    }
+
+
+def _normalize_url_analysis(data: dict[str, Any]) -> dict[str, Any]:
+    confidence = _bounded_float(data.get("confidence"), 0.0)
+    data_quality = _allowed_string(data.get("data_quality"), _URL_ANALYSIS_QUALITY, "low")
+    needs_review = bool(data.get("needs_review", confidence < 0.75 or data_quality != "high"))
+    return {
+        "title": _clean_optional_string(data.get("title"), max_len=220),
+        "description": _clean_optional_string(data.get("description"), max_len=1200),
+        "primary_category": _allowed_string(
+            data.get("primary_category"),
+            _URL_ANALYSIS_CATEGORIES,
+            "News Article",
+        ),
+        "content_type": _allowed_string(data.get("content_type"), _URL_ANALYSIS_CONTENT_TYPES, "news"),
+        "tags": _clean_string_list(data.get("tags"), max_items=6),
+        "estimated_reach": _allowed_string(data.get("estimated_reach"), _URL_ANALYSIS_REACH, "low"),
+        "quantum_domain": _allowed_string(
+            data.get("quantum_domain"),
+            _URL_ANALYSIS_DOMAINS,
+            "not_applicable",
+        ),
+        "thai_relevance": bool(data.get("thai_relevance", False)),
+        "evidence_quotes": _clean_string_list(data.get("evidence_quotes"), max_items=3, max_len=220),
+        "analysis_notes": _clean_optional_string(data.get("analysis_notes"), max_len=700)
+        or "No analysis note returned; reviewer should verify the source manually.",
+        "data_quality": data_quality,
+        "confidence": confidence,
+        "needs_review": needs_review,
+    }
 
 
 def _fallback_area(text: str) -> str:
@@ -453,16 +597,9 @@ def analyze_url(url: str, page_text: str | None = None) -> dict[str, Any]:
         try:
             raw = _call(_URL_ANALYSIS_SYSTEM, user_content)
             data = _parse_json(raw)
-            return {
-                "title": str(data.get("title") or "").strip() or None,
-                "description": str(data.get("description") or "").strip() or None,
-                "primary_category": str(data.get("primary_category") or "News Article").strip(),
-                "content_type": str(data.get("content_type") or "news").strip(),
-                "tags": [str(t) for t in (data.get("tags") or []) if t][:6],
-                "estimated_reach": str(data.get("estimated_reach") or "low").strip(),
-                "quantum_domain": str(data.get("quantum_domain") or "not_applicable").strip(),
-                "thai_relevance": bool(data.get("thai_relevance", True)),
-            }
+            if not isinstance(data, dict):
+                raise TypeError("URL analysis response must be a JSON object")
+            return _normalize_url_analysis(data)
         except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
             if attempt == 0:
                 logger.debug("analyze_url parse failed (attempt 1): %s", exc)
@@ -475,16 +612,7 @@ def analyze_url(url: str, page_text: str | None = None) -> dict[str, Any]:
             logger.warning("analyze_url: unexpected error: %s", exc)
             break
 
-    return {
-        "title": None,
-        "description": None,
-        "primary_category": "News Article",
-        "content_type": "news",
-        "tags": [],
-        "estimated_reach": "low",
-        "quantum_domain": "not_applicable",
-        "thai_relevance": True,
-    }
+    return _default_url_analysis()
 
 
 def dedupe_check(text_a: str, text_b: str) -> bool:

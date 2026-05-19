@@ -199,9 +199,18 @@ def test_analyze_url_passes_extracted_page_context_to_ai(client: TestClient) -> 
     assert payload["ok"] is True
     assert payload["data"]["title"] == "Thai Quantum Lab Opens"
     assert payload["data"]["description"] == "NSTDA opens a Thai quantum research lab."
+    assert payload["data"]["source_context"]["title"] == "Thai Quantum Lab Opens"
     assert payload["data"]["source_access"]["ok"] is True
     assert seen["url"] == "https://example.com/quantum"
     assert "Thailand researchers demonstrate quantum communication hardware" in (seen["page_text"] or "")
+
+
+def test_community_submit_persists_ai_analysis_metadata(client: TestClient) -> None:
+    resp = client.get("/community")
+    assert resp.status_code == 200
+    assert "let aiAnalysisResult = null;" in resp.text
+    assert "aiAnalysisResult = data || null;" in resp.text
+    assert "ai_analysis: aiAnalysisResult" in resp.text
 
 
 def test_dashboard_does_not_shadow_leaflet_global(client: TestClient) -> None:

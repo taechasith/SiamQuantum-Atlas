@@ -2510,6 +2510,11 @@ def api_submitted_data_analyze_url(
         result["title"] = context["title"]
     if not result.get("description") and context.get("description"):
         result["description"] = context["description"]
+    if context.get("title") or context.get("description"):
+        result["source_context"] = {
+            "title": context.get("title"),
+            "description": context.get("description"),
+        }
     result["source_access"] = context.get("source_access")
 
     return JSONResponse({"ok": True, "data": result, "error": None})

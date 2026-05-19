@@ -754,6 +754,7 @@
   let selectedTags   = new Set();
   let dbCategories   = [];
   let aiAnalyzed     = false;
+  let aiAnalysisResult = null;
   let activeCategoryGroup = null;
   window.__sqMineItems   = [];
   window.__sqPublicItems = [];
@@ -957,6 +958,7 @@
         method: "POST",
         body: JSON.stringify({ url }),
       });
+      aiAnalysisResult = data || null;
       if (data?.title) document.getElementById("title").value = data.title;
       if (data?.description) document.getElementById("description").value = data.description;
       document.getElementById("source_url").value = url;
@@ -1046,6 +1048,7 @@
   function resetWizard() {
     selectedTags.clear();
     aiAnalyzed = false;
+    aiAnalysisResult = null;
     submitForm.classList.remove("show");
     catCustom.classList.remove("show");
     statusBox.className = "status-box";
@@ -1095,6 +1098,7 @@
             tags,
             categories: tags,
             ai_analyzed: aiAnalyzed,
+            ai_analysis: aiAnalysisResult,
           },
         }),
       });
