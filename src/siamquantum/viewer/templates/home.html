@@ -146,8 +146,9 @@
     grid-column: 1;
     z-index: 3;
     align-self: start;
-    max-width: 33rem;
+    max-width: min(33rem, 100%);
     padding-right: 1.5rem;
+    min-width: 0;
   }
 
   .hero-title {
@@ -170,7 +171,7 @@
 
   .hero-subtitle {
     margin: 1rem 0 0;
-    max-width: 28rem;
+    max-width: min(28rem, 100%);
     color: #c4d0e6;
     font-size: 0.96rem;
     line-height: 1.65;
@@ -631,7 +632,7 @@
   .ingestion-header,
   .ingestion-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) 0.8fr 1fr 0.72fr;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 0.72fr);
     gap: 0.8rem;
     align-items: start;
   }
@@ -772,6 +773,17 @@
   }
 
   @media (max-width: 640px) {
+    /* prevent any child from pushing the page wider than viewport */
+    .overview-shell,
+    .overview-panel,
+    .hero-panel,
+    .module-grid,
+    .bottom-grid {
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
     .hero-panel { padding: 1.2rem 1rem 1rem; min-height: unset; }
 
     .hero-title,
@@ -779,6 +791,13 @@
       white-space: normal;
       text-wrap: balance;
       word-break: break-word;
+      max-width: 100%;
+    }
+    /* hero-title-line: switch to flex so it can wrap */
+    .hero-title .hero-title-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.22em;
     }
     .hero-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
 
