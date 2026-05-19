@@ -371,18 +371,43 @@
     .charts-grid { grid-template-columns: 1fr; }
     .coverage-grid { grid-template-columns: 1fr; }
   }
-  @media (max-width: 480px) {
-    .analytics-shell { padding: 0.75rem; }
-    .kpi-row { grid-template-columns: 1fr; }
-    /* KPI values readable */
+
+  @media (max-width: 640px) {
+    .analytics-shell { padding: 0.75rem; gap: 0.75rem; }
+
+    /* KPI: 2x2 grid */
+    .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
     .kpi-value { font-size: 1.6rem; }
-    .kpi-label { font-size: 0.8rem; }
-    /* scope banner wraps cleanly */
-    .scope-banner { font-size: 0.8rem; padding: 0.6rem 0.75rem; }
-    /* chart containers scroll horizontally if needed */
+    .kpi-label { font-size: 0.76rem; }
+    .kpi-block { padding: 0.85rem; }
+
+    /* hide verbose header on mobile */
+    .analytics-head p { display: none; }
+    .analytics-head h1 { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+
+    /* scope banner compact */
+    .scope-banner { font-size: 0.78rem; padding: 0.55rem 0.7rem; }
+
+    /* chart tab bar: scrollable */
+    .chart-tabs { overflow-x: auto; flex-wrap: nowrap; }
+    .chart-tab { white-space: nowrap; min-height: 40px; }
+
+    /* chart box full width */
+    .chart-box { padding: 0.85rem; }
     .chart-box canvas { max-width: 100%; }
-    /* engagement matrix: allow horizontal scroll */
+
+    /* clusters: compact */
+    .cluster-card { padding: 0.85rem 1rem; }
+    .cluster-size { font-size: 0.76rem; }
+    .cluster-concepts { gap: 0.3rem; }
+
+    /* engagement matrix: scroll */
     .eng-matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (max-width: 480px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .kpi-value { font-size: 1.4rem; }
   }
 </style>
 {% endblock %}

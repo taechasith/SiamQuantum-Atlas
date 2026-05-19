@@ -680,25 +680,31 @@
   @media (max-width: 720px) {
     .ops-layout { grid-template-columns: 1fr; }
 
+    /* map fills most of viewport */
+    .dashboard-shell { padding: 0; }
+    .map-stage { border-radius: 0; border-left: 0; border-right: 0; border-top: 0; }
     .map-stage,
-    #dashboard-map { min-height: calc(100svh - var(--header-h) - 5rem); }
+    #dashboard-map { min-height: calc(100svh - 56px - 64px); }
 
-    /* push control chips below Leaflet zoom buttons (~62px tall at top-left) */
+    /* push control chips below Leaflet zoom buttons */
     .map-controls { top: 4.8rem; left: 0.75rem; gap: 0.4rem; }
     .control-chip { font-size: 0.75rem; padding: 0.45rem 0.65rem; min-height: 36px; }
 
     .ops-panel {
       position: fixed;
-      bottom: 64px; /* matches new nav height */
+      bottom: 64px;
       left: 0;
       right: 0;
       z-index: 120;
       border-radius: 20px 20px 0 0;
-      max-height: 62vh;
+      max-height: 65vh;
       overflow-y: auto;
       transform: translateY(calc(100% - 140px));
       transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
       padding-top: 0.75rem;
+      border-left: 0;
+      border-right: 0;
+      border-bottom: 0;
     }
 
     .ops-panel.is-expanded { transform: translateY(0); }
@@ -708,13 +714,14 @@
     .focus-tags,
     .panel-actions { grid-template-columns: 1fr; }
 
-    /* scope filter buttons touch-friendly */
     .scope-filter-bar { gap: 0.4rem; flex-wrap: wrap; }
     .scope-btn { min-height: 40px; padding: 0 0.75rem; font-size: 0.8rem; }
 
-    /* telemetry text larger */
     .telemetry-label { font-size: 0.72rem; }
     .telemetry-val { font-size: 0.82rem; }
+
+    /* panel actions: side-by-side buttons */
+    .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
   }
 </style>
 {% endblock %}

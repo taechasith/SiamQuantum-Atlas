@@ -764,6 +764,34 @@
     html[data-lang="en"] .th-text { display: none !important; }
     html[data-lang="th"] .en-text { display: none !important; }
 
+    /* ── MOBILE BRAND (topbar) ────────────────────────────────────────────── */
+    .topbar-mobile-brand {
+      display: none;
+      align-items: center;
+      gap: 0.48rem;
+      text-decoration: none;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .topbar-mobile-logo {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(56,189,248,0.3));
+    }
+
+    .topbar-mobile-wordmark {
+      font-family: var(--font-heading);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .topbar-mobile-wordmark strong { color: var(--primary); font-weight: 700; }
+
     /* ── MOBILE ───────────────────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .sidebar {
@@ -771,39 +799,25 @@
         transition: transform 0.25s ease;
       }
       .sidebar.is-open { transform: translateX(0); }
-      /* shrink logo in sidebar so nav items are reachable when opened */
       .sidebar-brand { height: 5rem; padding: 0.5rem 1rem; }
       .sidebar-logo { width: 3.5rem; height: 3.5rem; }
       .main-wrap { margin-left: 0; }
-      .topbar { padding: 0 1rem; }
+      .topbar { padding: 0 0.9rem; height: 56px; }
+      :root { --header-h: 56px; }
       .live-fab { display: none; }
       .page-content { padding-bottom: 5rem !important; }
-      /* hide history bar on mobile — too dense */
       .sq-history-bar { display: none !important; }
+
+      /* show mobile brand, hide page title */
+      .topbar-mobile-brand { display: flex; }
+      .topbar-title { display: none; }
     }
 
     @media (max-width: 640px) {
-      .page-content { padding: 1rem 0.9rem 5rem !important; }
-
-      /* topbar title — prevent squeeze */
-      .topbar-title {
-        font-size: 0.95rem;
-        min-width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-
-      /* right side — tighten gap */
-      .topbar-right { gap: 0.3rem; }
-
-      /* lang toggle compact */
+      .page-content { padding: 0.85rem 0.75rem 5.5rem !important; }
+      .topbar-right { gap: 0.28rem; }
       .lang-btn { padding: 0 0.38rem; font-size: 0.67rem; height: 24px; }
-
-      /* notification bell — smaller */
       .topbar-icon-btn { width: 30px; height: 30px; }
-
-      /* profile badge in topbar — avatar only, no name */
       .topbar .profile-badge { padding: 0.22rem; gap: 0; }
       .topbar .profile-badge [data-profile-name] { display: none !important; }
     }
@@ -1107,6 +1121,10 @@
 
     <!-- TOP HEADER -->
     <header class="topbar">
+      <a class="topbar-mobile-brand" href="/overview" aria-label="SiamQuantum Atlas">
+        <img class="topbar-mobile-logo" src="/static/brand/SQAlogo.png" alt="" width="26" height="26" decoding="async">
+        <span class="topbar-mobile-wordmark"><strong>Siam</strong>Quantum <strong>Atlas</strong></span>
+      </a>
       <div class="topbar-title">
         {% block page_title %}
           <span class="th-text">SiamQuantum Atlas</span>

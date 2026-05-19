@@ -524,12 +524,30 @@
   @media (max-width: 640px) {
     .database-shell { padding: 0.75rem; }
 
+    /* 2-col card grid on mobile (matches reference layout) */
+    .source-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    .source-card { padding: 0.75rem; }
+    .source-thumb { margin: -0.75rem -0.75rem 0.65rem; }
+
+    /* source card text — compact for 2-col */
+    .source-title { font-size: 0.82rem; line-height: 1.35; }
+    .source-meta,
+    .source-channel,
+    .source-fetched { font-size: 0.7rem; }
+
+    /* chips compact */
+    .chip-row { flex-wrap: wrap; gap: 0.25rem; }
+    .chip { font-size: 0.66rem; padding: 0.15rem 0.4rem; }
+
+    /* toolbar: stack cleanly */
     .pagination,
     .toolbar { flex-direction: column; align-items: stretch; }
-
     .filter-actions { flex-direction: column; }
 
-    /* touch-friendly: all buttons/selects min 44px tall */
     .toolbar input,
     .toolbar select,
     .filter-actions select,
@@ -538,20 +556,9 @@
     .btn-ghost,
     .page-btn {
       min-height: 44px;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
-    /* source cards: larger text for readability */
-    .source-title { font-size: 1rem; line-height: 1.4; }
-    .source-meta,
-    .source-channel,
-    .source-fetched { font-size: 0.8rem; }
-
-    /* chips wrap instead of overflow */
-    .chip-row { flex-wrap: wrap; gap: 0.3rem; }
-    .chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; }
-
-    /* pagination buttons bigger tap area */
     .page-btn { min-width: 44px; }
   }
 </style>
