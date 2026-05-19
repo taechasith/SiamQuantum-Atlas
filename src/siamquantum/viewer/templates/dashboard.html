@@ -264,7 +264,7 @@
   }
 
   .map-label {
-    position: absolute;
+    position: fixed;
     left: 1.1rem;
     bottom: 1.15rem;
     z-index: 520;
@@ -612,42 +612,6 @@
     box-shadow: none;
   }
 
-  .map-scope-bar {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 0.45rem 0.6rem;
-    background: rgba(13, 20, 35, 0.92);
-    border-radius: 8px;
-    border: 1px solid var(--map-border);
-  }
-
-  .map-scope-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    padding: 0.22rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--map-copy);
-    font-size: 0.72rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.14s, color 0.14s, border-color 0.14s;
-    white-space: nowrap;
-  }
-
-  .map-scope-btn.is-active { background: rgba(56,189,248,0.12); color: var(--map-cyan); border-color: rgba(56,189,248,0.28); }
-  .map-scope-btn:hover:not(.is-active) { background: rgba(255,255,255,0.05); color: var(--map-copy-strong); }
-
-  .scope-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
 
   .leaflet-control-zoom a {
     background: rgba(13, 20, 35, 0.92);
@@ -794,12 +758,11 @@
     /* panel actions: side-by-side buttons */
     .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 
-    /* keep status label always above the panel peek (140px) + nav bar (64px) */
+    /* pin above panel peek (140px) + nav (64px), z-index above panel (1200) */
     .map-label {
-      position: fixed;
-      bottom: calc(64px + 140px + 0.75rem);
+      bottom: calc(64px + 140px + 1rem);
       left: 0.75rem;
-      z-index: 1190;
+      z-index: 1210;
     }
   }
 </style>
@@ -825,15 +788,8 @@
             <span id="map-badge-count"><span class="th-text">กำลังโหลด</span><span class="en-text">Loading</span></span>
           </div>
         </div>
-        <div class="map-scope-bar">
-          <button class="map-scope-btn is-active" data-scope="strict" type="button"><span class="scope-dot" style="background:#38BDF8"></span><span class="th-text">ควอนตัม+ไทย</span><span class="en-text">Quantum+TH</span></button>
-          <button class="map-scope-btn" data-scope="quantum" type="button"><span class="scope-dot" style="background:#10B981"></span><span class="th-text">ควอนตัม</span><span class="en-text">Quantum</span></button>
-          <button class="map-scope-btn" data-scope="thailand" type="button"><span class="scope-dot" style="background:#F59E0B"></span><span class="th-text">ไทย</span><span class="en-text">Thailand</span></button>
-          <button class="map-scope-btn" data-scope="all" type="button"><span class="scope-dot" style="background:#94A3B8"></span><span class="th-text">ทั้งหมด</span><span class="en-text">All</span></button>
-        </div>
       </div>
       <div id="dashboard-map" aria-label="Thailand geo dashboard map"></div>
-      <div class="map-label" id="status-pill"><span class="th-text">กำลังโหลดแผนที่</span><span class="en-text">Loading map</span></div>
       <div class="empty-state" id="empty-state">
         <div>
           <div class="state-title">
@@ -857,6 +813,8 @@
         </div>
       </div>
     </div>
+    <!-- status pill: outside map-stage so overflow:hidden can't clip it -->
+    <div class="map-label" id="status-pill"><span class="th-text">กำลังโหลดแผนที่</span><span class="en-text">Loading map</span></div>
 
     <!-- mobile: persistent map/details toggle -->
     <button class="map-toggle-btn" id="map-toggle-btn" type="button" aria-label="Open details panel">
@@ -1290,14 +1248,6 @@
   loadPipeline();
   loadGeo("strict");
 
-  // Scope filter buttons
-  document.querySelectorAll("[data-scope]").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      document.querySelectorAll("[data-scope]").forEach(function(b) { b.classList.remove("is-active"); });
-      btn.classList.add("is-active");
-      loadGeo(btn.dataset.scope);
-    });
-  });
 
   // Mobile bottom sheet handle toggle + map toggle button
   (function () {
