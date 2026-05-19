@@ -212,11 +212,11 @@ def test_dashboard_does_not_shadow_leaflet_global(client: TestClient) -> None:
     assert "const map = L.map(" in resp.text
 
 
-def test_dashboard_mobile_details_panel_stacks_above_leaflet(client: TestClient) -> None:
+def test_dashboard_mobile_details_panel_stays_below_mobile_chrome(client: TestClient) -> None:
     resp = client.get("/dashboard")
     assert resp.status_code == 200
-    assert "z-index: 1200;" in resp.text
-    assert "z-index: 1210;" in resp.text
+    assert "z-index: 80;" in resp.text
+    assert "z-index: 85;" in resp.text
 
 
 def test_network_links_render_directional_arrows(client: TestClient) -> None:

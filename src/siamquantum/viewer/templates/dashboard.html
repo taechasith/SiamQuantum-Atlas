@@ -679,7 +679,7 @@
       position: fixed;
       top: 0.75rem;
       right: 0.75rem;
-      z-index: 1210;
+      z-index: 85;
       align-items: center;
       gap: 0.4rem;
       height: 36px;
@@ -730,7 +730,7 @@
       bottom: 64px;
       left: 0;
       right: 0;
-      z-index: 1200;
+      z-index: 80;
       border-radius: 20px 20px 0 0;
       max-height: 65vh;
       overflow-y: auto;
@@ -758,11 +758,11 @@
     /* panel actions: side-by-side buttons */
     .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 
-    /* pin above panel peek (140px) + nav (64px), z-index above panel (1200) */
+    /* pin above the panel peek while staying below the global mobile chrome */
     .map-label {
       bottom: calc(64px + 140px + 1rem);
       left: 0.75rem;
-      z-index: 1210;
+      z-index: 85;
     }
   }
 </style>
