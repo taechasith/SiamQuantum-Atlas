@@ -711,6 +711,20 @@
     .hero-stage-chip.bottom { bottom: 0.8rem; }
   }
 
+  @media (max-width: 640px) {
+    /* hero title: drop nowrap — it overflows narrow screens */
+    .hero-title,
+    .hero-title .hero-title-line {
+      white-space: normal;
+      text-wrap: balance;
+      word-break: break-word;
+    }
+    .hero-title { font-size: clamp(1.75rem, 9vw, 2.4rem); }
+    .hero-subtitle { font-size: 0.88rem; }
+    /* ensure no card overflows viewport */
+    .hero-stat { box-sizing: border-box; max-width: 100%; }
+  }
+
   @media (max-width: 480px) {
     .hero-stats { flex-direction: column; }
     .hero-stat { min-width: unset; }
