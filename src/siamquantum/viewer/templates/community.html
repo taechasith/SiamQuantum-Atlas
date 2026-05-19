@@ -192,7 +192,23 @@
     background: rgba(56,189,248,.15);
     color: var(--primary);
     font-weight: 600;
+    gap: .35rem;
   }
+  .chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(56,189,248,.25);
+    color: var(--primary);
+    font-size: .7rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: background .12s;
+  }
+  .chip:hover .chip-remove { background: rgba(56,189,248,.45); }
   .chip-add {
     border-style: dashed;
     border-color: rgba(255,255,255,.12);
@@ -628,7 +644,11 @@
               <span class="th-text">ลิงก์แหล่งข้อมูล</span><span class="en-text">Link</span>
               <span class="opt"><span class="th-text">ไม่บังคับ</span><span class="en-text">optional</span></span>
             </label>
-            <input id="source_url" name="source_url" type="url" placeholder="https://">
+            <div style="position:relative;display:flex;align-items:center;">
+              <input id="source_url" name="source_url" type="url" placeholder="https://" style="flex:1;padding-right:2.4rem;">
+              <button type="button" id="clear-url-btn" title="Clear URL"
+                style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:none;color:var(--muted);width:22px;height:22px;border-radius:50%;font-size:.8rem;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;transition:background .12s;">×</button>
+            </div>
           </div>
 
           <!-- Multi-tag selection -->
@@ -760,6 +780,18 @@
   const publicGrid   = document.getElementById("public-submissions");
   const aiBadge      = document.getElementById("ai-filled-badge");
 
+  // ── URL clear button ──
+  const sourceUrlInput  = document.getElementById("source_url");
+  const clearUrlBtn     = document.getElementById("clear-url-btn");
+  sourceUrlInput?.addEventListener("input", () => {
+    clearUrlBtn.style.display = sourceUrlInput.value ? "flex" : "none";
+  });
+  clearUrlBtn?.addEventListener("click", () => {
+    sourceUrlInput.value = "";
+    clearUrlBtn.style.display = "none";
+    sourceUrlInput.focus();
+  });
+
   // ── Step dots ──
   function setStep(n) {
     [1,2,3].forEach((i) => {
@@ -780,7 +812,7 @@
       const label = isTH() ? g.label.th : g.label.en;
       const chipsHTML = g.cats.map((name) => {
         const isSel = selectedTags.has(name);
-        return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+        return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}${isSel ? `<span class="chip-remove" data-remove="${name}" aria-label="remove">×</span>` : ""}</button>`;
       }).join("") +
         `<button class="chip chip-add" type="button" data-add-group="${label}">+ <span class="th-text">เพิ่ม</span><span class="en-text">Add</span></button>`;
       return `<div class="cat-group"><div class="cat-group-label">${label}</div><div class="cat-group-chips">${chipsHTML}</div></div>`;
@@ -792,7 +824,7 @@
         <div class="cat-group-chips">
           ${extraCats.map((name) => {
             const isSel = selectedTags.has(name);
-            return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+            return `<button class="chip${isSel ? " selected" : ""}" type="button" data-cat="${name}">${name}${isSel ? `<span class="chip-remove" data-remove="${name}" aria-label="remove">×</span>` : ""}</button>`;
           }).join("")}
         </div>
       </div>` : "";
@@ -800,6 +832,14 @@
     chipsWrap.innerHTML = groupsHTML + extraHTML +
       `<div class="cat-group-add"><button class="chip chip-add" type="button" id="chip-add-btn">+ <span class="th-text">เพิ่มหมวดหมู่</span><span class="en-text">Add new</span></button></div>`;
 
+    document.querySelectorAll(".chip-remove").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectedTags.delete(btn.dataset.remove);
+        renderCategoryChips();
+        updateTagSummary();
+      });
+    });
     document.querySelectorAll(".chip:not(.chip-add)").forEach((chip) => {
       chip.addEventListener("click", () => {
         const cat = chip.dataset.cat;
@@ -866,6 +906,7 @@
       if (data?.title) document.getElementById("title").value = data.title;
       if (data?.description) document.getElementById("description").value = data.description;
       document.getElementById("source_url").value = url;
+      if (url) clearUrlBtn.style.display = "flex";
       if (data?.tags?.length) {
         data.tags.forEach((tag) => {
           const clean = String(tag || "").trim();
@@ -959,6 +1000,7 @@
     if (submitForm) submitForm.reset();
     step1Section.classList.remove("hidden");
     urlInput.value = "";
+    clearUrlBtn.style.display = "none";
     analyzeBtn.disabled = false;
     aiStatusEl.classList.add("hidden");
     renderCategoryChips();

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sqlite3
 import tempfile
+from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -84,7 +85,7 @@ def seeded_db(tmp_path: Path) -> Path:
 
 
 @pytest.fixture()
-def client(seeded_db: Path) -> TestClient:
+def client(seeded_db: Path) -> Generator[TestClient, None, None]:
     with patch("siamquantum.viewer.server.settings") as mock_settings:
         with patch("siamquantum.services.supabase.settings", mock_settings):
             mock_settings.database_url = f"sqlite:///{seeded_db}"
