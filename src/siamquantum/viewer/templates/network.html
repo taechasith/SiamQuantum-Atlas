@@ -642,23 +642,60 @@
     .hero-copy { font-size: 0.86rem; }
     .hero-note { display: none; }
 
-    /* graph: 60vh so controls below are reachable */
+    /* graph: keep controls out of the canvas so the network center stays readable */
     .surface-body,
-    #network-graph { min-height: 60vh; height: 60vh; }
+    #network-graph { min-height: 68svh; height: 68svh; }
 
-    /* hud-right: pin to bottom of graph on mobile */
-    .hud-right {
-      left: 0.5rem;
-      right: 0.5rem;
-      top: auto;
-      bottom: 0.5rem;
-      justify-items: stretch;
-      width: auto;
+    .surface-body {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      min-height: 0;
     }
 
-    .control-stack { padding: 0.5rem; }
-    .control-row { justify-content: flex-start; gap: 0.4rem; }
-    .control-btn { min-height: 40px; font-size: 0.82rem; padding: 0.4rem 0.7rem; }
+    #network-graph { order: 1; }
+
+    .hud-right {
+      order: 2;
+      position: static;
+      justify-items: stretch;
+      width: 100%;
+      margin-top: 0.65rem;
+    }
+
+    .control-stack {
+      padding: 0.6rem;
+      border-radius: 16px;
+      box-shadow: none;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-content: stretch;
+      gap: 0.4rem;
+    }
+
+    .control-row + .control-row {
+      grid-template-columns: 1fr;
+    }
+
+    .control-btn {
+      width: 100%;
+      min-height: 44px;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      padding: 0.45rem 0.55rem;
+      white-space: normal;
+    }
+
+    .control-row .micro-pill {
+      justify-content: center;
+      min-height: 34px;
+      padding: 0.32rem 0.65rem;
+      font-size: 0.76rem;
+      text-align: center;
+    }
 
     /* summary cards: 2-col */
     .summary-grid { grid-template-columns: 1fr 1fr; }
@@ -1181,6 +1218,20 @@
     return sourceId === selectedNodeId || targetId === selectedNodeId;
   }
 
+  function conceptLabelById(nodeId) {
+    const node = allNodes.find((item) => item.id === nodeId);
+    return String(node?.label || nodeId || "");
+  }
+
+  function linkDirectionLabel(link) {
+    const sourceId = link.source?.id ?? link.source;
+    const targetId = link.target?.id ?? link.target;
+    const sourceLabel = link.source?.label || conceptLabelById(sourceId);
+    const targetLabel = link.target?.label || conceptLabelById(targetId);
+    const relation = String(link.label || "affects");
+    return `${sourceLabel} -> ${relation} -> ${targetLabel}`;
+  }
+
   function renderGraph() {
     const { nodes, links } = visibleData();
     graph.graphData({ nodes, links });
@@ -1386,10 +1437,13 @@
           const width = Math.max(0.45, Math.min(Number(link.value || 1) * 0.95, 4.5));
           return isSelectedLink(link) ? width + 0.9 : width;
         })
+        .linkDirectionalArrowLength((link) => isSelectedLink(link) ? 9 : 6)
+        .linkDirectionalArrowRelPos(0.68)
+        .linkDirectionalArrowColor((link) => isSelectedLink(link) ? "rgba(255, 184, 107, 0.98)" : "rgba(152, 167, 198, 0.74)")
         .linkDirectionalParticles((link) => isSelectedLink(link) ? 3 : 1)
         .linkDirectionalParticleWidth((link) => isSelectedLink(link) ? 2.2 : 1.2)
         .linkDirectionalParticleSpeed(0.004)
-        .linkLabel((link) => String(link.label || ""))
+        .linkLabel(linkDirectionLabel)
         .onNodeHover((node) => {
           if (!node || selectedNodeId) return;
           setStatus(t("nodeStatus", String(node.label || node.id), node.val || 1));

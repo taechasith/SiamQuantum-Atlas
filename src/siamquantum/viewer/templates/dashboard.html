@@ -207,6 +207,7 @@
 
   .map-stage {
     position: relative;
+    z-index: 1;
     min-height: max(680px, calc(100svh - var(--header-h) - 3rem));
     background: linear-gradient(180deg, rgba(12, 19, 34, 0.98), rgba(13, 19, 33, 1));
     border: 1px solid var(--map-border);
@@ -707,7 +708,7 @@
       position: fixed;
       top: 0.75rem;
       right: 0.75rem;
-      z-index: 140;
+      z-index: 1210;
       align-items: center;
       gap: 0.4rem;
       height: 36px;
@@ -757,7 +758,7 @@
       bottom: 64px;
       left: 0;
       right: 0;
-      z-index: 120;
+      z-index: 1200;
       border-radius: 20px 20px 0 0;
       max-height: 65vh;
       overflow-y: auto;

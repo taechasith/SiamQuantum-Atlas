@@ -131,6 +131,29 @@ def test_dashboard_does_not_shadow_leaflet_global(client: TestClient) -> None:
     assert "const map = L.map(" in resp.text
 
 
+def test_dashboard_mobile_details_panel_stacks_above_leaflet(client: TestClient) -> None:
+    resp = client.get("/dashboard")
+    assert resp.status_code == 200
+    assert "z-index: 1200;" in resp.text
+    assert "z-index: 1210;" in resp.text
+
+
+def test_network_links_render_directional_arrows(client: TestClient) -> None:
+    resp = client.get("/network")
+    assert resp.status_code == 200
+    assert ".linkDirectionalArrowLength(" in resp.text
+    assert ".linkDirectionalArrowRelPos(" in resp.text
+    assert "linkDirectionLabel" in resp.text
+
+
+def test_network_mobile_controls_do_not_overlay_graph(client: TestClient) -> None:
+    resp = client.get("/network")
+    assert resp.status_code == 200
+    assert "#network-graph { order: 1; }" in resp.text
+    assert "position: static;" in resp.text
+    assert "min-height: 68svh; height: 68svh;" in resp.text
+
+
 # ---------------------------------------------------------------------------
 # GET /api/geo/list  — envelope: {ok, data, count, error}
 # ---------------------------------------------------------------------------
