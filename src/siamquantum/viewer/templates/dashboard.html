@@ -683,6 +683,10 @@
     .map-stage,
     #dashboard-map { min-height: calc(100svh - var(--header-h) - 5rem); }
 
+    /* push control chips below Leaflet zoom buttons (~62px tall at top-left) */
+    .map-controls { top: 4.8rem; left: 0.75rem; gap: 0.4rem; }
+    .control-chip { font-size: 0.75rem; padding: 0.45rem 0.65rem; min-height: 36px; }
+
     .ops-panel {
       position: fixed;
       bottom: 64px; /* matches new nav height */
@@ -881,6 +885,12 @@
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: "&copy; OpenStreetMap &copy; CARTO"
   }).addTo(map);
+
+  // On mobile the container may have zero size when Leaflet inits — re-center after layout settles
+  requestAnimationFrame(() => {
+    map.invalidateSize();
+    map.setView(thailandCenter, 6);
+  });
 
   const clusters = L.markerClusterGroup({
     showCoverageOnHover: false,

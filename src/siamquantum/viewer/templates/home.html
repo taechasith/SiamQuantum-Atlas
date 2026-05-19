@@ -720,8 +720,29 @@
       word-break: break-word;
     }
     .hero-title { font-size: clamp(1.75rem, 9vw, 2.4rem); }
-    .hero-subtitle { font-size: 0.88rem; }
-    /* ensure no card overflows viewport */
+
+    /* hero copy: drop right padding (no visual panel beside it on mobile) */
+    .hero-copy {
+      padding-right: 0;
+      max-width: 100%;
+    }
+
+    /* subtitle: allow wrap, no overflow */
+    .hero-subtitle {
+      font-size: 0.88rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
+    }
+
+    /* cat visual: limit height so it doesn't dominate the screen */
+    .hero-visual {
+      min-height: 14rem;
+      max-height: 18rem;
+      width: 100%;
+    }
+
+    /* stat cards: full width, no overflow */
     .hero-stat { box-sizing: border-box; max-width: 100%; }
   }
 
