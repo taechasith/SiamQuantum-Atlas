@@ -668,13 +668,76 @@
   /* ── ops-panel mobile bottom sheet ── */
   .ops-panel-handle {
     display: none;
-    width: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .ops-panel-handle::before {
+    content: "";
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
     height: 4px;
     border-radius: 2px;
     background: var(--map-border);
-    margin: 0 auto 1rem;
-    cursor: pointer;
-    flex-shrink: 0;
+  }
+
+  /* floating "view map" button when panel is fully expanded */
+  .map-toggle-btn {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .map-toggle-btn {
+      display: flex;
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 130;
+      align-items: center;
+      gap: 0.4rem;
+      height: 36px;
+      padding: 0 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(5, 10, 20, 0.88);
+      backdrop-filter: blur(12px);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.2s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ops-panel.is-expanded ~ .map-toggle-btn,
+    .map-toggle-btn.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .map-toggle-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
   }
 
   @media (max-width: 720px) {
@@ -709,7 +772,7 @@
 
     .ops-panel.is-expanded { transform: translateY(0); }
 
-    .ops-panel-handle { display: block; }
+    .ops-panel-handle { display: flex; position: relative; padding-top: 0.9rem; }
 
     .focus-tags,
     .panel-actions { grid-template-columns: 1fr; }
@@ -777,8 +840,16 @@
       </div>
     </div>
 
+    <!-- mobile: floating "View Map" button appears when panel is expanded -->
+    <button class="map-toggle-btn" id="map-toggle-btn" type="button" aria-label="Collapse panel, show map">
+      <svg viewBox="0 0 24 24"><polyline points="4 14 12 6 20 14"/></svg>
+      <span class="th-text">แผนที่</span><span class="en-text">Map</span>
+    </button>
+
     <aside class="ops-panel" id="ops-panel">
-      <div class="ops-panel-handle" id="ops-panel-handle" aria-label="Toggle detail panel" role="button" tabindex="0"></div>
+      <div class="ops-panel-handle" id="ops-panel-handle" aria-label="Toggle detail panel" role="button" tabindex="0">
+        <span class="th-text">รายละเอียด</span><span class="en-text">Details</span>
+      </div>
       <div class="panel-head">
         <div class="panel-status" id="panel-status">
           <span class="th-text">ออนไลน์ • ซิงก์ข้อมูล</span>
@@ -1210,15 +1281,42 @@
     });
   });
 
-  // Mobile bottom sheet handle toggle
+  // Mobile bottom sheet handle toggle + map toggle button
   (function () {
     const panel = document.getElementById("ops-panel");
     const handle = document.getElementById("ops-panel-handle");
+    const mapToggleBtn = document.getElementById("map-toggle-btn");
     if (!panel || !handle) return;
-    handle.addEventListener("click", function () { panel.classList.toggle("is-expanded"); });
-    handle.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); panel.classList.toggle("is-expanded"); }
+
+    function syncMapToggle() {
+      if (!mapToggleBtn) return;
+      const expanded = panel.classList.contains("is-expanded");
+      mapToggleBtn.classList.toggle("is-visible", expanded);
+    }
+
+    handle.addEventListener("click", function () {
+      panel.classList.toggle("is-expanded");
+      syncMapToggle();
     });
+    handle.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        panel.classList.toggle("is-expanded");
+        syncMapToggle();
+      }
+    });
+
+    // "View Map" button collapses the panel fully
+    if (mapToggleBtn) {
+      mapToggleBtn.addEventListener("click", function () {
+        panel.classList.remove("is-expanded");
+        syncMapToggle();
+      });
+    }
+
+    // Also update toggle when marker auto-expands the panel
+    const observer = new MutationObserver(syncMapToggle);
+    observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
   })();
 </script>
 {% endblock %}
