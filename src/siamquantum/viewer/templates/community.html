@@ -325,6 +325,33 @@
   }
   .btn-skip:hover { color: var(--muted-strong); }
 
+  .url-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+    margin-top: .55rem;
+    color: var(--muted);
+    font-size: .76rem;
+    line-height: 1.5;
+  }
+  .url-hint svg { flex-shrink: 0; margin-top: .1rem; opacity: .6; }
+
+  .social-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: .45rem;
+    margin-top: .6rem;
+    padding: .6rem .8rem;
+    border-radius: 9px;
+    background: rgba(245,158,11,.08);
+    border: 1px solid rgba(245,158,11,.22);
+    color: #fcd34d;
+    font-size: .78rem;
+    line-height: 1.5;
+  }
+  .social-warn.hidden { display: none; }
+  .social-warn svg { flex-shrink: 0; margin-top: .15rem; }
+
   /* ── AI-filled badge ── */
   .ai-filled-badge {
     display: flex;
@@ -600,6 +627,21 @@
             <span class="th-text">AI กำลังวิเคราะห์…</span>
             <span class="en-text">AI is analyzing…</span>
           </div>
+
+          <!-- Social media warning (shown dynamically) -->
+          <div class="social-warn hidden" id="social-warn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="th-text">AI วิเคราะห์ลิงก์ Social Media ไม่ได้ — กรอกรายละเอียดเอง หรือใช้ลิงก์จากแหล่งข้อมูลอื่น</span>
+            <span class="en-text">AI can't analyze Social Media links — fill in details manually or use a different source URL</span>
+          </div>
+
+          <!-- Static hint -->
+          <div class="url-hint">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="th-text">ไม่รองรับ Social Media (Facebook, X/Twitter, Instagram, TikTok, YouTube Shorts)</span>
+            <span class="en-text">Social Media not supported (Facebook, X/Twitter, Instagram, TikTok, YouTube Shorts)</span>
+          </div>
+
           <div class="url-skip">
             <button class="btn-skip" id="skip-ai-btn" type="button">
               <span class="th-text">ข้ามและกรอกเอง</span>
@@ -779,6 +821,18 @@
   const statusBox    = document.getElementById("submit-status");
   const publicGrid   = document.getElementById("public-submissions");
   const aiBadge      = document.getElementById("ai-filled-badge");
+
+  // ── Social media detection ──
+  const SOCIAL_HOSTS = /\b(facebook\.com|fb\.com|instagram\.com|twitter\.com|x\.com|tiktok\.com|threads\.net|linkedin\.com|snapchat\.com)\b/i;
+  const socialWarn  = document.getElementById("social-warn");
+
+  function isSocialUrl(url) { return SOCIAL_HOSTS.test(url); }
+
+  urlInput?.addEventListener("input", () => {
+    const isSocial = isSocialUrl(urlInput.value);
+    socialWarn.classList.toggle("hidden", !isSocial);
+    analyzeBtn.disabled = isSocial;
+  });
 
   // ── URL clear button ──
   const sourceUrlInput  = document.getElementById("source_url");
@@ -1002,6 +1056,7 @@
     urlInput.value = "";
     clearUrlBtn.style.display = "none";
     analyzeBtn.disabled = false;
+    socialWarn.classList.add("hidden");
     aiStatusEl.classList.add("hidden");
     renderCategoryChips();
     setStep(1);
