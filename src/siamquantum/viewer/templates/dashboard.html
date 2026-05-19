@@ -654,6 +654,7 @@
     text-transform: uppercase;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: none;
   }
 
   .ops-panel-handle::before {
@@ -743,6 +744,10 @@
     }
 
     .ops-panel.is-expanded { transform: translateY(0); }
+    .ops-panel.is-dragging {
+      transition: none;
+      cursor: grabbing;
+    }
 
     .ops-panel-handle { display: flex; position: relative; padding-top: 0.9rem; }
 
@@ -1255,6 +1260,9 @@
     const handle = document.getElementById("ops-panel-handle");
     const mapToggleBtn = document.getElementById("map-toggle-btn");
     if (!panel || !handle) return;
+    const COLLAPSED_PEEK_PX = 140;
+    let dragState = null;
+    let suppressNextClick = false;
 
     function syncMapToggle() {
       if (!mapToggleBtn) return;
@@ -1267,23 +1275,68 @@
       if (enText) enText.textContent = expanded ? "Map" : "Details";
     }
 
-    handle.addEventListener("click", function () {
-      panel.classList.toggle("is-expanded");
+    function collapsedOffset() {
+      return Math.max(0, panel.getBoundingClientRect().height - COLLAPSED_PEEK_PX);
+    }
+
+    function applyPanelState(expanded) {
+      panel.classList.toggle("is-expanded", expanded);
+      panel.classList.remove("is-dragging");
+      panel.style.transform = "";
       syncMapToggle();
+    }
+
+    handle.addEventListener("click", function () {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        return;
+      }
+      applyPanelState(!panel.classList.contains("is-expanded"));
     });
     handle.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        panel.classList.toggle("is-expanded");
-        syncMapToggle();
+        applyPanelState(!panel.classList.contains("is-expanded"));
       }
     });
+    handle.addEventListener("pointerdown", function (e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      const maxOffset = collapsedOffset();
+      dragState = {
+        startY: e.clientY,
+        startOffset: panel.classList.contains("is-expanded") ? 0 : maxOffset,
+        maxOffset,
+        moved: false
+      };
+      panel.classList.add("is-dragging");
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener("pointermove", function (e) {
+      if (!dragState) return;
+      const deltaY = e.clientY - dragState.startY;
+      if (Math.abs(deltaY) > 4) dragState.moved = true;
+      const nextOffset = Math.min(dragState.maxOffset, Math.max(0, dragState.startOffset + deltaY));
+      panel.style.transform = `translateY(${nextOffset}px)`;
+    });
+    function finishDrag(e) {
+      if (!dragState) return;
+      if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+      const currentOffset = Math.min(
+        dragState.maxOffset,
+        Math.max(0, dragState.startOffset + e.clientY - dragState.startY)
+      );
+      const shouldExpand = currentOffset < dragState.maxOffset * 0.5;
+      suppressNextClick = dragState.moved;
+      dragState = null;
+      applyPanelState(shouldExpand);
+    }
+    handle.addEventListener("pointerup", finishDrag);
+    handle.addEventListener("pointercancel", finishDrag);
 
     // Toggle between the map and the detail sheet on phones.
     if (mapToggleBtn) {
       mapToggleBtn.addEventListener("click", function () {
-        panel.classList.toggle("is-expanded");
-        syncMapToggle();
+        applyPanelState(!panel.classList.contains("is-expanded"));
       });
     }
 

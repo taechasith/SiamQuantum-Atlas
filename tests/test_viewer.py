@@ -217,6 +217,10 @@ def test_dashboard_mobile_details_panel_stays_below_mobile_chrome(client: TestCl
     assert resp.status_code == 200
     assert "z-index: 80;" in resp.text
     assert "z-index: 85;" in resp.text
+    assert "touch-action: none;" in resp.text
+    assert 'handle.addEventListener("pointerdown"' in resp.text
+    assert 'handle.addEventListener("pointermove"' in resp.text
+    assert 'handle.addEventListener("pointerup", finishDrag)' in resp.text
 
 
 def test_network_links_render_directional_arrows(client: TestClient) -> None:
