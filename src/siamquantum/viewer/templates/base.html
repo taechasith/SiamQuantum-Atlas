@@ -784,10 +784,28 @@
 
     @media (max-width: 640px) {
       .page-content { padding: 1rem 0.9rem 5rem !important; }
-      /* topbar title readable size */
-      .topbar-title { font-size: 1rem; }
+
+      /* topbar title — prevent squeeze */
+      .topbar-title {
+        font-size: 0.95rem;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      /* right side — tighten gap */
+      .topbar-right { gap: 0.3rem; }
+
       /* lang toggle compact */
-      .lang-btn { padding: 0 0.45rem; font-size: 0.68rem; }
+      .lang-btn { padding: 0 0.38rem; font-size: 0.67rem; height: 24px; }
+
+      /* notification bell — smaller */
+      .topbar-icon-btn { width: 30px; height: 30px; }
+
+      /* profile badge in topbar — avatar only, no name */
+      .topbar .profile-badge { padding: 0.22rem; gap: 0; }
+      .topbar .profile-badge [data-profile-name] { display: none !important; }
     }
 
     /* ── MOBILE BOTTOM NAV ───────────────────────────────────────────────────── */

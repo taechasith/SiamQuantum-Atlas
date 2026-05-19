@@ -127,36 +127,6 @@
   }
   .step-label { font-size: .72rem; color: var(--muted); white-space: nowrap; }
 
-  /* ── Page picker cards ── */
-  .page-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: .55rem;
-    margin-bottom: 1.25rem;
-  }
-  .page-card {
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.09);
-    background: rgba(255,255,255,.03);
-    padding: .75rem .6rem;
-    cursor: pointer;
-    text-align: center;
-    transition: all .18s;
-    user-select: none;
-  }
-  .page-card:hover {
-    border-color: rgba(56,189,248,.25);
-    background: rgba(56,189,248,.06);
-  }
-  .page-card.selected {
-    border-color: var(--primary);
-    background: rgba(56,189,248,.12);
-    box-shadow: 0 0 0 1px rgba(56,189,248,.2);
-  }
-  .page-card-icon { font-size: 1.4rem; margin-bottom: .3rem; }
-  .page-card-name { font-size: .72rem; font-weight: 600; color: var(--muted-strong); line-height: 1.3; }
-  .page-card.selected .page-card-name { color: var(--primary); }
-
   /* ── Category chips ── */
   .cat-section { margin-bottom: 1.25rem; }
   .cat-label {
@@ -394,23 +364,14 @@
   .empty-state { padding:1.5rem; text-align:center; color:var(--muted); font-size:.84rem; }
 
   .hidden { display:none !important; }
-  @media (max-width:1024px) { .page-grid { grid-template-columns: repeat(3,1fr); } }
   @media (max-width:900px)  { .share-cols { grid-template-columns: 1fr; } }
   @media (max-width:640px)  {
-    .page-grid { grid-template-columns: repeat(2,1fr); }
     .share-shell { padding: 0.75rem; }
-
-    /* touch-friendly form inputs */
     .form-input,
     .form-select,
     .form-textarea { font-size: 1rem; min-height: 44px; padding: 0.6rem 0.75rem; }
     .form-textarea { min-height: 100px; }
-
-    /* submit button */
     .btn-submit { min-height: 48px; font-size: 1rem; }
-
-    /* category chips bigger tap area */
-    .page-grid .chip-label { padding: 0.5rem 0.4rem; font-size: 0.8rem; }
   }
 </style>
 {% endblock %}
@@ -429,8 +390,8 @@
       <span class="en-text">Add your data to the Atlas</span>
     </h1>
     <p class="hero-copy">
-      <span class="th-text">เลือกหน้าที่ต้องการเพิ่มข้อมูล → เลือกหมวดหมู่ → กรอกรายละเอียด ทีมงานจะตรวจสอบและเผยแพร่โดยระบุชื่อคุณ</span>
-      <span class="en-text">Pick a page → pick a category → fill in the details. The team reviews and publishes it with your name credited.</span>
+      <span class="th-text">เลือกหมวดหมู่ → กรอกรายละเอียด ทีมงานจะตรวจสอบและเผยแพร่โดยระบุชื่อคุณ</span>
+      <span class="en-text">Pick a category → fill in the details. The team reviews and publishes it with your name credited.</span>
     </p>
   </article>
 
@@ -465,48 +426,15 @@
         <div class="steps">
           <div class="step-dot active" id="step-dot-1">1</div>
           <div class="step-line"></div>
-          <span class="step-label"><span class="th-text">หน้า</span><span class="en-text">Page</span></span>
-          <div class="step-line"></div>
-          <div class="step-dot" id="step-dot-2">2</div>
-          <div class="step-line"></div>
           <span class="step-label"><span class="th-text">หมวดหมู่</span><span class="en-text">Category</span></span>
           <div class="step-line"></div>
-          <div class="step-dot" id="step-dot-3">3</div>
+          <div class="step-dot" id="step-dot-2">2</div>
           <div class="step-line"></div>
           <span class="step-label"><span class="th-text">รายละเอียด</span><span class="en-text">Details</span></span>
         </div>
 
-        <!-- Step 1 & 2: Page picker + categories (always visible, selection drives step 3) -->
-
-        <div class="sec-title" style="margin-bottom:.5rem">
-          <span class="th-text">เลือกหน้าที่ต้องการเพิ่มข้อมูล</span>
-          <span class="en-text">Where should this appear?</span>
-        </div>
-        <div class="page-grid" id="page-grid">
-          <div class="page-card" data-value="overview">
-            <div class="page-card-icon">🔭</div>
-            <div class="page-card-name"><span class="th-text">ภาพรวม<br>Atlas</span><span class="en-text">Atlas<br>Overview</span></div>
-          </div>
-          <div class="page-card" data-value="dashboard">
-            <div class="page-card-icon">📊</div>
-            <div class="page-card-name"><span class="th-text">แดชบอร์ด</span><span class="en-text">Dashboard</span></div>
-          </div>
-          <div class="page-card" data-value="network">
-            <div class="page-card-icon">🕸️</div>
-            <div class="page-card-name"><span class="th-text">แผนที่<br>วาทกรรม</span><span class="en-text">Network<br>Map</span></div>
-          </div>
-          <div class="page-card" data-value="analytics">
-            <div class="page-card-icon">📈</div>
-            <div class="page-card-name"><span class="th-text">การวิเคราะห์</span><span class="en-text">Analytics</span></div>
-          </div>
-          <div class="page-card" data-value="database">
-            <div class="page-card-icon">📚</div>
-            <div class="page-card-name"><span class="th-text">ฐานข้อมูล</span><span class="en-text">Database</span></div>
-          </div>
-        </div>
-
-        <!-- Category chips (dynamic by page) -->
-        <div class="cat-section" id="cat-section" style="display:none">
+        <!-- Step 1: Category chips -->
+        <div class="cat-section" id="cat-section">
           <div class="cat-label">
             <span class="th-text">เลือกหมวดหมู่</span>
             <span class="en-text">Pick a category</span>
@@ -596,28 +524,25 @@
   import { apiFetch, loadAuthState } from "/static/js/auth.js";
 
   // ── State ──
-  let selectedPage     = null;
   let selectedCategory = null;
   let dbCategories     = [];
   window.__sqMineItems   = [];
   window.__sqPublicItems = [];
 
-  // ── Predefined categories per page ──
-  const PAGE_CATS = {
-    overview:  ["Quantum Computing","Quantum Communication","Quantum Sensing","Thai University Research","Government Policy","International Collaboration","Startup / Industry","Education"],
-    dashboard: ["Statistics & Trends","Industry Reports","Funding Data","Publication Count","Event / Conference","Media Coverage"],
-    network:   ["Research Network","Academic Institution","Government Body","Industry Partner","International Org","Individual Researcher"],
-    analytics: ["Academic Paper","Historical Data","Citation Data","Conference Proceeding","Dataset","Survey / Report"],
-    database:  ["News Article","Video / Media","Research Paper","Official Document","Blog / Opinion","Book / Thesis"],
-  };
-
-  const PAGE_META = {
-    overview:  { th:"ภาพรวม Atlas",     en:"Atlas Overview" },
-    dashboard: { th:"แดชบอร์ด",          en:"Dashboard" },
-    network:   { th:"แผนที่วาทกรรม",     en:"Network Map" },
-    analytics: { th:"การวิเคราะห์",      en:"Analytics" },
-    database:  { th:"ฐานข้อมูล",         en:"Database" },
-  };
+  // ── All categories (shared across every page) ──
+  const ALL_CATS = [
+    "Quantum Computing","Quantum Communication","Quantum Sensing",
+    "Thai University Research","Government Policy","International Collaboration",
+    "Startup / Industry","Education",
+    "Statistics & Trends","Industry Reports","Funding Data","Publication Count",
+    "Event / Conference","Media Coverage",
+    "Research Network","Academic Institution","Government Body",
+    "Industry Partner","International Org","Individual Researcher",
+    "Academic Paper","Historical Data","Citation Data",
+    "Conference Proceeding","Dataset","Survey / Report",
+    "News Article","Video / Media","Research Paper",
+    "Official Document","Blog / Opinion","Book / Thesis",
+  ];
 
   function isTH() { return document.documentElement.dataset.lang !== "en"; }
   function t(th, en) { return isTH() ? th : en; }
@@ -630,7 +555,6 @@
   // ── DOM refs ──
   const authGate    = document.getElementById("auth-gate");
   const wizard      = document.getElementById("submit-wizard");
-  const catSection  = document.getElementById("cat-section");
   const chipsWrap   = document.getElementById("chips-wrap");
   const catCustom   = document.getElementById("cat-custom-wrap");
   const newCatInput = document.getElementById("new-category");
@@ -645,7 +569,7 @@
 
   // ── Step dots ──
   function setStep(n) {
-    [1,2,3].forEach((i) => {
+    [1,2].forEach((i) => {
       const dot = document.getElementById(`step-dot-${i}`);
       dot.classList.remove("active","done");
       if (i < n)  dot.classList.add("done");
@@ -653,26 +577,10 @@
     });
   }
 
-  // ── Page card selection ──
-  document.getElementById("page-grid").addEventListener("click", (e) => {
-    const card = e.target.closest(".page-card");
-    if (!card) return;
-    document.querySelectorAll(".page-card").forEach((c) => c.classList.remove("selected"));
-    card.classList.add("selected");
-    selectedPage = card.dataset.value;
-    selectedCategory = null;
-    renderCategoryChips();
-    catSection.style.display = "block";
-    submitForm.classList.remove("show");
-    setStep(2);
-  });
-
   // ── Render chips ──
   function renderCategoryChips() {
-    const suggested = PAGE_CATS[selectedPage] || [];
-    // merge suggested + db categories (deduplicate)
     const dbNames = dbCategories.map((c) => c.name);
-    const all = [...new Set([...suggested, ...dbNames])];
+    const all = [...new Set([...ALL_CATS, ...dbNames])];
 
     chipsWrap.innerHTML = all.map((name) => {
       const isSelected = name === selectedCategory;
@@ -695,17 +603,13 @@
   }
 
   function showFormDetails() {
-    if (!selectedPage || !selectedCategory) return;
-    const pageMeta = PAGE_META[selectedPage] || { th: selectedPage, en: selectedPage };
+    if (!selectedCategory) return;
     summary.innerHTML = `
-      <span class="th-text">หน้า: <strong>${pageMeta.th}</strong></span>
-      <span class="en-text">Page: <strong>${pageMeta.en}</strong></span>
-      <span class="sep">·</span>
       <span class="th-text">หมวดหมู่: <strong>${selectedCategory}</strong></span>
       <span class="en-text">Category: <strong>${selectedCategory}</strong></span>
     `;
     submitForm.classList.add("show");
-    setStep(3);
+    setStep(2);
     setTimeout(() => submitForm.scrollIntoView({ behavior:"smooth", block:"nearest" }), 50);
   }
 
@@ -734,7 +638,7 @@
       const data = await apiFetch("/api/categories");
       dbCategories = data?.items || [];
     } catch { dbCategories = []; }
-    if (selectedPage) renderCategoryChips();
+    renderCategoryChips();
   }
 
   // ── Status ──
@@ -745,14 +649,12 @@
 
   // ── Reset ──
   function resetWizard() {
-    selectedPage = null;
     selectedCategory = null;
-    document.querySelectorAll(".page-card").forEach((c) => c.classList.remove("selected"));
-    catSection.style.display = "none";
     submitForm.classList.remove("show");
     catCustom.classList.remove("show");
     statusBox.className = "status-box";
     if (submitForm) submitForm.reset();
+    renderCategoryChips();
     setStep(1);
   }
   resetBtn.addEventListener("click", resetWizard);
@@ -760,8 +662,8 @@
   // ── Submit ──
   submitForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!selectedPage || !selectedCategory) {
-      showStatus(t("เลือกหน้าและหมวดหมู่ก่อน","Please select a page and category first."), "warning");
+    if (!selectedCategory) {
+      showStatus(t("เลือกหมวดหมู่ก่อน","Please select a category first."), "warning");
       return;
     }
     submitBtn.disabled = true;
@@ -777,7 +679,6 @@
           description: document.getElementById("description").value.trim() || null,
           source_url:  document.getElementById("source_url").value.trim() || null,
           category:    selectedCategory,
-          page_target: selectedPage,
           metadata:    {},
         }),
       });
@@ -813,8 +714,6 @@
       return;
     }
     myList.innerHTML = items.map((item) => {
-      const pageMeta = PAGE_META[item.page_target];
-      const pageLabel = pageMeta ? t(pageMeta.th, pageMeta.en) : (item.page_target || "");
       return `
         <article class="my-item">
           <div class="my-item-top">
@@ -823,7 +722,6 @@
           </div>
           <div class="my-item-meta">
             ${item.category ? `<span>${item.category}</span>` : ""}
-            ${pageLabel ? ` · ${pageLabel}` : ""}
             ${item.created_at ? ` · ${formatDate(item.created_at)}` : ""}
           </div>
           ${item.source_url ? `<div class="my-item-meta" style="margin-top:.2rem">
@@ -889,7 +787,7 @@
     setPlaceholders();
     renderMine(window.__sqMineItems || []);
     renderPublic(window.__sqPublicItems || []);
-    if (selectedPage) renderCategoryChips();
+    renderCategoryChips();
   };
 
   init();
