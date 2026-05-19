@@ -218,12 +218,6 @@
     gap: 0.75rem;
   }
 
-  .hud-left {
-    top: 1rem;
-    left: 1rem;
-    width: min(360px, calc(100% - 2rem));
-  }
-
   .hud-right {
     top: 1rem;
     right: 1rem;
@@ -231,7 +225,6 @@
     width: min(340px, calc(100% - 2rem));
   }
 
-  .callout,
   .control-stack,
   .drawer {
     background: var(--panel-strong);
@@ -242,11 +235,6 @@
     -webkit-backdrop-filter: blur(4px);
   }
 
-  .callout {
-    padding: 1rem;
-  }
-
-  .callout h3,
   .drawer h2,
   .panel h2 {
     color: var(--text);
@@ -254,19 +242,12 @@
     font-size: 1.05rem;
   }
 
-  .callout p,
-  .callout li,
   .drawer p,
   .drawer li,
   .panel p,
   .panel li {
     color: var(--muted);
     line-height: 1.65;
-  }
-
-  .mini-list {
-    margin: 0.55rem 0 0;
-    padding-left: 1rem;
   }
 
   .control-stack {
@@ -668,6 +649,72 @@
     .metric-label { font-size: 0.8rem; }
   }
 
+  /* ── collapsible guide accordion ── */
+  .guide-accordion {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+  .guide-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.75rem 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    user-select: none;
+    transition: color 0.15s;
+  }
+
+  .guide-summary::-webkit-details-marker { display: none; }
+
+  .guide-summary::before {
+    content: "▶";
+    font-size: 0.6rem;
+    color: var(--accent);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .guide-accordion[open] .guide-summary::before {
+    transform: rotate(90deg);
+  }
+
+  .guide-summary:hover { color: var(--text); }
+
+  .guide-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 0 1.15rem 1rem;
+  }
+
+  .guide-item {
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .guide-item p, .guide-item li {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .guide-item ul {
+    margin: 0.4rem 0 0;
+    padding-left: 1rem;
+  }
+
+  @media (max-width: 880px) {
+    .guide-body { grid-template-columns: 1fr; }
+  }
+
   .graph-launch-overlay {
     position: absolute;
     inset: 0;
@@ -772,22 +819,29 @@
       </div>
     </div>
 
-    <div class="surface-body">
-      <div class="hud hud-left">
-        <aside class="callout">
-          <h3><span class="th-text">วิธีอ่านกราฟนี้</span><span class="en-text">How to read this view</span></h3>
-          <p>
-            <span class="th-text">เริ่มจากโหนดที่ใหญ่ที่สุด แล้วเปิดแผงรายละเอียดต่อ แผงนี้จะอธิบายว่าแนวคิดนั้นคืออะไร สำคัญอย่างไร เชื่อมกับอะไร และมีสัญญาณจากแหล่งข้อมูลหรือ taxonomy ใดรองรับการตีความนั้น</span>
-            <span class="en-text">Start with the largest nodes, then open the side panel. It explains what the topic is, why it matters, and what it connects to.</span>
-          </p>
-          <ul class="mini-list">
-            <li><span class="th-text">ป้ายสีน้ำเงินมีอักษรไทย</span><span class="en-text">Blue labels contain Thai script.</span></li>
-            <li><span class="th-text">ป้ายสีเขียวส่วนใหญ่เป็นแนวคิดที่ใช้อักษรละติน</span><span class="en-text">Green labels are mostly Latin-script concepts.</span></li>
-            <li><span class="th-text">ระบบซ่อน leaf node ก่อนเพื่อลดสัญญาณรบกวนทางสายตา</span><span class="en-text">Leaf nodes are hidden first to reduce visual noise.</span></li>
+    <details class="guide-accordion">
+      <summary class="guide-summary">
+        <span class="th-text">วิธีอ่านกราฟนี้</span>
+        <span class="en-text">How to read this view</span>
+      </summary>
+      <div class="guide-body">
+        <div class="guide-item">
+          <p><span class="th-text">เริ่มจากโหนดที่ใหญ่ที่สุด แล้วเปิดแผงรายละเอียด แผงนี้จะอธิบายว่าแนวคิดนั้นคืออะไรและเชื่อมกับอะไร</span><span class="en-text">Start with the largest nodes, then open the side panel — it explains what the topic is and what it connects to.</span></p>
+        </div>
+        <div class="guide-item">
+          <ul>
+            <li><span class="th-text">ป้ายสีน้ำเงินมีอักษรไทย</span><span class="en-text">Blue labels = Thai-script concepts</span></li>
+            <li><span class="th-text">ป้ายสีเขียวส่วนใหญ่เป็นแนวคิดที่ใช้อักษรละติน</span><span class="en-text">Green labels = Latin-script concepts</span></li>
+            <li><span class="th-text">ระบบซ่อน leaf node ก่อน</span><span class="en-text">Leaf nodes hidden by default</span></li>
           </ul>
-        </aside>
+        </div>
+        <div class="guide-item">
+          <p><span class="th-text">โหนดที่ใหญ่กว่าเชื่อมต่อมากกว่า โหนดสะพานอยู่ระหว่างคลัสเตอร์ที่แยกจากกัน</span><span class="en-text">Larger nodes = more connected. Bridge nodes sit between otherwise separate topic clusters.</span></p>
+        </div>
       </div>
+    </details>
 
+    <div class="surface-body">
       <div class="hud hud-right">
         <div class="control-stack">
           <div class="control-row">

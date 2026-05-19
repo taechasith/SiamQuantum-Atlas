@@ -139,9 +139,33 @@
     gap: .4rem;
   }
   .chips-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .cat-group {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .cat-group-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .cat-group-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: .45rem;
+    gap: 0.4rem;
+  }
+
+  .cat-group-add {
+    padding-top: 0.25rem;
   }
   .chip {
     height: 32px;
@@ -436,8 +460,8 @@
         <!-- Step 1: Category chips -->
         <div class="cat-section" id="cat-section">
           <div class="cat-label">
-            <span class="th-text">เลือกหมวดหมู่</span>
-            <span class="en-text">Pick a category</span>
+            <span class="th-text">เลือกประเภทเนื้อหา</span>
+            <span class="en-text">What type of content are you adding?</span>
           </div>
           <div class="chips-wrap" id="chips-wrap"></div>
           <div class="cat-custom-wrap" id="cat-custom-wrap">
@@ -529,20 +553,32 @@
   window.__sqMineItems   = [];
   window.__sqPublicItems = [];
 
-  // ── All categories (shared across every page) ──
-  const ALL_CATS = [
-    "Quantum Computing","Quantum Communication","Quantum Sensing",
-    "Thai University Research","Government Policy","International Collaboration",
-    "Startup / Industry","Education",
-    "Statistics & Trends","Industry Reports","Funding Data","Publication Count",
-    "Event / Conference","Media Coverage",
-    "Research Network","Academic Institution","Government Body",
-    "Industry Partner","International Org","Individual Researcher",
-    "Academic Paper","Historical Data","Citation Data",
-    "Conference Proceeding","Dataset","Survey / Report",
-    "News Article","Video / Media","Research Paper",
-    "Official Document","Blog / Opinion","Book / Thesis",
+  // ── Grouped categories ──
+  const CAT_GROUPS = [
+    {
+      label: { th: "สาขาควอนตัม", en: "Quantum Field" },
+      cats: ["Quantum Computing", "Quantum Communication", "Quantum Sensing"],
+    },
+    {
+      label: { th: "ประเภทเนื้อหา", en: "Content Type" },
+      cats: ["Academic Paper", "Research Paper", "News Article", "Video / Media", "Blog / Opinion", "Survey / Report", "Official Document", "Book / Thesis"],
+    },
+    {
+      label: { th: "ข้อมูลและสถิติ", en: "Data & Statistics" },
+      cats: ["Dataset", "Statistics & Trends", "Industry Reports", "Funding Data", "Publication Count", "Historical Data", "Citation Data", "Conference Proceeding"],
+    },
+    {
+      label: { th: "องค์กรและสถาบัน", en: "Organizations" },
+      cats: ["Thai University Research", "Government Policy", "International Collaboration", "Startup / Industry", "Education"],
+    },
+    {
+      label: { th: "กิจกรรมและสื่อ", en: "Events & Media" },
+      cats: ["Event / Conference", "Media Coverage"],
+    },
   ];
+
+  // Flat list for backward-compat (DB lookup, custom cats)
+  const ALL_CATS = CAT_GROUPS.flatMap((g) => g.cats);
 
   function isTH() { return document.documentElement.dataset.lang !== "en"; }
   function t(th, en) { return isTH() ? th : en; }
@@ -577,16 +613,33 @@
     });
   }
 
-  // ── Render chips ──
+  // ── Render chips (grouped) ──
   function renderCategoryChips() {
     const dbNames = dbCategories.map((c) => c.name);
-    const all = [...new Set([...ALL_CATS, ...dbNames])];
+    const extraCats = dbNames.filter((n) => !ALL_CATS.includes(n));
 
-    chipsWrap.innerHTML = all.map((name) => {
-      const isSelected = name === selectedCategory;
-      return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
-    }).join("") +
-    `<button class="chip chip-add" type="button" id="chip-add-btn">+ <span class="th-text">เพิ่มหมวดหมู่</span><span class="en-text">Add new</span></button>`;
+    const groupsHTML = CAT_GROUPS.map((g) => {
+      const label = isTH() ? g.label.th : g.label.en;
+      const chipsHTML = g.cats.map((name) => {
+        const isSelected = name === selectedCategory;
+        return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+      }).join("");
+      return `<div class="cat-group"><div class="cat-group-label">${label}</div><div class="cat-group-chips">${chipsHTML}</div></div>`;
+    }).join("");
+
+    const extraHTML = extraCats.length ? `
+      <div class="cat-group">
+        <div class="cat-group-label"><span class="th-text">หมวดหมู่เพิ่มเติม</span><span class="en-text">Custom</span></div>
+        <div class="cat-group-chips">
+          ${extraCats.map((name) => {
+            const isSelected = name === selectedCategory;
+            return `<button class="chip${isSelected ? " selected" : ""}" type="button" data-cat="${name}">${name}</button>`;
+          }).join("")}
+        </div>
+      </div>` : "";
+
+    chipsWrap.innerHTML = groupsHTML + extraHTML +
+      `<div class="cat-group-add"><button class="chip chip-add" type="button" id="chip-add-btn">+ <span class="th-text">เพิ่มหมวดหมู่</span><span class="en-text">Add new</span></button></div>`;
 
     document.querySelectorAll(".chip:not(.chip-add)").forEach((chip) => {
       chip.addEventListener("click", () => {
