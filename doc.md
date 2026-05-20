@@ -14,7 +14,7 @@ SiamQuantum Atlas is a Python-first research platform for collecting, enriching,
 | Persistence | SQLite (`data/processed/siamquantum_atlas.db`) |
 | Auth / user data | Supabase Auth + PostgREST (optional; falls back to local auth) |
 | Schema management | `src/siamquantum/db/schema.sql` + `src/siamquantum/db/migrate.py` + `supabase/migrations/` |
-| NLP / AI | Anthropic Claude API (`claude-sonnet-4-6`) |
+| NLP / AI | Anthropic Claude API (`claude-sonnet-4-6`) with grounded URL analysis for submissions |
 | Data sources | GDELT API v2, YouTube Data API v3, RSS, curated seeds |
 | Geo enrichment | MaxMind GeoLite2 City + ASN (`data/geoip/*.mmdb`) |
 | Browser libraries | Leaflet.js, Chart.js, 3d-force-graph (all CDN) |
@@ -137,12 +137,12 @@ SUPABASE_SECRET_KEY
 
 | Route | Template | Notes |
 |-------|----------|-------|
-| `/` | `index.html` | Landing page |
-| `/dashboard` | `dashboard.html` | Map + source overview |
+| `/` | `landing.html` | Landing page |
+| `/dashboard` | `dashboard.html` | Source map, scope controls, mobile draggable detail sheet |
 | `/network` | `network.html` | 3D force graph |
 | `/analytics` | `analytics.html` | Engagement + taxonomy charts |
 | `/database` | `database.html` | Filterable source cards + XLSX export |
-| `/submit-data` | `submit_data.html` | Community submission form |
+| `/submit-data` | `community.html` | Authenticated submission form with grounded AI URL analysis |
 | `/profile` | `profile.html` | Auth + profile management |
 | `/admin/submitted-data` | `admin_submitted_data.html` | Admin review queue |
 | `/overview` | redirect | → `/dashboard` |
@@ -160,6 +160,7 @@ GET  /api/sources            paginated + filtered source list
 GET  /api/sources/export     XLSX download
 GET  /api/categories         category list
 POST /api/categories         create category (admin)
+POST /api/submitted-data/analyze-url  fetch URL context + grounded AI metadata
 GET  /api/submitted-data     user's own submissions (auth required)
 GET  /api/submitted-data/public  approved + completed submissions
 POST /api/submitted-data     submit new source (auth required)
@@ -169,6 +170,42 @@ GET  /api/supabase-config    publishable key for browser
 POST /api/cron/ingest        scheduled ingest trigger (CRON_SECRET required)
 POST /api/admin/recheck-relevance  trigger low-confidence recheck (admin)
 ```
+
+## Submit-Data AI Analysis
+
+The `/submit-data` page supports "Analyze with AI" for authenticated users. The server first fetches source context from the URL:
+
+- HTML pages: title, meta description, and cleaned main/article text.
+- YouTube watch URLs: oEmbed title/author metadata when available.
+- Fetch metadata is returned as `source_access`; extracted page title/description is returned as `source_context`.
+
+The Claude system prompt is intentionally conservative:
+
+- Use only supplied URL, page title, meta description, and excerpt.
+- Do not invent authors, institutions, dates, countries, funding amounts, claims, outcomes, or categories.
+- Prefer `null` for title/description when page text is too sparse.
+- Return approved categories only.
+
+The backend normalizes the model result before returning it:
+
+| Field | Behavior |
+|-------|----------|
+| `primary_category` | Must match the approved list; otherwise falls back to `News Article`. |
+| `content_type` | Must be one of `academic`, `news`, `educational`, `entertainment`, `report`, `policy`. |
+| `quantum_domain` | Must be one of the fixed quantum-domain enum values. |
+| `estimated_reach` | Must be `low`, `medium`, `high`, or `viral`. |
+| `tags` | Deduplicated and capped at 6. |
+| `confidence` | Clamped to `0.0-1.0`. |
+
+The response includes review-oriented fields: `evidence_quotes`, `analysis_notes`, `data_quality`, `confidence`, and `needs_review`. When the user submits the form, the full AI payload is persisted in submission metadata as `metadata.ai_analysis` so later review and analysis jobs can inspect the evidence behind the filled title, description, and categories.
+
+## Mobile Map UI
+
+The `/dashboard` map uses Leaflet with a mobile details bottom sheet. On mobile:
+
+- The detail panel can be opened by tapping the handle, keyboard activation, or the floating Details/Map control.
+- The panel handle supports pointer dragging and snaps between collapsed and expanded states.
+- The panel is stacked above Leaflet map controls but below the topbar and bottom mobile navigation, so it does not cover the app chrome.
 
 ## Source Adapter System
 

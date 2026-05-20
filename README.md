@@ -23,11 +23,11 @@ This repository is not a speculative product shell. It is the live baseline used
 - Builds taxonomy-aware statistics and graph metrics caches.
 - Serves the viewer pages:
   - `/`: landing page
-  - `/dashboard`: geographic and source-overview view
+  - `/dashboard`: geographic source map with mobile bottom-sheet detail panel
   - `/network`: 3D concept network with click-through node research detail
   - `/analytics`: engagement and taxonomy analysis
   - `/database`: filtered source browser with XLSX export
-  - `/submit-data`: authenticated submission and review queue
+  - `/submit-data`: authenticated submission and review queue with grounded AI URL analysis
   - `/profile`: login, signup, and editable user profile
   - `/admin/submitted-data`: admin review queue
 
@@ -149,7 +149,9 @@ python -m siamquantum orchestration serve
 - Concept graph metrics including connected components, hub interpretation, and community summaries.
 - Clickable network node detail with neighbor, relation, source, and taxonomy context.
 - Geo enrichment with MaxMind GeoLite2 City + ASN; approximate location fallback for sources without precise coordinates.
-- User-owned submitted data with Supabase-backed auth, profile, and review flow.
+- Source map mobile UI with a draggable details sheet that stays below the global mobile navigation chrome.
+- User-owned submitted data with Supabase-backed auth, profile, review flow, and local-auth fallback.
+- Grounded AI URL analysis for submitted data: title, description, category, tags, source evidence, confidence, data quality, and review notes are generated only from fetched page context.
 - Low-confidence relevance recheck to improve corpus quality iteratively.
 - XLSX export for source/entity review.
 - Source Adapter system (`src/siamquantum/adapters/`) for adding new data sources without touching pipeline code.
@@ -161,6 +163,9 @@ python -m siamquantum orchestration serve
 - The FastAPI server is the only place that may use `SUPABASE_SECRET_KEY`.
 - First authenticated load auto-creates a `profiles` row when needed.
 - `/submit-data` writes authenticated user-owned rows into `submitted_data`.
+- The Analyze with AI flow fetches source context first, then asks Claude for grounded metadata.
+- AI-filled submission metadata stores the full analysis payload under `metadata.ai_analysis`, including `evidence_quotes`, `analysis_notes`, `data_quality`, `confidence`, and `needs_review`.
+- Invalid or invented model categories are normalized to the approved category list before reaching the UI.
 - Public visibility is limited to rows with `status = 'approved'` and `analysis_status = 'completed'`.
 - `/profile` shows the user profile plus their own private submitted data queue.
 - `/admin/submitted-data` is for users whose `profiles.role = 'admin'`.
@@ -169,6 +174,7 @@ python -m siamquantum orchestration serve
 
 - Relevance flags are operational corpus defaults unless explicit row-level rechecking has been run; do not read as universal classifier truth.
 - NLP extraction is best-effort and depends on available source text plus configured model access.
+- Submit-data AI analysis is grounded and normalized, but reviewers should still verify low-confidence or sparse-source submissions.
 - SQLite is correct for local/demo operation, not for concurrent multi-writer production use.
 - The network view is an interpretation aid, not a causal or ontological truth layer.
 - Community automation is intentionally partial — the queue is real, downstream processing remains environment-dependent.
