@@ -901,7 +901,7 @@
                 linear-gradient(180deg, #060c1e 0%, #070B17 60%, #050810 100%);
     pointer-events: all;
     transition: opacity 0.55s ease, visibility 0.55s ease;
-    padding-top: 8vh;
+    padding-top: 22vh;
   }
   #splash.splash-hidden {
     opacity: 0;
@@ -942,12 +942,13 @@
     font-family: var(--font-heading);
     font-size: 1.5rem;
     font-weight: 300;
-    letter-spacing: 0.18em;
+    letter-spacing: 0;
     color: var(--text);
     opacity: 0;
     animation: splash-fade-up 0.6s 0.45s ease both;
   }
-  .splash-wordmark strong { font-weight: 600; color: var(--primary); }
+  .splash-wordmark strong { font-weight: 600; color: var(--text); }
+  .splash-wordmark .splash-atlas { letter-spacing: 0.18em; margin-left: 0.18em; }
   .splash-sub {
     margin-top: 0.4rem;
     font-size: 0.72rem;
@@ -1026,7 +1027,7 @@
     <div class="splash-ring splash-ring-2"></div>
     <div class="splash-ring splash-ring-3"></div>
     <img class="splash-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas" width="140" height="140" decoding="sync">
-    <div class="splash-wordmark"><strong>Siam</strong>Quantum<strong> Atlas</strong></div>
+    <div class="splash-wordmark"><strong>Siam</strong><strong>Quantum</strong><span class="splash-atlas">Atlas</span></div>
     <div class="splash-sub">Thai Quantum Discourse Intelligence</div>
     <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
     <div class="splash-recommend">
