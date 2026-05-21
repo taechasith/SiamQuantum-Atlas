@@ -1075,6 +1075,11 @@ def page_profile(request: Request) -> Any:
     return templates.TemplateResponse(request, "profile.html", {"active": "profile"})
 
 
+@app.get("/my-submissions", include_in_schema=False)
+def page_my_submissions(request: Request) -> Any:
+    return templates.TemplateResponse(request, "my_submissions.html", {"active": "community"})
+
+
 @app.get("/admin/submitted-data", include_in_schema=False)
 def page_admin_submitted_data(request: Request) -> Any:
     return templates.TemplateResponse(request, "admin_submitted_data.html", {"active": "profile"})

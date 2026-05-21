@@ -359,6 +359,13 @@
     margin-top: .25rem;
   }
 
+  .view-all-link {
+    display: flex; align-items: center; gap: .4rem; justify-content: flex-end;
+    margin-top: .5rem; color: var(--primary); font-size: .78rem; text-decoration: none;
+    opacity: .8; transition: opacity .15s;
+  }
+  .view-all-link:hover { opacity: 1; }
+
   .hidden { display: none !important; }
   @media (max-width: 980px) {
     .profile-grid { grid-template-columns: 1fr; }
@@ -680,11 +687,11 @@
   function statusPill(status, analysis_status) {
     if (status === "approved" && analysis_status === "completed")
       return `<span class="status-pill sp-live">${t("เผยแพร่แล้ว","Published")}</span>`;
-    if (status === "rejected" || analysis_status === "failed")
+    if (status === "rejected")
       return `<span class="status-pill sp-fail">${t("ไม่ผ่าน","Not accepted")}</span>`;
-    if (analysis_status === "processing")
+    if (analysis_status === "processing" || status === "approved")
       return `<span class="status-pill sp-rev">${t("กำลังตรวจสอบ","Reviewing")}</span>`;
-    return `<span class="status-pill sp-wait">${t("รอตรวจสอบ","Waiting")}</span>`;
+    return `<span class="status-pill sp-wait">${t("อยู่ระหว่างตรวจสอบ","Under Review")}</span>`;
   }
 
   function renderSubmissions(items) {
@@ -692,7 +699,8 @@
       submissionList.innerHTML = `<div class="submission-item"><div class="submission-copy">${t("ยังไม่มีรายการ","No submissions yet.")}</div></div>`;
       return;
     }
-    submissionList.innerHTML = items.map((item) => `
+    const latest = items.slice(0, 1);
+    submissionList.innerHTML = latest.map((item) => `
       <article class="submission-item">
         <div class="submission-top">
           <div class="submission-title">${item.title}</div>
@@ -705,7 +713,12 @@
         </div>
         ${item.description || item.source_url ? `<div class="submission-copy">${item.description || item.source_url}</div>` : ""}
       </article>
-    `).join("");
+    `).join("") + (items.length >= 1 ? `
+      <a href="/my-submissions" class="view-all-link">
+        <span class="th-text">ดูการส่งทั้งหมด (${items.length})</span>
+        <span class="en-text">View all submissions (${items.length})</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>` : "");
   }
 
   function fillProfile(profile, user) {

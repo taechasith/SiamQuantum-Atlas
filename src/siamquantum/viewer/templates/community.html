@@ -1120,11 +1120,11 @@
   function statusPill(status, analysis_status) {
     if (status === "approved" && analysis_status === "completed")
       return `<span class="status-pill sp-live">${t("เผยแพร่แล้ว","Published")}</span>`;
-    if (status === "rejected" || analysis_status === "failed")
+    if (status === "rejected")
       return `<span class="status-pill sp-fail">${t("ไม่ผ่าน","Not accepted")}</span>`;
-    if (analysis_status === "processing")
+    if (analysis_status === "processing" || status === "approved")
       return `<span class="status-pill sp-rev">${t("กำลังตรวจสอบ","Reviewing")}</span>`;
-    return `<span class="status-pill sp-wait">${t("รอตรวจสอบ","Waiting")}</span>`;
+    return `<span class="status-pill sp-wait">${t("อยู่ระหว่างตรวจสอบ","Under Review")}</span>`;
   }
 
   // ── Render my list ──
