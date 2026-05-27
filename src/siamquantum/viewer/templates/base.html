@@ -15,23 +15,23 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:            #070B17;
-      --sidebar:       #060A15;
-      --surface:       #131B2E;
-      --surface-2:     #192338;
-      --surface-hover: #202D46;
-      --border:        rgba(114, 143, 198, 0.16);
-      --border-strong: rgba(93, 182, 255, 0.34);
-      --text:          #F1F5F9;
-      --muted:         #94A3B8;
-      --muted-strong:  #CBD5E1;
-      --primary:       #38BDF8;
-      --secondary:     #10B981;
-      --tertiary:      #60A5FA;
-      --warning:       #F59E0B;
+      --bg:            #0A0612;
+      --sidebar:       #000000;
+      --surface:       #3E2E54;
+      --surface-2:     #36393E;
+      --surface-hover: #5D005D;
+      --border:        rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(212, 168, 50, 0.45);
+      --text:          #FFFFFF;
+      --muted:         rgba(255, 255, 255, 0.6);
+      --muted-strong:  #FAFAFA;
+      --primary:       #D4A832;
+      --secondary:     #9FFFE8;
+      --tertiary:      #F5D4F5;
+      --warning:       #FDE98A;
       --danger:        #F87171;
-      --shadow:        0 18px 48px rgba(0, 0, 0, 0.42);
-      --ring:          rgba(56, 189, 248, 0.4);
+      --shadow:        0 18px 48px rgba(0, 0, 0, 0.5);
+      --ring:          rgba(212, 168, 50, 0.4);
       --font-body:     "IBM Plex Sans Thai", system-ui, sans-serif;
       --font-heading:  "IBM Plex Sans Thai", system-ui, sans-serif;
       --font-mono:     "JetBrains Mono", "IBM Plex Sans Thai", monospace;
@@ -51,8 +51,8 @@
     body {
       font-family: var(--font-body);
       background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
-        linear-gradient(180deg, #09101f 0%, var(--bg) 24%, #060a15 100%);
+        radial-gradient(circle at top left, rgba(212, 168, 50, 0.08), transparent 28%),
+        linear-gradient(180deg, #0d0818 0%, var(--bg) 24%, #050310 100%);
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
@@ -87,7 +87,7 @@
       left: 0;
       width: var(--sidebar-w);
       height: 100vh;
-      background: linear-gradient(180deg, rgba(6, 10, 21, 0.98), rgba(5, 8, 17, 0.98));
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.98), rgba(5, 3, 10, 0.98));
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -116,12 +116,12 @@
       object-fit: contain;
       display: block;
       flex-shrink: 0;
-      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.25));
+      filter: drop-shadow(0 0 8px rgba(212, 168, 50, 0.25));
       transition: filter 0.2s ease;
     }
 
     .sidebar-brand:hover .sidebar-logo {
-      filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.45));
+      filter: drop-shadow(0 0 14px rgba(212, 168, 50, 0.45));
     }
 
     .sidebar-brand-name {
@@ -182,13 +182,13 @@
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
       border-color: rgba(255, 255, 255, 0.06);
-      box-shadow: inset 2px 0 0 rgba(56, 189, 248, 0.3);
+      box-shadow: inset 2px 0 0 rgba(212, 168, 50, 0.3);
     }
 
     .nav-item.active {
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(212, 168, 50, 0.1);
       color: var(--primary);
-      border-color: rgba(56, 189, 248, 0.2);
+      border-color: rgba(212, 168, 50, 0.2);
       font-weight: 600;
       box-shadow: inset 3px 0 0 var(--primary);
     }
@@ -218,7 +218,7 @@
       align-items: center;
       gap: 1.4rem;
       padding: 0.42rem 1.7rem;
-      background: rgba(6, 10, 21, 0.7);
+      background: rgba(10, 6, 18, 0.7);
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       scrollbar-width: none;
@@ -296,11 +296,11 @@
       justify-content: space-between;
       gap: 1rem;
       padding: 0 1.7rem;
-      background: rgba(8, 12, 24, 0.92);
+      background: rgba(10, 6, 18, 0.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
-      box-shadow: 0 1px 0 rgba(114, 143, 198, 0.06), 0 8px 32px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 1px 0 rgba(212, 168, 50, 0.06), 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .topbar-title {
@@ -500,7 +500,7 @@
       border: 1px solid var(--border-strong);
       background: rgba(11, 17, 32, 0.95);
       backdrop-filter: blur(16px);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(56, 189, 248, 0.04);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(212, 168, 50, 0.04);
       cursor: pointer;
       color: var(--muted-strong);
       transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
@@ -508,8 +508,8 @@
 
     .live-fab-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.12), 0 0 18px rgba(56, 189, 248, 0.08);
-      border-color: rgba(56, 189, 248, 0.38);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(212, 168, 50, 0.12), 0 0 18px rgba(212, 168, 50, 0.08);
+      border-color: rgba(212, 168, 50, 0.38);
     }
 
     .live-fab-dot {
@@ -555,7 +555,7 @@
       padding: 0.2rem 0.58rem;
       border-radius: 6px;
       border: 1px solid var(--border);
-      background: rgba(56, 189, 248, 0.07);
+      background: rgba(212, 168, 50, 0.07);
       color: var(--primary);
       white-space: nowrap;
       font-size: 0.67rem;
@@ -710,7 +710,7 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(15, 23, 42, 0.72);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
@@ -750,7 +750,7 @@
       padding: 0.4rem 1.1rem;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(212, 168, 50, 0.1);
       color: var(--primary);
       cursor: pointer;
       font-weight: 500;
@@ -758,7 +758,7 @@
       transition: background 0.14s;
     }
 
-    .desktop-modal-btn:hover { background: rgba(56, 189, 248, 0.18); }
+    .desktop-modal-btn:hover { background: rgba(212, 168, 50, 0.18); }
 
     /* ── LANGUAGE VISIBILITY ──────────────────────────────────────────────── */
     html[data-lang="en"] .th-text { display: none !important; }
@@ -779,7 +779,7 @@
       height: 26px;
       object-fit: contain;
       flex-shrink: 0;
-      filter: drop-shadow(0 0 6px rgba(56,189,248,0.3));
+      filter: drop-shadow(0 0 6px rgba(212,168,50,0.3));
     }
 
     .topbar-mobile-wordmark {
@@ -834,7 +834,7 @@
         right: 0;
         z-index: 150;
         height: 64px;
-        background: rgba(5, 8, 17, 0.98);
+        background: rgba(5, 3, 10, 0.98);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border);
@@ -897,8 +897,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(56,189,248,0.14) 0%, transparent 70%),
-                linear-gradient(180deg, #060c1e 0%, #070B17 60%, #050810 100%);
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,168,50,0.12) 0%, transparent 70%),
+                linear-gradient(180deg, #0d0818 0%, #0A0612 60%, #050310 100%);
     pointer-events: all;
     transition: opacity 0.55s ease, visibility 0.55s ease;
     padding-top: 22vh;
@@ -915,26 +915,26 @@
     object-fit: contain;
     display: block;
     animation: splash-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-    filter: drop-shadow(0 0 32px rgba(56,189,248,0.45)) drop-shadow(0 0 8px rgba(56,189,248,0.2));
+    filter: drop-shadow(0 0 32px rgba(212,168,50,0.45)) drop-shadow(0 0 8px rgba(212,168,50,0.2));
   }
   .splash-ring {
     position: absolute;
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    border: 1px solid rgba(56,189,248,0.22);
+    border: 1px solid rgba(212,168,50,0.22);
     animation: splash-ring 2.4s cubic-bezier(0.4,0,0.6,1) infinite;
   }
   .splash-ring-2 {
     width: 280px;
     height: 280px;
-    border-color: rgba(56,189,248,0.12);
+    border-color: rgba(212,168,50,0.12);
     animation-delay: 0.4s;
   }
   .splash-ring-3 {
     width: 370px;
     height: 370px;
-    border-color: rgba(56,189,248,0.07);
+    border-color: rgba(212,168,50,0.07);
     animation-delay: 0.8s;
   }
   .splash-wordmark {
@@ -962,7 +962,7 @@
     margin-top: 2.8rem;
     width: 160px;
     height: 2px;
-    background: rgba(56,189,248,0.12);
+    background: rgba(212,168,50,0.12);
     border-radius: 1px;
     overflow: hidden;
     opacity: 0;
@@ -980,11 +980,11 @@
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(212, 168, 50, 0.1);
+    border: 1px solid rgba(212, 168, 50, 0.35);
     border-radius: 12px;
     padding: 0.7rem 1.1rem;
-    color: #e2f4fd;
+    color: #FFFFFFCC;
     font-size: 0.88rem;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -992,7 +992,7 @@
     animation: splash-fade-up 0.6s 1.4s ease both;
     white-space: nowrap;
     text-align: center;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
+    box-shadow: 0 0 20px rgba(212, 168, 50, 0.12);
   }
   .splash-recommend svg {
     width: 1.3rem;
@@ -1451,7 +1451,7 @@
             var absDelta = Math.abs(delta);
             var absDeltaFmt = absDelta >= 1 ? Math.round(absDelta).toLocaleString() : absDelta.toFixed(2);
 
-            var sparkColor = delta >= 0 ? "#38BDF8" : "#f87171";
+            var sparkColor = delta >= 0 ? "#D4A832" : "#f87171";
             var svg = window.SQHistory.sparklineSvg(series, sparkColor, 80, 26);
 
             if (idx > 0) inner += '<div class="sq-hist-divider"></div>';
@@ -1686,10 +1686,10 @@
           var fieldBounds = { x: 78, y: 46, z: 26 };
 
           var palette = [
-            [0.220, 0.745, 0.973],  // #38BDF8 primary blue
-            [0.376, 0.647, 0.980],  // #60A5FA tertiary blue
-            [0.063, 0.722, 0.506],  // #10B981 secondary green
-            [0.310, 0.843, 1.000],  // cyan blend
+            [0.831, 0.659, 0.196],  // #D4A832 primary gold
+            [0.624, 1.000, 0.910],  // #9FFFE8 mint teal
+            [0.992, 0.914, 0.541],  // #FDE98A light yellow
+            [0.961, 0.831, 0.961],  // #F5D4F5 lavender
           ];
 
           var positions = new Float32Array(TOTAL * 3);
