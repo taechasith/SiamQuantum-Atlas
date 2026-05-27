@@ -85,8 +85,8 @@
   }
 
   .summary-card {
-    background: linear-gradient(160deg, rgba(212, 168, 50, 0.05), rgba(255, 255, 255, 0.02));
-    border: 1px solid rgba(212, 168, 50, 0.14);
+    background: linear-gradient(160deg, rgba(56, 189, 248, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(56, 189, 248, 0.14);
     border-radius: 18px;
     padding: 1.1rem 1rem;
     min-height: 120px;
@@ -105,8 +105,8 @@
   }
 
   .summary-card:hover {
-    border-color: rgba(212, 168, 50, 0.28);
-    box-shadow: 0 4px 20px rgba(212, 168, 50, 0.08);
+    border-color: rgba(56, 189, 248, 0.28);
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.08);
   }
 
   .summary-card .label {
@@ -577,7 +577,7 @@
 
   .metric-check input {
     margin-top: 0.2rem;
-    accent-color: #D4A832;
+    accent-color: #78c9ff;
   }
 
   .metric-check strong {
@@ -1161,10 +1161,10 @@
 
   function nodeColor(node) {
     const label = String(node.label || "");
-    if (selectedNodeId && node.id === selectedNodeId) return "#FDE98A";
-    if (/[\u0E00-\u0E7F]/.test(label)) return "#D4A832";
-    if (/[A-Za-z]/.test(label)) return "#9FFFE8";
-    return "#F5D4F5";
+    if (selectedNodeId && node.id === selectedNodeId) return "#ffb86b";
+    if (/[\u0E00-\u0E7F]/.test(label)) return "#78c9ff";
+    if (/[A-Za-z]/.test(label)) return "#5ff2c8";
+    return "#c8a8ff";
   }
 
   function nodeLabel(node) {
@@ -1431,7 +1431,7 @@
           return selectedNodeId && node.id === selectedNodeId ? base + 2.2 : base;
         })
         .nodeRelSize(5)
-        .linkColor((link) => isSelectedLink(link) ? "rgba(253, 233, 138, 0.95)" : "rgba(212, 168, 50, 0.25)")
+        .linkColor((link) => isSelectedLink(link) ? "rgba(255, 184, 107, 0.95)" : "rgba(152, 167, 198, 0.34)")
         .linkOpacity(0.92)
         .linkWidth((link) => {
           const width = Math.max(0.45, Math.min(Number(link.value || 1) * 0.95, 4.5));
@@ -1439,7 +1439,7 @@
         })
         .linkDirectionalArrowLength((link) => isSelectedLink(link) ? 9 : 6)
         .linkDirectionalArrowRelPos(0.68)
-        .linkDirectionalArrowColor((link) => isSelectedLink(link) ? "rgba(253, 233, 138, 0.98)" : "rgba(212, 168, 50, 0.55)")
+        .linkDirectionalArrowColor((link) => isSelectedLink(link) ? "rgba(255, 184, 107, 0.98)" : "rgba(152, 167, 198, 0.74)")
         .linkDirectionalParticles((link) => isSelectedLink(link) ? 3 : 1)
         .linkDirectionalParticleWidth((link) => isSelectedLink(link) ? 2.2 : 1.2)
         .linkDirectionalParticleSpeed(0.004)

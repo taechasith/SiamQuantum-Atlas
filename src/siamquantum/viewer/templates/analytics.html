@@ -78,8 +78,8 @@
   }
 
   .kpi-block:hover {
-    border-color: rgba(212, 168, 50, 0.3);
-    box-shadow: 0 4px 24px rgba(212, 168, 50, 0.07);
+    border-color: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 4px 24px rgba(56, 189, 248, 0.07);
   }
 
   .kpi-badge {
@@ -140,7 +140,7 @@
     transition: border-color 0.18s;
   }
 
-  .insight-card:hover { border-color: rgba(212, 168, 50, 0.22); }
+  .insight-card:hover { border-color: rgba(56, 189, 248, 0.22); }
 
   .stat-label, .insight-label {
     color: var(--muted);
@@ -166,7 +166,7 @@
   .status-pill {
     display: inline-flex;
     border: 1px solid var(--border-strong);
-    background: rgba(212, 168, 50, 0.08);
+    background: rgba(56, 189, 248, 0.08);
     border-radius: 8px;
     color: var(--primary);
     padding: 0.35rem 0.7rem;
@@ -207,7 +207,7 @@
     min-height: 100%;
     transition: border-color 0.2s;
   }
-  .card:hover { border-color: rgba(212, 168, 50, 0.2); }
+  .card:hover { border-color: rgba(56, 189, 248, 0.2); }
   .card h3 {
     color: var(--text);
     font-size: 0.95rem;
@@ -557,7 +557,7 @@
           <h3><span class="th-text">การกระจายโดเมนควอนตัม</span><span class="en-text">Quantum Domain Distribution</span></h3>
           <p><span class="th-text">จำนวนแหล่งข้อมูลในแต่ละโดเมนย่อยของควอนตัม</span><span class="en-text">Source count per quantum sub-domain in the operational corpus.</span></p>
         </div>
-        <a href="/database?scope=strict" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(212,168,50,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
+        <a href="/database?scope=strict" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(56,189,248,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
           <span class="th-text">ดูแหล่งข้อมูล →</span><span class="en-text">Browse sources →</span>
         </a>
       </div>
@@ -570,7 +570,7 @@
           <h3><span class="th-text">แหล่งข้อมูลตามแพลตฟอร์มและปี</span><span class="en-text">Coverage by Platform &amp; Year</span></h3>
           <p><span class="th-text">จำนวนแหล่งข้อมูลแบ่งตามแพลตฟอร์มและช่วงปี</span><span class="en-text">Stacked source counts across platforms and years — shows collection breadth over time.</span></p>
         </div>
-        <a href="/database?scope=relevant" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(212,168,50,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
+        <a href="/database?scope=relevant" style="color:var(--primary);font-size:0.82rem;white-space:nowrap;text-decoration:none;border:1px solid rgba(56,189,248,0.3);border-radius:6px;padding:0.25rem 0.65rem;flex-shrink:0">
           <span class="th-text">ดูแหล่งข้อมูล →</span><span class="en-text">Browse sources →</span>
         </a>
       </div>
@@ -891,7 +891,7 @@
         const byYear = covPayload.data.by_year;
         const years = covPayload.data.years || Object.keys(byYear).sort();
         const platforms = [...new Set(years.flatMap((yr) => Object.keys(byYear[yr] || {})))];
-        const paletteCov = ["#D4A832","#9FFFE8","#F5D4F5","#FDE98A","#F87171","#A78BFA"];
+        const paletteCov = ["#38BDF8","#10B981","#60A5FA","#F59E0B","#F87171","#A78BFA"];
         const covCard = document.getElementById("platform-coverage-card");
         if (covCard && platforms.length) {
           covCard.style.display = "";
@@ -947,7 +947,7 @@
               const val = cell ? (cell.geo_mean || 0) : 0;
               const alpha = val > 0 ? Math.max(0.08, val / maxVal) : 0;
               const display = val > 1000 ? (val / 1000).toFixed(1) + "k" : val > 0 ? Math.round(val).toLocaleString() : "-";
-              html += `<td style="text-align:center;padding:0.28rem 0.45rem;background:rgba(212,168,50,${(alpha * 0.55).toFixed(2)});border-radius:4px;color:${val > 0 ? "var(--text)" : "var(--muted)"};font-family:var(--font-mono);font-size:0.73rem">${display}</td>`;
+              html += `<td style="text-align:center;padding:0.28rem 0.45rem;background:rgba(56,189,248,${(alpha * 0.55).toFixed(2)});border-radius:4px;color:${val > 0 ? "var(--text)" : "var(--muted)"};font-family:var(--font-mono);font-size:0.73rem">${display}</td>`;
             });
             html += '</tr>';
           });

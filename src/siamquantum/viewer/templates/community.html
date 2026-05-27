@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}ส่งข้อมูล | SiamQuantum Atlas{% endblock %}
 {% set active = 'community' %}
 
@@ -21,7 +21,7 @@
     transition: border-color 0.2s;
   }
 
-  .share-card:hover { border-color: rgba(212, 168, 50, 0.18); }
+  .share-card:hover { border-color: rgba(56, 189, 248, 0.18); }
 
   /* ── Hero ── */
   .share-hero {
@@ -76,15 +76,15 @@
     height: 40px;
     padding: 0 1.2rem;
     border-radius: 10px;
-    background: rgba(212,168,50,.1);
+    background: rgba(56,189,248,.1);
     color: var(--primary);
-    border: 1px solid rgba(212,168,50,.22);
+    border: 1px solid rgba(56,189,248,.22);
     font-size: .88rem;
     font-weight: 600;
     text-decoration: none;
     transition: background .15s;
   }
-  .auth-gate a:hover { background: rgba(212,168,50,.17); }
+  .auth-gate a:hover { background: rgba(56,189,248,.17); }
 
   /* ── Step indicator ── */
   .steps {
@@ -112,7 +112,7 @@
     background: var(--primary);
     color: #04111e;
     border-color: var(--primary);
-    box-shadow: 0 0 10px rgba(212,168,50,.35);
+    box-shadow: 0 0 10px rgba(56,189,248,.35);
   }
   .step-dot.done {
     background: rgba(16,185,129,.15);
@@ -183,13 +183,13 @@
     white-space: nowrap;
   }
   .chip:hover {
-    border-color: rgba(212,168,50,.3);
-    background: rgba(212,168,50,.07);
+    border-color: rgba(56,189,248,.3);
+    background: rgba(56,189,248,.07);
     color: var(--text);
   }
   .chip.selected {
     border-color: var(--primary);
-    background: rgba(212,168,50,.15);
+    background: rgba(56,189,248,.15);
     color: var(--primary);
     font-weight: 600;
     gap: .35rem;
@@ -201,20 +201,20 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: rgba(212,168,50,.25);
+    background: rgba(56,189,248,.25);
     color: var(--primary);
     font-size: .7rem;
     line-height: 1;
     flex-shrink: 0;
     transition: background .12s;
   }
-  .chip:hover .chip-remove { background: rgba(212,168,50,.45); }
+  .chip:hover .chip-remove { background: rgba(56,189,248,.45); }
   .chip-add {
     border-style: dashed;
     border-color: rgba(255,255,255,.12);
     color: var(--muted);
   }
-  .chip-add:hover { border-color: rgba(212,168,50,.3); color: var(--primary); }
+  .chip-add:hover { border-color: rgba(56,189,248,.3); color: var(--primary); }
 
   /* custom category input */
   .cat-custom-wrap {
@@ -235,15 +235,15 @@
   }
   .cat-custom-wrap input:focus {
     outline: none;
-    border-color: rgba(212,168,50,.5);
-    box-shadow: 0 0 0 3px rgba(212,168,50,.1);
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
   }
   .btn-xs {
     height: 38px;
     padding: 0 .85rem;
     border-radius: 10px;
-    border: 1px solid rgba(212,168,50,.25);
-    background: rgba(212,168,50,.1);
+    border: 1px solid rgba(56,189,248,.25);
+    background: rgba(56,189,248,.1);
     color: var(--primary);
     font-size: .8rem;
     font-weight: 600;
@@ -251,7 +251,7 @@
     transition: background .15s;
     white-space: nowrap;
   }
-  .btn-xs:hover { background: rgba(212,168,50,.18); }
+  .btn-xs:hover { background: rgba(56,189,248,.18); }
 
   /* ── URL step ── */
   .url-input-row {
@@ -273,8 +273,8 @@
   }
   .url-input-row input:focus {
     outline: none;
-    border-color: rgba(212,168,50,.5);
-    box-shadow: 0 0 0 3px rgba(212,168,50,.1);
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
   }
   .btn-ai {
     display: inline-flex;
@@ -305,7 +305,7 @@
   }
   .ai-spinner {
     width: 14px; height: 14px;
-    border: 2px solid rgba(212,168,50,.25);
+    border: 2px solid rgba(56,189,248,.25);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin .7s linear infinite;
@@ -376,8 +376,8 @@
     flex-wrap: wrap;
     padding: .7rem .9rem;
     border-radius: 10px;
-    background: rgba(212,168,50,.07);
-    border: 1px solid rgba(212,168,50,.15);
+    background: rgba(56,189,248,.07);
+    border: 1px solid rgba(56,189,248,.15);
     margin-bottom: 1rem;
     font-size: .82rem;
     color: var(--muted-strong);
@@ -411,8 +411,8 @@
   .field textarea { height: auto; min-height: 90px; padding: .75rem .9rem; resize: vertical; }
   .field input:focus, .field textarea:focus {
     outline: none;
-    border-color: rgba(212,168,50,.5);
-    box-shadow: 0 0 0 3px rgba(212,168,50,.1);
+    border-color: rgba(56,189,248,.5);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.1);
   }
   .field-hint { margin-top: .35rem; color: var(--muted); font-size: .74rem; }
 
@@ -472,8 +472,8 @@
   .status-pill::before { content:""; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
   .sp-wait { background: rgba(245,158,11,.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,.2); }
   .sp-wait::before  { background: #fbbf24; }
-  .sp-rev  { background: rgba(212,168,50,.1);  color: #f0c96a; border: 1px solid rgba(212,168,50,.2); }
-  .sp-rev::before   { background: #f0c96a; box-shadow:0 0 4px rgba(212,168,50,.6); }
+  .sp-rev  { background: rgba(56,189,248,.1);  color: #7dd3fc; border: 1px solid rgba(56,189,248,.2); }
+  .sp-rev::before   { background: #7dd3fc; box-shadow:0 0 4px rgba(56,189,248,.6); }
   .sp-live { background: rgba(16,185,129,.1);  color: #34d399; border: 1px solid rgba(16,185,129,.2); }
   .sp-live::before  { background: #34d399; }
   .sp-fail { background: rgba(248,113,113,.08); color: #fca5a5; border: 1px solid rgba(248,113,113,.2); }
@@ -503,7 +503,7 @@
     display: inline-flex; align-items: center; gap: .3rem;
     padding: .16rem .52rem; border-radius: 999px;
     background: rgba(79,212,255,.1); border: 1px solid rgba(79,212,255,.18);
-    color: #f0c96a; font-size: .67rem; font-weight: 700;
+    color: #7dd3fc; font-size: .67rem; font-weight: 700;
     letter-spacing: .03em; margin-bottom: .55rem;
   }
   .pub-title { color: var(--text); font-size: .9rem; font-weight: 600; line-height: 1.45; margin-bottom: .38rem; }

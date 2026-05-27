@@ -215,7 +215,7 @@
   .btn-primary:hover {
     background: rgba(112, 225, 255, 0.22);
     border-color: rgba(112, 225, 255, 0.52);
-    box-shadow: 0 4px 18px rgba(212, 168, 50, 0.15);
+    box-shadow: 0 4px 18px rgba(56, 189, 248, 0.15);
   }
 
   .btn-secondary {
@@ -277,7 +277,7 @@
 
   .source-card:hover {
     border-color: rgba(112, 225, 255, 0.28);
-    box-shadow: 0 6px 28px rgba(212, 168, 50, 0.07);
+    box-shadow: 0 6px 28px rgba(56, 189, 248, 0.07);
     transform: translateY(-2px);
   }
 
@@ -405,8 +405,8 @@
   .chip-count {
     font-family: var(--font-mono);
     font-size: 0.73rem;
-    background: rgba(212, 168, 50, 0.07) !important;
-    border-color: rgba(212, 168, 50, 0.18) !important;
+    background: rgba(56, 189, 248, 0.07) !important;
+    border-color: rgba(56, 189, 248, 0.18) !important;
     color: var(--primary) !important;
   }
 
@@ -783,7 +783,7 @@
     const card = document.getElementById(`src-${id}`);
     if (!card) return;
     card.style.outline = "2px solid var(--primary)";
-    card.style.boxShadow = "0 0 0 4px rgba(212,168,50,0.2)";
+    card.style.boxShadow = "0 0 0 4px rgba(56,189,248,0.2)";
     card.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -842,9 +842,9 @@
   }
 
   function relevanceTier(item) {
-    if (item.is_quantum_tech && item.is_thailand_related) return { label: "QT+TH", color: "#D4A832" };
-    if (item.is_quantum_tech) return { label: "Quantum", color: "#9FFFE8" };
-    if (item.is_thailand_related) return { label: "Thailand", color: "#FDE98A" };
+    if (item.is_quantum_tech && item.is_thailand_related) return { label: "QT+TH", color: "#38BDF8" };
+    if (item.is_quantum_tech) return { label: "Quantum", color: "#10B981" };
+    if (item.is_thailand_related) return { label: "Thailand", color: "#F59E0B" };
     return { label: "Unscoped", color: "#94A3B8" };
   }
 
