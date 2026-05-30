@@ -405,6 +405,31 @@ def test_yearly_taxonomy_analytics_schema(client: TestClient) -> None:
     assert "nodes" in topic_graph and "links" in topic_graph and "community_summaries" in topic_graph
 
 
+def test_yearly_taxonomy_excludes_place_labels_from_topic_axis() -> None:
+    from siamquantum.stats.yearly_taxonomy_analytics import build_yearly_taxonomy_analytics
+
+    rows = [
+        {
+            "published_year": 2024,
+            "view_count": 100,
+            "area": "นครราชสีมา",
+            "quantum_domain": "quantum computing",
+        },
+        {
+            "published_year": 2025,
+            "view_count": 120,
+            "area": "นครราชสีมา",
+            "quantum_domain": "quantum computing",
+        },
+    ]
+
+    payload = build_yearly_taxonomy_analytics(rows)
+    labels = {item["key"] for item in payload["topics"]["labels"]}
+
+    assert "นครราชสีมา" not in labels
+    assert "quantum computing" in labels
+
+
 # ---------------------------------------------------------------------------
 # GET /api/pipeline/live
 # ---------------------------------------------------------------------------

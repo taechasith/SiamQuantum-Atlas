@@ -897,125 +897,282 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(56,189,248,0.14) 0%, transparent 70%),
-                linear-gradient(180deg, #060c1e 0%, #070B17 60%, #050810 100%);
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(56,189,248,0.12) 0%, transparent 60%),
+                radial-gradient(circle at 50% 50%, #070b17 0%, #04070f 100%);
     pointer-events: all;
-    transition: opacity 0.55s ease, visibility 0.55s ease;
-    padding-bottom: 6vh;
+    transition: opacity 0.6s cubic-bezier(0.85, 0, 0.15, 1), visibility 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+    padding-bottom: 5vh;
+    overflow: hidden;
   }
   #splash.splash-hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
   }
+  
+  /* Ambient glowing backgrounds */
+  .splash-ambient-1 {
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%);
+    filter: blur(60px);
+    z-index: -1;
+    animation: splash-drift-1 20s infinite alternate ease-in-out;
+    pointer-events: none;
+  }
+  .splash-ambient-2 {
+    position: absolute;
+    bottom: 20%;
+    right: 15%;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 70%);
+    filter: blur(70px);
+    z-index: -1;
+    animation: splash-drift-2 24s infinite alternate-reverse ease-in-out;
+    pointer-events: none;
+  }
+  @keyframes splash-drift-1 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(60px, -40px) scale(1.1); }
+    100% { transform: translate(-40px, 60px) scale(0.9); }
+  }
+  @keyframes splash-drift-2 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, 50px) scale(1.15); }
+    100% { transform: translate(40px, -40px) scale(0.95); }
+  }
+
+  /* Logo orbiting field */
+  .splash-logo-container {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
   .splash-logo {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     aspect-ratio: 1 / 1;
     object-fit: contain;
     display: block;
-    animation: splash-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-    filter: drop-shadow(0 0 32px rgba(56,189,248,0.45)) drop-shadow(0 0 8px rgba(56,189,248,0.2));
+    z-index: 2;
+    animation: splash-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    filter: drop-shadow(0 0 32px rgba(56,189,248,0.4)) drop-shadow(0 0 8px rgba(56,189,248,0.25));
   }
   .splash-ring {
     position: absolute;
-    width: 200px;
-    height: 200px;
     border-radius: 50%;
-    border: 1px solid rgba(56,189,248,0.22);
-    animation: splash-ring 2.4s cubic-bezier(0.4,0,0.6,1) infinite;
+    border: 1px solid rgba(56,189,248,0.12);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .splash-ring-1 {
+    width: 155px;
+    height: 155px;
+    border-style: dashed;
+    border-color: rgba(56,189,248,0.22);
+    animation: splash-spin-clockwise 25s linear infinite;
   }
   .splash-ring-2 {
-    width: 280px;
-    height: 280px;
-    border-color: rgba(56,189,248,0.12);
-    animation-delay: 0.4s;
+    width: 190px;
+    height: 190px;
+    border-style: dotted;
+    border-width: 1.5px;
+    border-color: rgba(96,165,250,0.15);
+    animation: splash-spin-counter 18s linear infinite;
   }
   .splash-ring-3 {
-    width: 370px;
-    height: 370px;
-    border-color: rgba(56,189,248,0.07);
-    animation-delay: 0.8s;
+    width: 225px;
+    height: 225px;
+    border-color: rgba(56,189,248,0.06);
+    animation: splash-spin-clockwise 35s linear infinite;
   }
+  .splash-qubit-orbit {
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    animation: splash-spin-clockwise 9s linear infinite;
+  }
+  .splash-qubit {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #38BDF8;
+    box-shadow: 0 0 10px #38BDF8, 0 0 20px rgba(56,189,248,0.8);
+  }
+
+  @keyframes splash-spin-clockwise {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes splash-spin-counter {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  /* Typography */
   .splash-wordmark {
-    margin-top: 0.8rem;
+    margin-top: 0.4rem;
     font-family: var(--font-heading);
-    font-size: 1.5rem;
+    font-size: 1.85rem;
     font-weight: 300;
-    letter-spacing: 0;
+    letter-spacing: -0.015em;
     color: var(--text);
     opacity: 0;
-    animation: splash-fade-up 0.6s 0.45s ease both;
+    animation: splash-fade-up 0.7s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .splash-wordmark strong { font-weight: 600; color: var(--text); }
-  .splash-wordmark .splash-atlas { letter-spacing: 0.18em; margin-left: 0.18em; }
-  .splash-sub {
-    margin-top: 0.4rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.22em;
+  .splash-wordmark strong {
+    font-weight: 600;
+    background: linear-gradient(135deg, #FFFFFF 40%, #E2F4FD 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .splash-wordmark strong:nth-of-type(2) {
+    background: linear-gradient(135deg, #FFFFFF 20%, #C0E8FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-right: 0.15rem;
+  }
+  .splash-wordmark .splash-atlas {
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.3rem;
+    font-size: 1.05rem;
     text-transform: uppercase;
-    color: var(--muted);
+    background: linear-gradient(90deg, #0284c7, #0369a1);
+    color: #F0F9FF;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 16px rgba(3, 105, 161, 0.4);
+  }
+  .splash-sub {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #94A3B8 15%, #E2E8F0 50%, #94A3B8 85%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     opacity: 0;
-    animation: splash-fade-up 0.6s 0.65s ease both;
+    animation: splash-fade-up 0.7s 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Progress area */
+  .splash-progress-container {
+    margin-top: 2.4rem;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    opacity: 0;
+    animation: splash-fade-up 0.7s 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .splash-bar-wrap {
-    margin-top: 2.8rem;
-    width: 160px;
-    height: 2px;
-    background: rgba(56,189,248,0.12);
-    border-radius: 1px;
+    width: 100%;
+    height: 4px;
+    background: rgba(56,189,248,0.06);
+    border-radius: 99px;
     overflow: hidden;
-    opacity: 0;
-    animation: splash-fade-up 0.4s 0.8s ease both;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.02);
   }
   .splash-bar {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--tertiary));
-    border-radius: 1px;
-    animation: splash-progress 2.8s 0.85s cubic-bezier(0.4,0,0.2,1) both;
+    width: 0%;
+    background: linear-gradient(90deg, #38BDF8, #60A5FA, #38BDF8);
+    background-size: 200% 100%;
+    border-radius: 99px;
+    box-shadow: 0 0 12px rgba(56,189,248,0.6), 0 0 4px rgba(56,189,248,0.3);
+    animation: splash-progress-glow 1.5s linear infinite;
+    transition: width 0.12s ease-out;
   }
+  @keyframes splash-progress-glow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .splash-progress-info {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+  .splash-step {
+    color: var(--muted);
+    font-weight: 400;
+    max-width: 82%;
+    min-height: 2.2em; /* Prevents layout shifting when texts change sizes */
+    transition: color 0.3s ease;
+  }
+  .splash-pct {
+    color: #38BDF8;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(56,189,248,0.3);
+  }
+
+  /* Recommend glass card */
   .splash-recommend {
     position: absolute;
-    bottom: 2.2rem;
+    bottom: 2.5rem;
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 12px;
-    padding: 0.7rem 1.1rem;
+    background: rgba(56, 189, 248, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
     color: #e2f4fd;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 500;
     letter-spacing: 0.01em;
     opacity: 0;
-    animation: splash-fade-up 0.6s 1.4s ease both;
+    animation: splash-fade-up 0.7s 1.2s ease both;
     white-space: nowrap;
     text-align: center;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.03);
   }
   .splash-recommend svg {
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1.2rem;
+    height: 1.2rem;
     flex-shrink: 0;
     color: var(--primary);
+    filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
   }
   @keyframes splash-rise {
-    from { opacity: 0; transform: translateY(18px) scale(0.88); }
+    from { opacity: 0; transform: translateY(22px) scale(0.9); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
   @keyframes splash-fade-up {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes splash-ring {
-    0%   { opacity: 0.8; transform: scale(0.92); }
-    50%  { opacity: 0.3; transform: scale(1.06); }
-    100% { opacity: 0.8; transform: scale(0.92); }
-  }
-  @keyframes splash-progress {
-    from { width: 0; }
-    to   { width: 100%; }
   }
   </style>
   {% block head %}{% endblock %}
@@ -1023,13 +1180,38 @@
 <body>
   <!-- ── SPLASH ──────────────────────────────────────────────────────────────── -->
   <div id="splash" role="status" aria-label="Loading SiamQuantum Atlas">
-    <div class="splash-ring"></div>
-    <div class="splash-ring splash-ring-2"></div>
-    <div class="splash-ring splash-ring-3"></div>
-    <img class="splash-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas" width="140" height="140" decoding="sync">
+    <!-- Ambient backdrops -->
+    <div class="splash-ambient-1"></div>
+    <div class="splash-ambient-2"></div>
+    
+    <!-- Logo & orbit system -->
+    <div class="splash-logo-container">
+      <div class="splash-ring splash-ring-1"></div>
+      <div class="splash-ring splash-ring-2"></div>
+      <div class="splash-ring splash-ring-3"></div>
+      <div class="splash-qubit-orbit">
+        <div class="splash-qubit"></div>
+      </div>
+      <img class="splash-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas" width="120" height="120" decoding="sync">
+    </div>
+    
     <div class="splash-wordmark"><strong>Siam</strong><strong>Quantum</strong><span class="splash-atlas">Atlas</span></div>
     <div class="splash-sub">Thai Quantum Discourse Intelligence</div>
-    <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+    
+    <!-- Smart loading progress container -->
+    <div class="splash-progress-container">
+      <div class="splash-bar-wrap">
+        <div class="splash-bar"></div>
+      </div>
+      <div class="splash-progress-info">
+        <div class="splash-step">
+          <span class="splash-step-th th-text">กำลังโหลด...</span>
+          <span class="splash-step-en en-text">Loading...</span>
+        </div>
+        <div class="splash-pct">0%</div>
+      </div>
+    </div>
+    
     <div class="splash-recommend">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       <span class="th-text">แนะนำให้เปิดบนคอมพิวเตอร์เพื่อประสบการณ์ที่ดีที่สุด</span>
@@ -1046,18 +1228,79 @@
         return;
       }
       sessionStorage.setItem(SEEN_KEY, '1');
-      var MIN_MS = 3500;
+      
+      var bar = splash.querySelector('.splash-bar');
+      var pctText = splash.querySelector('.splash-pct');
+      var stepTh = splash.querySelector('.splash-step-th');
+      var stepEn = splash.querySelector('.splash-step-en');
+      
+      var currentPct = 0;
+      var loaded = false;
+      
+      var stepTexts = [
+        { max: 20, en: "Initializing Quantum Discourse Matrix...", th: "กำลังเชื่อมต่อเมทริกซ์ควอนตัมประวาทกรรม..." },
+        { max: 45, en: "Configuring Topographical Topic Mapping...", th: "กำลังจัดทำโครงสร้างแผนผังหัวข้อ..." },
+        { max: 75, en: "Synthesizing Node Network Connections...", th: "กำลังประมวลผลเครือข่ายความสัมพันธ์..." },
+        { max: 95, en: "Entangling Database States...", th: "กำลังเข้าคู่สถานะฐานข้อมูล..." },
+        { max: 100, en: "System Ready. Collapsing Wave Function.", th: "ระบบพร้อมใช้งาน กำลังแสดงผล..." }
+      ];
+      
+      function updateProgress(pct) {
+        if (pct > currentPct) {
+          currentPct = pct;
+        }
+        if (currentPct > 100) currentPct = 100;
+        
+        if (bar) bar.style.width = currentPct + '%';
+        if (pctText) pctText.textContent = Math.round(currentPct) + '%';
+        
+        // Update step text
+        for (var i = 0; i < stepTexts.length; i++) {
+          if (currentPct <= stepTexts[i].max) {
+            if (stepTh) stepTh.textContent = stepTexts[i].th;
+            if (stepEn) stepEn.textContent = stepTexts[i].en;
+            break;
+          }
+        }
+      }
+      
+      var progressInterval = setInterval(function() {
+        if (loaded) {
+          currentPct += 6;
+          if (currentPct >= 100) {
+            currentPct = 100;
+            updateProgress(100);
+            clearInterval(progressInterval);
+            setTimeout(function() {
+              splash.classList.add('splash-hidden');
+            }, 300);
+          } else {
+            updateProgress(currentPct);
+          }
+        } else {
+          if (currentPct < 96) {
+            currentPct += (96 - currentPct) * 0.045 + 0.12;
+            updateProgress(currentPct);
+          }
+        }
+      }, 35);
+      
       var start = Date.now();
+      var MIN_MS = 2800; // minimum duration to display the gorgeous animations!
+      
       function hideSplash() {
         var elapsed = Date.now() - start;
         var wait = Math.max(0, MIN_MS - elapsed);
-        setTimeout(function() { splash.classList.add('splash-hidden'); }, wait);
+        setTimeout(function() {
+          loaded = true;
+        }, wait);
       }
+      
       if (document.readyState === 'complete') {
         hideSplash();
       } else {
         window.addEventListener('load', hideSplash);
-        setTimeout(function() { splash.classList.add('splash-hidden'); }, 6000);
+        setTimeout(hideSplash, 6000);
       }
     })();
   </script>

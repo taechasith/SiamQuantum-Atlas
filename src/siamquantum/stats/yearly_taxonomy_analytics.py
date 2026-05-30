@@ -29,12 +29,111 @@ def _display_label(value: str) -> str:
     return " ".join(part.upper() if len(part) <= 3 else part.capitalize() for part in parts)
 
 
+_NON_TOPIC_LABELS = {
+    "nakhon ratchasima",
+    "นครราชสีมา",
+}
+
+
+_THAI_PROVINCE_TERMS = {
+    "กรุงเทพมหานคร",
+    "กระบี่",
+    "กาญจนบุรี",
+    "กาฬสินธุ์",
+    "กำแพงเพชร",
+    "ขอนแก่น",
+    "จันทบุรี",
+    "ฉะเชิงเทรา",
+    "ชลบุรี",
+    "ชัยนาท",
+    "ชัยภูมิ",
+    "ชุมพร",
+    "เชียงราย",
+    "เชียงใหม่",
+    "ตรัง",
+    "ตราด",
+    "ตาก",
+    "นครนายก",
+    "นครปฐม",
+    "นครพนม",
+    "นครราชสีมา",
+    "นครศรีธรรมราช",
+    "นครสวรรค์",
+    "นนทบุรี",
+    "นราธิวาส",
+    "น่าน",
+    "บึงกาฬ",
+    "บุรีรัมย์",
+    "ปทุมธานี",
+    "ประจวบคีรีขันธ์",
+    "ปราจีนบุรี",
+    "ปัตตานี",
+    "พระนครศรีอยุธยา",
+    "พะเยา",
+    "พังงา",
+    "พัทลุง",
+    "พิจิตร",
+    "พิษณุโลก",
+    "เพชรบุรี",
+    "เพชรบูรณ์",
+    "แพร่",
+    "ภูเก็ต",
+    "มหาสารคาม",
+    "มุกดาหาร",
+    "แม่ฮ่องสอน",
+    "ยโสธร",
+    "ยะลา",
+    "ร้อยเอ็ด",
+    "ระนอง",
+    "ระยอง",
+    "ราชบุรี",
+    "ลพบุรี",
+    "ลำปาง",
+    "ลำพูน",
+    "เลย",
+    "ศรีสะเกษ",
+    "สกลนคร",
+    "สงขลา",
+    "สตูล",
+    "สมุทรปราการ",
+    "สมุทรสงคราม",
+    "สมุทรสาคร",
+    "สระแก้ว",
+    "สระบุรี",
+    "สิงห์บุรี",
+    "สุโขทัย",
+    "สุพรรณบุรี",
+    "สุราษฎร์ธานี",
+    "สุรินทร์",
+    "หนองคาย",
+    "หนองบัวลำภู",
+    "อ่างทอง",
+    "อำนาจเจริญ",
+    "อุดรธานี",
+    "อุตรดิตถ์",
+    "อุทัยธานี",
+    "อุบลราชธานี",
+}
+
+
+def _is_non_topic_label(value: str | None) -> bool:
+    if not value:
+        return True
+    normalized = _normalize_text(value)
+    if not normalized:
+        return True
+    if normalized in _NON_TOPIC_LABELS:
+        return True
+    compact = normalized.replace(" ", "")
+    return compact in _THAI_PROVINCE_TERMS
+
+
 def topic_label(row: dict[str, Any]) -> str | None:
     area = _normalize_text(row.get("area"))
-    if area:
+    if area and not _is_non_topic_label(area):
         return area
     domain = _normalize_text(row.get("quantum_domain"))
-    if not domain or domain == "not applicable":
+    if not domain or domain == "not applicable" or _is_non_topic_label(domain):
         return None
     return domain.replace("quantum ", "quantum ")
 
