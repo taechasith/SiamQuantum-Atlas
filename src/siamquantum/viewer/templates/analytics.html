@@ -1208,54 +1208,7 @@
         <select id="lab-label"></select>
         <select id="lab-compare"></select>
         <input id="lab-min-n" type="range" min="1" max="10" value="1">
-        <input id="lab-ci" type="checkbox" checked>
-        <input id="lab-normalize" type="checkbox">
-        <input id="lab-all" type="checkbox">
-        <input id="lab-bars" type="checkbox">
-        <div id="lab-diagnostics"></div>
-        <div id="lab-interpretation"></div>
-        <div id="lab-questions"></div>
-        <div id="lab-question-output"></div>
-        <div id="topic-validation"></div>
-        <div id="production-validation"></div>
-      </div>
-    </main>
-
-    <!-- RIGHT PANEL: AI Mentors & Confidence Markers -->
-    <aside class="right-mentor">
-      
-      <!-- Ask Data Back Toggle -->
-      <div class="adb-toggle">
-        <span>Ask the Data Back Mode</span>
-        <input type="checkbox" id="adb-mode-checkbox" style="accent-color:var(--sq-amber); cursor:pointer">
-      </div>
-
-      <div class="mentor-panel">
-        <h3 class="lens-section-title" style="color:var(--sq-green)">
-          <span class="th-text">เลนส์วิเคราะห์ AI (AI Lens)</span>
-          <span class="en-text">AI Mentor Panel</span>
-        </h3>
-
-        <!-- Mentor selection -->
-        <div class="mentor-select-wrap">
-          <label for="mentor-selector">Select Active Mentor</label>
-          <select id="mentor-selector" class="mentor-select">
-            <option value="researcher">👩‍🔬 Researcher Lens (Academic)</option>
-            <option value="statistician">📊 Statistician Lens (Data Validator)</option>
-            <option value="policy">🏛️ Policy Lens (National/Strategy)</option>
-            <option value="communicator">📣 Science Communicator (Public Media)</option>
-            <option value="curator">🎨 Curator Lens (Exhibits & Workshops)</option>
-            <option value="skeptic">🧐 Skeptic Lens (Counterexamples & Noise)</option>
-          </select>
-        </div>
-
-        <!-- Selected Mentor Avatar -->
-        <div class="mentor-avatar-box">
-          <div class="mentor-icon" id="active-mentor-icon">👩‍🔬</div>
-          <div class="mentor-meta">
-            <span class="mentor-name" id="active-mentor-name">Dr. Lalita</span>
-            <span class="mentor-role" id="active-mentor-role">Researcher Lens</span>
-          </div>
+               </div>
         </div>
 
         <!-- Live response -->
@@ -1319,21 +1272,28 @@
     minN: 1,
     showCi: true,
     normalize: false,
-    showAll: true, // Default to true in our new visual mode to see all labels
+    showAll: true,
     barMode: false
   };
 
   // State for active Signal & Canvas
   const machineState = {
-    activeSignal: null, // format: { type, key, year, value, label }
+    activeSignal: null, // format: { type, title, details, valueText, sampleSize, ciText, warningText }
     activeBranchTab: "understand",
     askDataBackActive: false,
     canvasNodes: [],
     canvasLinks: [],
-    nodeIdCounter: 1
+    nodeIdCounter: 1,
+    selectedNodeId: null,
+    matrixPayload: null
   };
 
   const elements = {
+    status: document.getElementById("status-pill"),
+    years: document.getElementById("stat-years"),
+    sources: document.getElementById("stat-sources"),
+    topics: document.getElementById("stat-topics"),
+    significance: document.getElementById("stat-significance"),
     empty: document.getElementById("empty-state"),
     error: document.getElementById("error-state"),
     errorMessage: document.getElementById("error-message"),
@@ -1343,10 +1303,26 @@
     productionValidation: document.getElementById("production-validation"),
     topicCommunities: document.getElementById("topic-communities"),
     productionCommunities: document.getElementById("production-communities"),
-    labEvidence: document.getElementById("lab-evidence")
+    labAxis: document.getElementById("lab-axis"),
+    labLabel: document.getElementById("lab-label"),
+    labCompare: document.getElementById("lab-compare"),
+    labMinN: document.getElementById("lab-min-n"),
+    labMinNValue: document.getElementById("lab-min-n-value"),
+    labMinNValueEn: document.getElementById("lab-min-n-value-en"),
+    labCi: document.getElementById("lab-ci"),
+    labNormalize: document.getElementById("lab-normalize"),
+    labAll: document.getElementById("lab-all"),
+    labBars: document.getElementById("lab-bars"),
+    labDiagnostics: document.getElementById("lab-diagnostics"),
+    labInterpretation: document.getElementById("lab-interpretation"),
+    labQuestions: document.getElementById("lab-questions"),
+    labQuestionOutput: document.getElementById("lab-question-output"),
+    labEvidence: document.getElementById("lab-evidence"),
+    labOpenSources: document.getElementById("lab-open-sources")
   };
 
   function escapeHtml(unsafe) {
+    if (unsafe == null) return "";
     return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
@@ -1355,32 +1331,36 @@
   }
 
   function setStatus(text) {
-    // Kept for backward compatibility
+    if (elements.status) {
+      elements.status.innerHTML = '<span class="sq-status-dot"></span><span>' + escapeHtml(text) + '</span>';
+    }
   }
 
   function showEmpty(message) {
-    elements.empty.querySelector(".state-copy").textContent = message;
-    elements.empty.classList.add("is-visible");
-    elements.error.classList.remove("is-visible");
-    elements.trendCards.classList.add("sq-hidden");
-    elements.groupCards.classList.add("sq-hidden");
+    if (elements.empty) {
+      elements.empty.querySelector(".state-copy").textContent = message;
+      elements.empty.classList.add("is-visible");
+    }
+    if (elements.error) elements.error.classList.remove("is-visible");
+    if (elements.trendCards) elements.trendCards.classList.add("sq-hidden");
+    if (elements.groupCards) elements.groupCards.classList.add("sq-hidden");
     setStatus(copyForLang("ไม่มีข้อมูล", "No analytics data"));
   }
 
   function showError(message) {
-    elements.errorMessage.textContent = message;
-    elements.error.classList.add("is-visible");
-    elements.empty.classList.remove("is-visible");
-    elements.trendCards.classList.add("sq-hidden");
-    elements.groupCards.classList.add("sq-hidden");
+    if (elements.errorMessage) elements.errorMessage.textContent = message;
+    if (elements.error) elements.error.classList.add("is-visible");
+    if (elements.empty) elements.empty.classList.remove("is-visible");
+    if (elements.trendCards) elements.trendCards.classList.add("sq-hidden");
+    if (elements.groupCards) elements.groupCards.classList.add("sq-hidden");
     setStatus(copyForLang("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
-    elements.empty.classList.remove("is-visible");
-    elements.error.classList.remove("is-visible");
-    elements.trendCards.classList.remove("sq-hidden");
-    elements.groupCards.classList.remove("sq-hidden");
+    if (elements.empty) elements.empty.classList.remove("is-visible");
+    if (elements.error) elements.error.classList.remove("is-visible");
+    if (elements.trendCards) elements.trendCards.classList.remove("sq-hidden");
+    if (elements.groupCards) elements.groupCards.classList.remove("sq-hidden");
   }
 
   function chartOptions() {
@@ -1458,6 +1438,7 @@
     return Number.isFinite(value) ? value : null;
   }
 
+  // Set showAll default in new mode so we see all labels clearly
   function labSeries(axisPayload) {
     if (labState.showAll) return axisPayload.series || [];
     const selected = [labState.focus, labState.compare]
@@ -1513,6 +1494,24 @@
       data: { labels: axisPayload.years, datasets },
       options: {
         ...chartOptions(),
+        onClick: (event, activeElements) => {
+          if (activeElements && activeElements.length > 0) {
+            const index = activeElements[0].index;
+            const datasetIndex = activeElements[0].datasetIndex;
+            const year = axisPayload.years[index];
+            const dataset = datasets[datasetIndex];
+            if (dataset) {
+              let label = dataset.label;
+              if (label.endsWith(" CI high")) {
+                label = label.substring(0, label.length - 8);
+              } else if (label.endsWith(" CI low")) {
+                label = label.substring(0, label.length - 7);
+              }
+              const val = dataset.data[index];
+              handleSignalClick(label, year, val, canvasId);
+            }
+          }
+        },
         scales: {
           ...chartOptions().scales,
           y: {
@@ -1535,6 +1534,7 @@
   }
 
   function renderValidation(host, axisPayload, title) {
+    if (!host) return;
     const overall = axisPayload.tests.overall_kruskal_wallis || {};
     const composition = axisPayload.tests.year_x_label_chi2 || {};
     const trend = axisPayload.tests.strongest_trend || null;
@@ -1563,11 +1563,8 @@
     `;
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  }
-
   function renderCommunities(host, graphPayload, title) {
+    if (!host) return;
     const items = Array.isArray(graphPayload.community_summaries) ? graphPayload.community_summaries : [];
     if (!items.length) {
       host.innerHTML = `
@@ -1613,18 +1610,18 @@
     if (labState.focus && !labels.some((item) => item.key === labState.focus)) labState.focus = labels[0] ? labels[0].key : "";
     if (labState.compare && !labels.some((item) => item.key === labState.compare)) labState.compare = "";
 
-    elements.labLabel.innerHTML = options;
-    elements.labCompare.innerHTML = compareOptions;
-    elements.labAxis.value = labState.axis;
-    elements.labLabel.value = labState.focus;
-    elements.labCompare.value = labState.compare;
-    elements.labMinN.value = String(labState.minN);
-    elements.labMinNValue.textContent = String(labState.minN);
-    elements.labMinNValueEn.textContent = String(labState.minN);
-    elements.labCi.checked = labState.showCi;
-    elements.labNormalize.checked = labState.normalize;
-    elements.labAll.checked = labState.showAll;
-    elements.labBars.checked = labState.barMode;
+    if (elements.labLabel) elements.labLabel.innerHTML = options;
+    if (elements.labCompare) elements.labCompare.innerHTML = compareOptions;
+    if (elements.labAxis) elements.labAxis.value = labState.axis;
+    if (elements.labLabel) elements.labLabel.value = labState.focus;
+    if (elements.labCompare) elements.labCompare.value = labState.compare;
+    if (elements.labMinN) elements.labMinN.value = String(labState.minN);
+    if (elements.labMinNValue) elements.labMinNValue.textContent = String(labState.minN);
+    if (elements.labMinNValueEn) elements.labMinNValueEn.textContent = String(labState.minN);
+    if (elements.labCi) elements.labCi.checked = labState.showCi;
+    if (elements.labNormalize) elements.labNormalize.checked = labState.normalize;
+    if (elements.labAll) elements.labAll.checked = labState.showAll;
+    if (elements.labBars) elements.labBars.checked = labState.barMode;
   }
 
   function renderLabDiagnostics() {
@@ -1638,40 +1635,46 @@
     const latestYear = [...(axisPayload.years || [])].reverse().find((year) => metricValue(focus, year, "geo_mean") !== null);
     const latestPoint = latestYear ? seriesPoint(focus, latestYear) : null;
 
-    elements.labDiagnostics.innerHTML = [
-      ["Observed years", visiblePoints],
-      ["Total n", totalN],
-      ["Latest mean", latestPoint ? fmtNumber(metricValue(focus, latestYear, "geo_mean"), labState.normalize ? 1 : 0) : "n/a"],
-      ["MK tau", trend.mannkendall_tau != null ? fmtNumber(trend.mannkendall_tau, 3) : "n/a"]
-    ].map(([label, value]) => `<div class="sq-diagnostic"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    if (elements.labDiagnostics) {
+      elements.labDiagnostics.innerHTML = [
+        ["Observed years", visiblePoints],
+        ["Total n", totalN],
+        ["Latest mean", latestPoint ? fmtNumber(metricValue(focus, latestYear, "geo_mean"), labState.normalize ? 1 : 0) : "n/a"],
+        ["MK tau", trend.mannkendall_tau != null ? fmtNumber(trend.mannkendall_tau, 3) : "n/a"]
+      ].map(([label, value]) => `<div class="sq-diagnostic"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    }
 
     const kw = tests.overall_kruskal_wallis || {};
     const chi = tests.year_x_label_chi2 || {};
-    elements.labInterpretation.textContent = focus
-      ? `${focus.label}: n=${totalN}, visible years=${visiblePoints}, Kruskal-Wallis p=${kw.p ?? "n/a"}, chi-square p=${chi.p ?? "n/a"}. Interpret only points that pass the minimum-n filter and compare the confidence interval overlap before treating a visual gap as meaningful.`
-      : "Choose a label to inspect its sample sizes, uncertainty, and trend tests.";
+    if (elements.labInterpretation) {
+      elements.labInterpretation.textContent = focus
+        ? `${focus.label}: n=${totalN}, visible years=${visiblePoints}, Kruskal-Wallis p=${kw.p ?? "n/a"}, chi-square p=${chi.p ?? "n/a"}. Interpret only points that pass the minimum-n filter and compare the confidence interval overlap before treating a visual gap as meaningful.`
+        : "Choose a label to inspect its sample sizes, uncertainty, and trend tests.";
+    }
 
     const focusLabel = focus ? focus.label : "this label";
-    elements.labQuestions.innerHTML = [
-      `Why does ${focusLabel} change in the years with enough observations?`,
-      `Why might the confidence interval widen or narrow for ${focusLabel}?`,
-      `Why does the comparison label differ after normalizing the first observed year?`,
-      `Why would media format or user intent explain this topic trend?`
-    ].map((question) => `<button type="button" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>`).join("");
+    if (elements.labQuestions) {
+      elements.labQuestions.innerHTML = [
+        `Why does ${focusLabel} change in the years with enough observations?`,
+        `Why might the confidence interval widen or narrow for ${focusLabel}?`,
+        `Why does the comparison label differ after normalizing the first observed year?`,
+        `Why would media format or user intent explain this topic trend?`
+      ].map((question) => `<button type="button" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>`).join("");
 
-    elements.labQuestions.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", () => {
-        elements.labQuestions.querySelectorAll("button").forEach((item) => item.classList.remove("is-active"));
-        button.classList.add("is-active");
-        const response = button.dataset.question + " Check the year-level evidence table below: start with sample size, then confidence interval width, then direction of change. Treat it as a hypothesis if the signal survives the minimum-n filter.";
-        elements.labInterpretation.textContent = response;
-        if (elements.labQuestionOutput) {
-          elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>' + escapeHtml(response);
-        }
+      elements.labQuestions.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          elements.labQuestions.querySelectorAll("button").forEach((item) => item.classList.remove("is-active"));
+          button.classList.add("is-active");
+          const response = button.dataset.question + " Check the year-level evidence table below: start with sample size, then confidence interval width, then direction of change. Treat it as a hypothesis if the signal survives the minimum-n filter.";
+          if (elements.labInterpretation) elements.labInterpretation.textContent = response;
+          if (elements.labQuestionOutput) {
+            elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>' + escapeHtml(response);
+          }
+        });
       });
-    });
+    }
 
-    if (elements.labQuestionOutput && !elements.labQuestions.querySelector(".is-active")) {
+    if (elements.labQuestionOutput && (!elements.labQuestions || !elements.labQuestions.querySelector(".is-active"))) {
       elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>Choose a question above to turn the chart into a specific hypothesis check.';
     }
   }
@@ -1679,6 +1682,7 @@
   function renderEvidenceTable() {
     const axisPayload = selectedAxis();
     const selected = labSeries(axisPayload);
+    if (!elements.labEvidence) return;
     if (!selected.length) {
       elements.labEvidence.innerHTML = '<div class="validation-item"><span>No labels selected.</span></div>';
       return;
@@ -1732,34 +1736,48 @@
       labState.compare = "";
       renderLab();
     });
-    elements.labLabel.addEventListener("change", () => {
-      labState.focus = elements.labLabel.value;
-      renderLab();
-    });
-    elements.labCompare.addEventListener("change", () => {
-      labState.compare = elements.labCompare.value;
-      renderLab();
-    });
-    elements.labMinN.addEventListener("input", () => {
-      labState.minN = Number(elements.labMinN.value || 1);
-      renderLab();
-    });
-    elements.labCi.addEventListener("change", () => {
-      labState.showCi = elements.labCi.checked;
-      renderLab();
-    });
-    elements.labNormalize.addEventListener("change", () => {
-      labState.normalize = elements.labNormalize.checked;
-      renderLab();
-    });
-    elements.labAll.addEventListener("change", () => {
-      labState.showAll = elements.labAll.checked;
-      renderLab();
-    });
-    elements.labBars.addEventListener("change", () => {
-      labState.barMode = elements.labBars.checked;
-      renderLab();
-    });
+    if (elements.labLabel) {
+      elements.labLabel.addEventListener("change", () => {
+        labState.focus = elements.labLabel.value;
+        renderLab();
+      });
+    }
+    if (elements.labCompare) {
+      elements.labCompare.addEventListener("change", () => {
+        labState.compare = elements.labCompare.value;
+        renderLab();
+      });
+    }
+    if (elements.labMinN) {
+      elements.labMinN.addEventListener("input", () => {
+        labState.minN = Number(elements.labMinN.value || 1);
+        renderLab();
+      });
+    }
+    if (elements.labCi) {
+      elements.labCi.addEventListener("change", () => {
+        labState.showCi = elements.labCi.checked;
+        renderLab();
+      });
+    }
+    if (elements.labNormalize) {
+      elements.labNormalize.addEventListener("change", () => {
+        labState.normalize = elements.labNormalize.checked;
+        renderLab();
+      });
+    }
+    if (elements.labAll) {
+      elements.labAll.addEventListener("change", () => {
+        labState.showAll = elements.labAll.checked;
+        renderLab();
+      });
+    }
+    if (elements.labBars) {
+      elements.labBars.addEventListener("change", () => {
+        labState.barMode = elements.labBars.checked;
+        renderLab();
+      });
+    }
   }
 
   async function parseApiResponse(response, fallbackMessage) {
@@ -1803,12 +1821,12 @@
       hideStates();
 
       const totalSources = years.reduce((sum, year) => sum + Number((counts[year] || {}).total || 0), 0);
-      elements.years.textContent = String(topicAxis.years.length);
-      elements.sources.textContent = String(totalSources);
-      elements.topics.textContent = String((topicAxis.labels || []).length);
+      if (elements.years) elements.years.textContent = String(topicAxis.years.length);
+      if (elements.sources) elements.sources.textContent = String(totalSources);
+      if (elements.topics) elements.topics.textContent = String((topicAxis.labels || []).length);
 
       const sigCount = countSignificant(topicAxis) + countSignificant(productionAxis);
-      elements.significance.textContent = String(sigCount);
+      if (elements.significance) elements.significance.textContent = String(sigCount);
 
       const yearsBadge = document.getElementById("kpi-years-badge");
       if (yearsBadge) yearsBadge.textContent = "n=" + totalSources;
@@ -1818,6 +1836,12 @@
       if (sigBadgeEl) sigBadgeEl.textContent = sigCount > 0 ? "p < 0.05" : "alpha=0.05";
       const sigSub = document.getElementById("kpi-sig-sub");
       if (sigSub) sigSub.innerHTML = '<span>' + copyForLang("หัวข้อและรูปแบบ " + (topicAxis.labels || []).length + " กลุ่ม", (topicAxis.labels || []).length + " label groups tested") + '</span>';
+
+      const lensTopicSelect = document.getElementById("lens-topic");
+      if (lensTopicSelect && Array.isArray(topicAxis.labels)) {
+        lensTopicSelect.innerHTML = `<option value="all">All Topics</option>` + 
+          topicAxis.labels.map(l => `<option value="${escapeHtml(l.key)}">${escapeHtml(l.label)}</option>`).join("");
+      }
 
       labState.taxonomy = taxonomy;
       syncLabControls();
@@ -1917,12 +1941,13 @@
       }
 
       if (matResp.ok && matPayload.ok && Array.isArray(matPayload.data?.cells) && matPayload.data.cells.length) {
+        machineState.matrixPayload = matPayload.data;
         const { cells, formats, intents } = matPayload.data;
         const card = document.getElementById("engagement-matrix-card");
         const body = document.getElementById("engagement-matrix-body");
         if (card && body) {
           card.style.display = "";
-          const maxVal = Math.max(1, ...cells.map((c) => c.geo_mean || 0));
+          const maxVal = Math.max(1, ...cells.map((c) => c.geo_mean || c.geo_mean_views || 0));
           let html = '<table class="sq-matrix-table"><thead><tr><th></th>';
           intents.forEach((intent) => {
             html += `<th>${escapeHtml(String(intent).replaceAll("_", " "))}</th>`;
@@ -1932,10 +1957,10 @@
             html += `<tr><td>${escapeHtml(fmt)}</td>`;
             intents.forEach((intent) => {
               const cell = cells.find((c) => c.media_format === fmt && c.user_intent === intent);
-              const val = cell ? (cell.geo_mean || 0) : 0;
+              const val = cell ? (cell.geo_mean || cell.geo_mean_views || 0) : 0;
               const alpha = val > 0 ? Math.max(0.1, val / maxVal) : 0;
               const display = val > 1000 ? (val / 1000).toFixed(1) + "k" : val > 0 ? Math.round(val).toLocaleString() : "-";
-              html += `<td style="background:rgba(56,189,248,${(alpha * 0.58).toFixed(2)});color:${val > 0 ? "var(--text)" : "var(--muted)"}">${display}</td>`;
+              html += `<td class="matrix-cell" data-format="${escapeHtml(fmt)}" data-intent="${escapeHtml(intent)}" data-value="${val}" style="background:rgba(56,189,248,${(alpha * 0.58).toFixed(2)});color:${val > 0 ? "var(--text)" : "var(--muted)"}; cursor:pointer">${display}</td>`;
             });
             html += '</tr>';
           });
@@ -1944,7 +1969,7 @@
         }
       }
     } catch (_) {
-      /* non-critical - main analytics still visible */
+      /* non-critical */
     }
   }
 
@@ -1959,8 +1984,771 @@
     });
   }
 
+  // --- INFINITE HYPOTHESIS MACHINE LOGIC ---
+
+  function injectCustomStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .matrix-cell { cursor: pointer; transition: all 0.2s ease; }
+      .matrix-cell:hover { outline: 1.5px solid var(--sq-blue) !important; background: rgba(56, 189, 248, 0.35) !important; }
+      .canvas-node.is-selected { border-color: var(--sq-amber) !important; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); }
+      .canvas-node { transition: transform 0.1s ease; }
+      .co-canvas-svg path { transition: d 0.1s ease; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function handleSignalClick(label, year, val, canvasId) {
+    const axis = canvasId === "topic-chart" ? "topics" : "productions";
+    if (!labState.taxonomy) return;
+    const axisPayload = labState.taxonomy[axis];
+    if (!axisPayload) return;
+    const series = axisPayload.series.find((s) => s.label === label || s.key === label);
+    if (!series) return;
+    const point = series.years[String(year)];
+    if (!point) return;
+
+    const count = point.count || 0;
+    const geoMean = point.geo_mean || 0;
+    const ciLow = point.ci_low != null ? point.ci_low : 0;
+    const ciHigh = point.ci_high != null ? point.ci_high : 0;
+    
+    let warningText = "";
+    if (count < 5) {
+      warningText = `Small sample size (n = ${count}) warning. Interpret this trend with caution.`;
+    }
+    
+    const title = `${series.label} (${year})`;
+    const type = axis === "topics" ? "topic signal" : "format signal";
+    const valueText = fmtNumber(geoMean, 0) + " views";
+    const ciText = `${fmtNumber(ciLow, 0)} - ${fmtNumber(ciHigh, 0)}`;
+
+    renderDataObjectCard(title, { axis, key: series.key, label: series.label, year, geoMean, count, ciLow, ciHigh }, type, valueText, count, ciText, warningText);
+  }
+
+  function handleMatrixClick(fmt, intent, val) {
+    if (!machineState.matrixPayload) return;
+    const cells = machineState.matrixPayload.cells || [];
+    const cell = cells.find((c) => c.media_format === fmt && c.user_intent === intent);
+    
+    const count = cell ? cell.count : 0;
+    const geoMean = cell ? (cell.geo_mean || cell.geo_mean_views || 0) : val;
+    const ciLow = cell && cell.ci_low != null ? cell.ci_low : 0;
+    const ciHigh = cell && cell.ci_high != null ? cell.ci_high : 0;
+
+    let warningText = "";
+    if (count < 3) {
+      warningText = `Small sample size (n = ${count}) warning. Highly speculative.`;
+    }
+
+    const title = `${fmt.replaceAll("_", " ")} x ${intent.replaceAll("_", " ")}`;
+    const type = "matrix intersection";
+    const valueText = fmtNumber(geoMean, 0) + " views";
+    const ciText = `${fmtNumber(ciLow, 0)} - ${fmtNumber(ciHigh, 0)}`;
+
+    renderDataObjectCard(title, { fmt, intent, geoMean, count, ciLow, ciHigh }, type, valueText, count, ciText, warningText);
+  }
+
+  function renderDataObjectCard(title, details, type, valueText, sampleSize, ciText, warningText) {
+    const anchor = document.getElementById("dynamic-data-card-anchor");
+    if (!anchor) return;
+    
+    machineState.activeSignal = {
+      type,
+      title,
+      details,
+      valueText,
+      sampleSize,
+      ciText,
+      warningText
+    };
+
+    const garden = document.getElementById("possibility-garden");
+    if (garden) garden.style.display = "block";
+
+    triggerAIMentorResponse();
+    renderGardenBranch();
+
+    anchor.innerHTML = `
+      <div class="data-object-card animate-fade-in" style="margin-bottom:1.5rem">
+        <div class="doc-head">
+          <div>
+            <div class="doc-eyebrow">${escapeHtml(type.toUpperCase())}</div>
+            <div class="doc-title">${escapeHtml(title)}</div>
+          </div>
+        </div>
+        
+        <div class="doc-stats">
+          <div class="doc-stat-pill">
+            <span class="doc-stat-label">Geometric Mean</span>
+            <span class="doc-stat-value">${escapeHtml(valueText)}</span>
+          </div>
+          <div class="doc-stat-pill">
+            <span class="doc-stat-label">Sample Size (n)</span>
+            <span class="doc-stat-value">${escapeHtml(sampleSize)}</span>
+          </div>
+          <div class="doc-stat-pill">
+            <span class="doc-stat-label">95% Confidence Interval</span>
+            <span class="doc-stat-value">${escapeHtml(ciText)}</span>
+          </div>
+        </div>
+
+        ${warningText ? `
+        <div class="doc-warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>${escapeHtml(warningText)}</span>
+        </div>` : `
+        <div class="doc-body" style="color:var(--sq-green); background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.15); border-radius:6px; padding:0.5rem 0.75rem; font-size:0.78rem; display:flex; align-items:center; gap:0.4rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Robust signal with statistically stable sample size.</span>
+        </div>`}
+
+        <div class="doc-actions">
+          <button type="button" class="doc-act-btn primary-action" onclick="sendSignalToCanvas()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            Send to Board
+          </button>
+          <button type="button" class="doc-act-btn" onclick="startAskDataBack()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Ask the Data Back
+          </button>
+          <button type="button" class="doc-act-btn" onclick="document.getElementById('possibility-garden').scrollIntoView({behavior: 'smooth'})">
+            Explore Branches
+          </button>
+        </div>
+      </div>
+    `;
+    anchor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function triggerAIMentorResponse() {
+    const selector = document.getElementById("mentor-selector");
+    if (!selector) return;
+    const activeMentorKey = selector.value;
+    const signal = machineState.activeSignal;
+    
+    if (!signal) {
+      document.getElementById("active-confidence-pills").innerHTML = `
+        <span class="confidence-pill conf-needs-evidence">SELECT A DATA SIGNAL FIRST</span>
+      `;
+      document.getElementById("active-mentor-text").textContent = `
+        Please click on any chart element (like a trend point or a matrix cell) to activate the AI analysis. The selected mentor will decode the patterns based on the grounding rules of bounded infinity.
+      `;
+      return;
+    }
+
+    const title = signal.title;
+    const n = signal.sampleSize;
+
+    const mentors = {
+      researcher: {
+        name: "Dr. Lalita",
+        role: "Academic Researcher",
+        icon: "👩‍🔬",
+        getPills: (n) => n >= 10 ? ["conf-grounded"] : ["conf-inferred"],
+        getText: (title, n) => {
+          return `Based on academic literature, the focus on "${title}" represents a key milestone in Thai quantum research. With a sample size of ${n}, this indicates a rising scholarly interest. We should map this against international peer-reviewed datasets to see if the Thai research agenda aligns with global milestones.`;
+        }
+      },
+      statistician: {
+        name: "Dr. Anan",
+        role: "Data Scientist",
+        icon: "📊",
+        getPills: (n) => n >= 10 ? ["conf-grounded"] : (n >= 5 ? ["conf-inferred"] : ["conf-needs-evidence"]),
+        getText: (title, n) => {
+          if (n < 5) {
+            return `Warning: the sample size for "${title}" is only ${n}. The bootstrap confidence intervals are wide, making any claims about a significant positive trend mathematically weak. I recommend running additional Kruskal-Wallis tests or collecting more sources to stabilize this signal.`;
+          }
+          return `The signal for "${title}" is statistically stable with n = ${n}. The geometric mean is well-separated from zero, and the 95% confidence interval shows clear differentiation from other categories. This represents a genuine cluster of engagement rather than variation.`;
+        }
+      },
+      policy: {
+        name: "Dr. Somchai",
+        role: "Strategic Planner",
+        icon: "🏛️",
+        getPills: (n) => n >= 8 ? ["conf-inferred"] : ["conf-speculative"],
+        getText: (title, n) => {
+          return `From a national strategy perspective, "${title}" suggests a policy alignment with MHESI directives. To capitalize on this interest, funding agencies should establish targeted grants, fostering industry-academia consortia to pivot this public interest into economic value.`;
+        }
+      },
+      communicator: {
+        name: "Dr. Kitti",
+        role: "Science Communicator",
+        icon: "📣",
+        getPills: (n) => n >= 5 ? ["conf-grounded"] : ["conf-inferred"],
+        getText: (title, n) => {
+          return `This is a fascinating public interest hub! "${title}" shows that science communication formats have succeeded in capturing attention. We should package these insights into digestible infographics, short video summaries, and community-driven content to further democratize quantum literacy in Thailand.`;
+        }
+      },
+      curator: {
+        name: "Dr. Pim",
+        role: "Exhibition Curator",
+        icon: "🎨",
+        getPills: (n) => ["conf-speculative"],
+        getText: (title, n) => {
+          return `What an inspiring signal! We can design an interactive zone at the National Science Museum themed around "${title}". Visitors could play with interactive simulations or participate in co-creation workshops to explore this concept physically.`;
+        }
+      },
+      skeptic: {
+        name: "Dr. Preecha",
+        role: "Skeptic & Peer Reviewer",
+        icon: "🧐",
+        getPills: (n) => n < 10 ? ["conf-needs-evidence"] : ["conf-inferred"],
+        getText: (title, n) => {
+          return `Let's not get carried away. While "${title}" looks intriguing, the sample size of ${n} could easily be skewed by a single viral video or press release. Before calling this a 'trend', we need to check for confounding variables and verify if the interest is sustained or just temporary hype.`;
+        }
+      }
+    };
+
+    const mentor = mentors[activeMentorKey] || mentors.researcher;
+    
+    document.getElementById("active-mentor-icon").textContent = mentor.icon;
+    document.getElementById("active-mentor-name").textContent = mentor.name;
+    document.getElementById("active-mentor-role").textContent = mentor.role;
+
+    const pillClasses = mentor.getPills(n);
+    const pillsHtml = pillClasses.map(cls => {
+      let text = "SPECULATIVE IDEA";
+      if (cls === "conf-grounded") text = "GROUNDED IN DATA";
+      if (cls === "conf-inferred") text = "INFERRED FROM PATTERN";
+      if (cls === "conf-needs-evidence") text = "NEEDS MORE EVIDENCE";
+      return `<span class="confidence-pill ${cls}">${text}</span>`;
+    }).join("");
+    document.getElementById("active-confidence-pills").innerHTML = pillsHtml;
+
+    document.getElementById("active-mentor-text").textContent = mentor.getText(title, n);
+  }
+
+  function renderGardenBranch() {
+    const output = document.getElementById("garden-branches-output");
+    if (!output) return;
+    const signal = machineState.activeSignal;
+    if (!signal) {
+      output.innerHTML = `<div class="validation-item"><span>Please select a data signal to populate the Possibility Garden.</span></div>`;
+      return;
+    }
+
+    const title = signal.title;
+    const tab = machineState.activeBranchTab;
+    
+    const items = {
+      understand: [
+        { type: "question", title: `What underlying factor drove the engagement of "${title}"?` },
+        { type: "hypothesis", title: `The interest in "${title}" is sustained by educational creators.` }
+      ],
+      compare: [
+        { type: "question", title: `How does the engagement of "${title}" compare to other topics in the same year?` },
+        { type: "hypothesis", title: `"${title}" has a higher engagement-to-volume ratio than theoretical quantum papers.` }
+      ],
+      explain: [
+        { type: "hypothesis", title: `The spikes in "${title}" can be explained by public news coverage.` },
+        { type: "idea", title: `Create an explanatory infographic detailing "${title}" for high schools.` }
+      ],
+      create: [
+        { type: "idea", title: `Develop a mobile app demo showcasing "${title}" interactions.` },
+        { type: "idea", title: `Design an NSM science center gallery zone dedicated to "${title}".` }
+      ],
+      challenge: [
+        { type: "counter", title: `The popularity of "${title}" is heavily skewed by a few viral channels.` },
+        { type: "counter", title: `Is there any evidence that high views of "${title}" translate to deep comprehension?` }
+      ],
+      forecast: [
+        { type: "hypothesis", title: `Without major policy changes, interest in "${title}" will plateau by next year.` },
+        { type: "question", title: `What new content format will dominate the discussion of "${title}" in the next 24 months?` }
+      ]
+    }[tab] || [];
+
+    let html = "";
+    items.forEach((item) => {
+      html += `
+        <div class="garden-branch animate-fade-in" onclick="addBranchToCanvas('${item.type}', '${escapeHtml(item.title)}')">
+          <div class="garden-branch-left">
+            <span class="garden-branch-type">${item.type.toUpperCase()}</span>
+            <span class="garden-branch-title">${escapeHtml(item.title)}</span>
+          </div>
+          <button type="button" class="doc-act-btn primary-action" style="padding:0.25rem 0.5rem; font-size:0.7rem">+ Send to Board</button>
+        </div>
+      `;
+    });
+    output.innerHTML = html;
+  }
+
+  function addBranchToCanvas(type, text) {
+    let nodeType = "idea";
+    if (type === "question") nodeType = "question";
+    if (type === "hypothesis") nodeType = "hypothesis";
+    if (type === "counter") nodeType = "counter";
+
+    addNodeToCanvas(nodeType, text, 200 + Math.random() * 100, 200 + Math.random() * 100);
+    toggleWorkspaceMode("canvas");
+  }
+
+  function startAskDataBack() {
+    const chk = document.getElementById("adb-mode-checkbox");
+    if (chk) chk.checked = true;
+    machineState.askDataBackActive = true;
+    renderAskDataBack();
+  }
+
+  function renderAskDataBack() {
+    const container = document.getElementById("active-mentor-text");
+    const pills = document.getElementById("active-confidence-pills");
+    const signal = machineState.activeSignal;
+    
+    if (!signal) {
+      if (pills) pills.innerHTML = `<span class="confidence-pill conf-needs-evidence">SELECT A SIGNAL FIRST</span>`;
+      if (container) container.innerHTML = `Please select a data signal first to initiate the Ask the Data Back interview.`;
+      return;
+    }
+
+    if (pills) {
+      pills.innerHTML = `<span class="confidence-pill" style="background:rgba(245,158,11,0.1); color:var(--sq-amber); border-color:var(--sq-amber)">INTERACTIVE INTERVIEW ACTIVE</span>`;
+    }
+
+    if (container) {
+      container.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:0.8rem">
+          <p style="font-weight:600; color:var(--text); margin:0">Co-ideate on: "${escapeHtml(signal.title)}"</p>
+          <span style="font-size:0.75rem; color:var(--muted)">Select a creative path:</span>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem">
+            <button type="button" class="mode-btn" onclick="selectAdbPath('media')">Media Path</button>
+            <button type="button" class="mode-btn" onclick="selectAdbPath('education')">Education</button>
+            <button type="button" class="mode-btn" onclick="selectAdbPath('policy')">Policy Path</button>
+            <button type="button" class="mode-btn" onclick="selectAdbPath('culture')">Cultural</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function selectAdbPath(path) {
+    const signal = machineState.activeSignal;
+    if (!signal) return;
+    
+    let question = "";
+    if (path === "media") question = `How would you package "${signal.title}" into a viral social media format?`;
+    if (path === "education") question = `What student project or school science task would you design around "${signal.title}"?`;
+    if (path === "policy") question = `If you were a funding agency, how would you allocate resources to support "${signal.title}"?`;
+    if (path === "culture") question = `How would you design a physical museum exhibition showcasing "${signal.title}"?`;
+
+    const container = document.getElementById("active-mentor-text");
+    if (container) {
+      container.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:0.6rem">
+          <p style="font-weight:600; color:var(--text); margin:0">${escapeHtml(question)}</p>
+          <textarea id="adb-user-response" rows="4" style="background:#0b1220; border:1px solid var(--sq-line); color:white; border-radius:6px; padding:0.4rem; font-size:0.78rem" placeholder="Type your ideas here..."></textarea>
+          <div style="display:flex; gap:0.4rem">
+            <button type="button" class="doc-act-btn primary-action" onclick="saveAdbResponseToCanvas('${escapeHtml(path)}')">Save Node</button>
+            <button type="button" class="doc-act-btn" onclick="renderAskDataBack()">Back</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function saveAdbResponseToCanvas(path) {
+    const textarea = document.getElementById("adb-user-response");
+    const val = textarea ? textarea.value.trim() : "";
+    if (!val) {
+      alert("Please enter a response first.");
+      return;
+    }
+    const signal = machineState.activeSignal;
+    const nodeText = `Idea (${path.toUpperCase()} path) for "${signal.title}": ${val}`;
+    addNodeToCanvas("idea", nodeText, 250, 250);
+    
+    const chk = document.getElementById("adb-mode-checkbox");
+    if (chk) chk.checked = false;
+    machineState.askDataBackActive = false;
+    triggerAIMentorResponse();
+    
+    toggleWorkspaceMode("canvas");
+  }
+
+  function sendSignalToCanvas() {
+    const signal = machineState.activeSignal;
+    if (!signal) return;
+    
+    const text = `${signal.title} - ${signal.valueText} (n=${signal.sampleSize})`;
+    const type = signal.type.includes("topic") ? "signal" : "trail";
+    
+    addNodeToCanvas(type, text, 100 + Math.random() * 100, 100 + Math.random() * 100);
+    toggleWorkspaceMode("canvas");
+  }
+
+  function toggleWorkspaceMode(mode) {
+    const explorerBtn = document.getElementById("mode-explorer-btn");
+    const canvasBtn = document.getElementById("mode-canvas-btn");
+    const workspaceGrid = document.getElementById("main-workspace-grid");
+    const canvasWorkspace = document.getElementById("co-ideation-workspace");
+    
+    if (mode === "canvas") {
+      if (explorerBtn) explorerBtn.classList.remove("is-active");
+      if (canvasBtn) canvasBtn.classList.add("is-active");
+      if (workspaceGrid) workspaceGrid.style.display = "none";
+      if (canvasWorkspace) canvasWorkspace.style.display = "block";
+      drawCanvasLinks();
+    } else {
+      if (explorerBtn) explorerBtn.classList.add("is-active");
+      if (canvasBtn) canvasBtn.classList.remove("is-active");
+      if (workspaceGrid) workspaceGrid.style.display = "grid";
+      if (canvasWorkspace) canvasWorkspace.style.display = "none";
+    }
+  }
+
+  // --- CANVAS WORKSPACE CORE LOGIC ---
+
+  function initSvgDefs() {
+    const svg = document.getElementById("canvas-connections-svg");
+    if (!svg) return;
+    
+    let defs = svg.querySelector("defs");
+    if (!defs) {
+      defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      svg.appendChild(defs);
+    }
+    
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker.setAttribute("id", "arrow");
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "6");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "6");
+    marker.setAttribute("markerHeight", "6");
+    marker.setAttribute("orient", "auto-start-reverse");
+    
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    path.setAttribute("fill", "rgba(56, 189, 248, 0.45)");
+    
+    marker.appendChild(path);
+    defs.appendChild(marker);
+  }
+
+  function addNodeToCanvas(type, text, x = 150, y = 150) {
+    const id = machineState.nodeIdCounter++;
+    const node = { id, type, text, x, y };
+    machineState.canvasNodes.push(node);
+    
+    renderNodes();
+    drawCanvasLinks();
+    return node;
+  }
+
+  function deleteNode(id) {
+    machineState.canvasNodes = machineState.canvasNodes.filter(n => n.id !== id);
+    machineState.canvasLinks = machineState.canvasLinks.filter(l => l.from !== id && l.to !== id);
+    if (machineState.selectedNodeId === id) machineState.selectedNodeId = null;
+    renderNodes();
+    drawCanvasLinks();
+  }
+
+  function createLink(fromId, toId) {
+    const exists = machineState.canvasLinks.some(l => l.from === fromId && l.to === toId);
+    if (!exists && fromId !== toId) {
+      machineState.canvasLinks.push({ from: fromId, to: toId });
+      drawCanvasLinks();
+    }
+  }
+
+  function renderNodes() {
+    const container = document.getElementById("canvas-nodes-container");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    machineState.canvasNodes.forEach(node => {
+      const nodeEl = document.createElement("div");
+      nodeEl.className = `canvas-node node-${node.type}`;
+      nodeEl.id = `canvas-node-${node.id}`;
+      nodeEl.style.left = `${node.x}px`;
+      nodeEl.style.top = `${node.y}px`;
+      
+      if (machineState.selectedNodeId === node.id) {
+        nodeEl.classList.add("is-selected");
+      }
+
+      nodeEl.innerHTML = `
+        <button type="button" class="node-close-btn" onclick="event.stopPropagation(); deleteNode(${node.id})">×</button>
+        <span class="canvas-node-title">${escapeHtml(node.type)}</span>
+        <span class="canvas-node-text" id="node-text-${node.id}">${escapeHtml(node.text)}</span>
+      `;
+
+      nodeEl.addEventListener("dblclick", (e) => {
+        e.stopPropagation();
+        const newText = prompt("Edit node text:", node.text);
+        if (newText !== null && newText.trim() !== "") {
+          node.text = newText.trim();
+          const nodeTextSpan = document.getElementById(`node-text-${node.id}`);
+          if (nodeTextSpan) nodeTextSpan.textContent = node.text;
+        }
+      });
+
+      nodeEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (machineState.selectedNodeId && machineState.selectedNodeId !== node.id) {
+          createLink(machineState.selectedNodeId, node.id);
+          machineState.selectedNodeId = null;
+        } else {
+          machineState.selectedNodeId = node.id;
+        }
+        renderNodes();
+      });
+
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+
+      nodeEl.addEventListener("mousedown", (e) => {
+        if (e.target.classList.contains("node-close-btn")) return;
+        isDragging = true;
+        
+        const rect = nodeEl.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        
+        nodeEl.style.cursor = "grabbing";
+        e.preventDefault();
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        
+        const containerRect = container.getBoundingClientRect();
+        let newX = e.clientX - containerRect.left - startX;
+        let newY = e.clientY - containerRect.top - startY;
+        
+        const parentWidth = container.clientWidth || 1000;
+        const parentHeight = container.clientHeight || 700;
+        
+        node.x = Math.max(10, Math.min(newX, parentWidth - 210));
+        node.y = Math.max(10, Math.min(newY, parentHeight - 120));
+
+        nodeEl.style.left = `${node.x}px`;
+        nodeEl.style.top = `${node.y}px`;
+        drawCanvasLinks();
+      });
+
+      document.addEventListener("mouseup", () => {
+        if (isDragging) {
+          isDragging = false;
+          nodeEl.style.cursor = "grab";
+        }
+      });
+
+      container.appendChild(nodeEl);
+    });
+  }
+
+  function drawCanvasLinks() {
+    const svg = document.getElementById("canvas-connections-svg");
+    if (!svg) return;
+    svg.innerHTML = "";
+    
+    machineState.canvasLinks.forEach(link => {
+      const fromEl = document.getElementById(`canvas-node-${link.from}`);
+      const toEl = document.getElementById(`canvas-node-${link.to}`);
+      if (!fromEl || !toEl) return;
+      
+      const x1 = fromEl.offsetLeft + fromEl.offsetWidth / 2;
+      const y1 = fromEl.offsetTop + fromEl.offsetHeight / 2;
+      const x2 = toEl.offsetLeft + toEl.offsetWidth / 2;
+      const y2 = toEl.offsetTop + toEl.offsetHeight / 2;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const dx = Math.abs(x2 - x1) * 0.5;
+      const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+      
+      path.setAttribute("d", d);
+      path.setAttribute("stroke", "rgba(56, 189, 248, 0.45)");
+      path.setAttribute("stroke-width", "2");
+      path.setAttribute("fill", "none");
+      path.setAttribute("marker-end", "url(#arrow)");
+      
+      svg.appendChild(path);
+    });
+  }
+
+  function getActiveLensSettings() {
+    const topic = document.getElementById("lens-topic") ? document.getElementById("lens-topic").value : "all";
+    const format = document.getElementById("lens-format") ? document.getElementById("lens-format").value : "all";
+    const intent = document.getElementById("lens-intent") ? document.getElementById("lens-intent").value : "all";
+    const domain = document.getElementById("lens-domain") ? document.getElementById("lens-domain").value : "all";
+    const platform = document.getElementById("lens-platform") ? document.getElementById("lens-platform").value : "all";
+    const years = document.getElementById("lens-years") ? document.getElementById("lens-years").value : "2021-2026";
+
+    return { topic, format, intent, domain, platform, years };
+  }
+
+  function handleLensGenerateQuestion() {
+    const s = getActiveLensSettings();
+    let text = `How does quantum engagement in ${s.topic === 'all' ? 'general topics' : s.topic} change when delivered via ${s.format === 'all' ? 'various formats' : s.format} to support ${s.intent === 'all' ? 'different user intents' : s.intent} between ${s.years}?`;
+    addNodeToCanvas("question", text, 150, 150);
+    toggleWorkspaceMode("canvas");
+  }
+
+  function handleLensCreateKO() {
+    const s = getActiveLensSettings();
+    let text = `Knowledge Object: ${s.domain.toUpperCase()} domain, Format: ${s.format}, Intent: ${s.intent}, Years: ${s.years}. Calculated interest index points to stable public uptake.`;
+    addNodeToCanvas("trail", text, 200, 200);
+    toggleWorkspaceMode("canvas");
+  }
+
+  function handleLensSendCanvas() {
+    const s = getActiveLensSettings();
+    let text = `Data Lens Focus: [Topic: ${s.topic}, Format: ${s.format}, Intent: ${s.intent}, Platform: ${s.platform}]`;
+    addNodeToCanvas("signal", text, 250, 250);
+    toggleWorkspaceMode("canvas");
+  }
+
+  function initLeftLensActions() {
+    const genQ = document.getElementById("lens-generate-question");
+    if (genQ) genQ.addEventListener("click", handleLensGenerateQuestion);
+    
+    const createKo = document.getElementById("lens-create-ko");
+    if (createKo) createKo.addEventListener("click", handleLensCreateKO);
+    
+    const sendCanvas = document.getElementById("lens-send-canvas");
+    if (sendCanvas) sendCanvas.addEventListener("click", handleLensSendCanvas);
+  }
+
+  function initMentorEvents() {
+    const mentorSelector = document.getElementById("mentor-selector");
+    if (mentorSelector) {
+      mentorSelector.addEventListener("change", () => {
+        if (machineState.askDataBackActive) {
+          const chk = document.getElementById("adb-mode-checkbox");
+          if (chk) chk.checked = false;
+          machineState.askDataBackActive = false;
+        }
+        triggerAIMentorResponse();
+      });
+    }
+
+    const adbCheckbox = document.getElementById("adb-mode-checkbox");
+    if (adbCheckbox) {
+      adbCheckbox.addEventListener("change", () => {
+        machineState.askDataBackActive = adbCheckbox.checked;
+        if (machineState.askDataBackActive) {
+          renderAskDataBack();
+        } else {
+          triggerAIMentorResponse();
+        }
+      });
+    }
+  }
+
+  function initGardenEvents() {
+    document.querySelectorAll(".garden-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".garden-tab").forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        machineState.activeBranchTab = btn.dataset.branch;
+        renderGardenBranch();
+      });
+    });
+  }
+
+  function initCanvasControls() {
+    const addBtn = document.getElementById("canvas-add-node-btn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        const text = prompt("Enter text for new thinking node:");
+        if (text && text.trim()) {
+          addNodeToCanvas("hypothesis", text.trim(), 150 + Math.random()*100, 150 + Math.random()*100);
+        }
+      });
+    }
+
+    const clearBtn = document.getElementById("canvas-clear-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        if (confirm("Are you sure you want to clear the canvas?")) {
+          machineState.canvasNodes = [];
+          machineState.canvasLinks = [];
+          machineState.selectedNodeId = null;
+          renderNodes();
+          drawCanvasLinks();
+        }
+      });
+    }
+
+    const exportBtn = document.getElementById("canvas-export-btn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", () => {
+        if (machineState.canvasNodes.length === 0) {
+          alert("The canvas is currently empty.");
+          return;
+        }
+        let summary = "=== SIAMQUANT ATLAS EVIDENCE TRAIL ===\n\n";
+        summary += "NODES:\n";
+        machineState.canvasNodes.forEach(n => {
+          summary += `[ID: ${n.id}] [${n.type.toUpperCase()}] ${n.text}\n`;
+        });
+        
+        summary += "\nCONNECTIONS:\n";
+        machineState.canvasLinks.forEach(l => {
+          summary += `Node ${l.from} -> Node ${l.to}\n`;
+        });
+
+        const blob = new Blob([summary], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "siamquantum_evidence_trail.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    const closeBtn = document.getElementById("canvas-close-btn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        toggleWorkspaceMode("explorer");
+      });
+    }
+
+    const explorerModeBtn = document.getElementById("mode-explorer-btn");
+    if (explorerModeBtn) {
+      explorerModeBtn.addEventListener("click", () => {
+        toggleWorkspaceMode("explorer");
+      });
+    }
+
+    const canvasModeBtn = document.getElementById("mode-canvas-btn");
+    if (canvasModeBtn) {
+      canvasModeBtn.addEventListener("click", () => {
+        toggleWorkspaceMode("canvas");
+      });
+    }
+  }
+
+  function initMatrixClickDelegation() {
+    const body = document.getElementById("engagement-matrix-body");
+    if (body) {
+      body.addEventListener("click", (e) => {
+        const cell = e.target.closest(".matrix-cell");
+        if (cell) {
+          const fmt = cell.dataset.format;
+          const intent = cell.dataset.intent;
+          const val = parseFloat(cell.dataset.value || 0);
+          handleMatrixClick(fmt, intent, val);
+        }
+      });
+    }
+  }
+
+  // --- INITIALIZATION ---
+
+  injectCustomStyles();
   initSectionTabs();
   initLabEvents();
+  initLeftLensActions();
+  initMentorEvents();
+  initGardenEvents();
+  initCanvasControls();
+  initSvgDefs();
+  initMatrixClickDelegation();
+
   loadAnalytics();
   loadCoverageAndMatrix();
 </script>
