@@ -15,9 +15,9 @@
     --sq-card-solid: #111827;
     --sq-card-hover: rgba(22, 33, 54, 0.92);
     --sq-popover: rgba(8, 13, 26, 0.96);
-    --sq-input: rgba(148, 163, 184, 0.1);
+    --sq-input: rgba(148, 163, 184, 0.12);
     --sq-ring: rgba(56, 189, 248, 0.46);
-    --sq-line: rgba(148, 163, 184, 0.15);
+    --sq-line: rgba(148, 163, 184, 0.18);
     --sq-line-strong: rgba(56, 189, 248, 0.32);
     --sq-blue: #38bdf8;
     --sq-blue-2: #60a5fa;
@@ -25,858 +25,832 @@
     --sq-amber: #f59e0b;
     --sq-red: #f87171;
     --sq-violet: #a78bfa;
-    --sq-orange: #f97316;
   }
 
   .analytics-workspace {
-    max-width: 1600px;
+    display: grid;
+    gap: 1rem;
+    max-width: 1480px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
   }
 
-  /* Workspace View Toggle */
-  .workspace-modes-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--sq-line);
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    backdrop-filter: blur(12px);
-  }
-
-  .workspace-modes {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .mode-btn {
-    border: 1px solid var(--sq-line);
-    background: rgba(255,255,255,0.02);
-    color: var(--muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.45rem 0.9rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .mode-btn:hover {
-    color: var(--text);
-    background: rgba(56, 189, 248, 0.08);
-  }
-
-  .mode-btn.is-active {
-    background: var(--sq-blue);
-    border-color: var(--sq-blue);
-    color: #070B17;
-  }
-
-  /* 3-Column Layout */
-  .lens-workspace {
+  .analytics-hero {
     display: grid;
-    grid-template-columns: 280px 1fr 340px;
-    gap: 1.2rem;
-    align-items: start;
-  }
-
-  .lens-workspace.classic-mode {
-    grid-template-columns: 1fr;
-  }
-
-  .lens-workspace.classic-mode .left-lens,
-  .lens-workspace.classic-mode .right-mentor {
-    display: none;
-  }
-
-  /* Left Panel: Data Lens */
-  .left-lens {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
     gap: 1rem;
-    position: sticky;
-    top: 90px;
+    align-items: stretch;
   }
 
-  .lens-panel {
+  .sq-panel,
+  .sq-card,
+  .sq-metric,
+  .sq-state,
+  .sq-callout {
     border: 1px solid var(--sq-line);
     background: var(--sq-card);
     border-radius: 8px;
-    padding: 1.15rem;
     box-shadow: 0 16px 42px rgba(2, 6, 23, 0.22);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
   }
 
-  .lens-section-title {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--sq-blue);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--sq-line);
-    padding-bottom: 0.5rem;
-    margin: 0;
+  .sq-panel {
+    padding: 1.15rem;
+    overflow: hidden;
   }
 
-  .lens-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-height: 520px;
-    overflow-y: auto;
-    padding-right: 2px;
+  .sq-hero-main {
+    position: relative;
+    min-height: 260px;
   }
 
-  .lens-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+  .sq-hero-main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(120deg, rgba(56, 189, 248, 0.14), transparent 42%),
+      linear-gradient(180deg, transparent, rgba(16, 185, 129, 0.06));
   }
 
-  .lens-field label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .lens-field select,
-  .lens-field input[type="text"] {
-    min-height: 32px;
-    width: 100%;
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    background: #0b1220;
-    color: var(--text);
-    padding: 0 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .lens-field select:focus,
-  .lens-field input:focus {
-    border-color: var(--sq-blue);
-    outline: none;
-  }
-
-  .lens-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    margin-top: 0.5rem;
-  }
-
-  .lens-btn {
-    width: 100%;
-    min-height: 36px;
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: rgba(255,255,255,0.02);
-    color: var(--text);
-  }
-
-  .lens-btn:hover {
-    background: rgba(56, 189, 248, 0.08);
-    border-color: var(--sq-blue);
-  }
-
-  .lens-btn.btn-glow {
-    background: rgba(56, 189, 248, 0.12);
-    border-color: rgba(56, 189, 248, 0.4);
-    color: var(--sq-blue);
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
-  }
-
-  .lens-btn.btn-glow:hover {
-    background: var(--sq-blue);
-    color: #070B17;
-  }
-
-  /* Center: Interactive Evidence Canvas */
-  .center-canvas {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-
-  .interactive-hint {
-    background: rgba(56, 189, 248, 0.04);
-    border: 1px dashed rgba(56, 189, 248, 0.25);
-    border-radius: 6px;
-    padding: 0.6rem 0.85rem;
-    font-size: 0.78rem;
-    color: var(--sq-blue-2);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .interactive-hint svg {
-    width: 1.1rem;
-    height: 1.1rem;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
-  /* Data Object Card */
-  .data-object-card {
-    border: 1px solid var(--sq-blue);
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(8, 13, 26, 0.98));
-    border-radius: 8px;
-    padding: 1.2rem;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.12);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .doc-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 1px solid var(--sq-line);
-    padding-bottom: 0.75rem;
-  }
-
-  .doc-eyebrow {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--sq-amber);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .doc-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0.25rem 0;
-  }
-
-  .doc-stats {
+  .sq-hero-content {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.65rem;
-    margin: 0.4rem 0;
-  }
-
-  .doc-stat-pill {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    padding: 0.5rem 0.65rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .doc-stat-label {
-    font-size: 0.6rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .doc-stat-value {
-    font-family: var(--font-mono);
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .doc-body {
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: var(--muted-strong);
-  }
-
-  .doc-warning {
-    background: rgba(248, 113, 113, 0.06);
-    border: 1px solid rgba(248, 113, 113, 0.2);
-    border-radius: 6px;
-    padding: 0.55rem 0.75rem;
-    font-size: 0.78rem;
-    color: var(--sq-red);
-    display: flex;
-    align-items: flex-start;
-    gap: 0.45rem;
-  }
-
-  .doc-sources-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .doc-sources-title {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--sq-blue);
-    text-transform: uppercase;
-  }
-
-  .doc-source-link {
-    background: rgba(2, 6, 23, 0.2);
-    border: 1px solid var(--sq-line);
-    border-radius: 4px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.78rem;
-    color: var(--text);
-    text-decoration: none;
-    display: flex;
-    justify-content: space-between;
-    transition: all 0.2s ease;
-  }
-
-  .doc-source-link:hover {
-    border-color: var(--sq-blue);
-    background: rgba(56, 189, 248, 0.05);
-  }
-
-  .doc-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    border-top: 1px solid var(--sq-line);
-    padding-top: 0.85rem;
-  }
-
-  .doc-act-btn {
-    border: 1px solid var(--sq-line);
-    background: rgba(255,255,255,0.02);
-    color: var(--muted-strong);
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.4rem 0.8rem;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    transition: all 0.2s ease;
-  }
-
-  .doc-act-btn:hover {
-    border-color: var(--sq-blue);
-    color: var(--sq-blue);
-    background: rgba(56, 189, 248, 0.05);
-  }
-
-  .doc-act-btn.primary-action {
-    background: rgba(56, 189, 248, 0.12);
-    border-color: var(--sq-blue);
-    color: var(--sq-blue);
-  }
-
-  .doc-act-btn.primary-action:hover {
-    background: var(--sq-blue);
-    color: #070B17;
-  }
-
-  /* Right Panel: AI Mentor */
-  .right-mentor {
-    position: sticky;
-    top: 90px;
-    display: flex;
-    flex-direction: column;
     gap: 1rem;
+    height: 100%;
   }
 
-  .mentor-panel {
-    border: 1px solid var(--sq-line);
-    background: var(--sq-card);
-    border-radius: 8px;
-    padding: 1.15rem;
-    box-shadow: 0 16px 42px rgba(2, 6, 23, 0.22);
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-
-  .mentor-select-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .mentor-select-wrap label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .mentor-select {
-    min-height: 32px;
-    width: 100%;
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    background: #0b1220;
-    color: var(--text);
-    padding: 0 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
-  .mentor-avatar-box {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: rgba(2, 6, 23, 0.2);
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    padding: 0.5rem;
-  }
-
-  .mentor-icon {
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: var(--sq-blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-
-  .mentor-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
-
-  .mentor-name {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .mentor-role {
-    font-size: 0.65rem;
-    color: var(--muted);
-  }
-
-  .mentor-response-box {
-    background: rgba(2, 6, 23, 0.28);
-    border: 1px solid var(--sq-line);
-    border-radius: 8px;
-    padding: 0.85rem;
-    min-height: 180px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .mentor-pill-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .confidence-pill {
+  .sq-eyebrow {
     display: inline-flex;
     align-items: center;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    line-height: 1;
-    border-width: 1px;
-    border-style: solid;
-  }
-
-  .conf-grounded {
-    background: rgba(16, 185, 129, 0.08);
-    color: var(--sq-green);
-    border-color: rgba(16, 185, 129, 0.25);
-  }
-
-  .conf-inferred {
+    gap: 0.45rem;
+    width: fit-content;
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 999px;
     background: rgba(56, 189, 248, 0.08);
     color: var(--sq-blue);
-    border-color: rgba(56, 189, 248, 0.25);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    padding: 0.42rem 0.7rem;
+    text-transform: uppercase;
   }
 
-  .conf-speculative {
-    background: rgba(139, 92, 246, 0.08);
-    color: var(--sq-violet);
-    border-color: rgba(139, 92, 246, 0.25);
+  .sq-eyebrow::before,
+  .sq-status-dot {
+    content: "";
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: var(--sq-green);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+    flex: 0 0 auto;
   }
 
-  .conf-needs-evidence {
-    background: rgba(245, 158, 11, 0.08);
-    color: var(--sq-amber);
-    border-color: rgba(245, 158, 11, 0.25);
-  }
-
-  .mentor-text {
-    font-size: 0.82rem;
-    line-height: 1.55;
-    color: var(--muted-strong);
+  .sq-hero-title {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: clamp(1.7rem, 3vw, 3rem);
+    font-weight: 500;
+    line-height: 1.05;
+    max-width: 760px;
     margin: 0;
   }
 
-  /* Ask the Data Back Mode */
-  .adb-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    background: rgba(245, 158, 11, 0.03);
-    border-radius: 6px;
-    padding: 0.55rem 0.75rem;
-  }
-
-  .adb-toggle span {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--sq-amber);
-  }
-
-  /* Possibility Branches (Answer Garden) */
-  .answer-garden {
-    border: 1px solid var(--sq-line);
-    background: var(--sq-card);
-    border-radius: 8px;
-    padding: 1.15rem;
-    box-shadow: 0 16px 42px rgba(2, 6, 23, 0.22);
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-
-  .garden-tabs {
-    display: flex;
-    gap: 0.4rem;
-    border-bottom: 1px solid var(--sq-line);
-    padding-bottom: 0.55rem;
-    overflow-x: auto;
-  }
-
-  .garden-tab {
-    border: 1px solid var(--sq-line);
-    background: rgba(255,255,255,0.02);
+  .sq-hero-copy,
+  .sq-card-copy,
+  .sq-muted {
     color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    font-size: 0.88rem;
+    line-height: 1.65;
   }
 
-  .garden-tab:hover {
-    color: var(--text);
-    background: rgba(56, 189, 248, 0.05);
+  .sq-hero-copy {
+    max-width: 760px;
   }
 
-  .garden-tab.is-active {
-    border-color: var(--sq-blue);
-    background: rgba(56, 189, 248, 0.08);
-    color: var(--sq-blue);
-  }
-
-  .garden-content {
-    min-height: 80px;
+  .sq-toolbar {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 0.65rem;
-  }
-
-  .garden-branch {
-    background: rgba(2, 6, 23, 0.2);
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    padding: 0.65rem 0.8rem;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    margin-top: auto;
   }
 
-  .garden-branch:hover {
-    border-color: var(--sq-blue);
-    background: rgba(56, 189, 248, 0.04);
-  }
-
-  .garden-branch-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .garden-branch-type {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--sq-violet);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .garden-branch-title {
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  /* Co-Ideation Canvas Mode Panel */
-  .co-ideation-canvas-container {
-    display: none;
-    border: 1px solid var(--sq-line);
-    background: radial-gradient(circle, rgba(56,189,248,0.05) 1px, transparent 1px), #070b17;
-    background-size: 20px 20px;
-    border-radius: 8px;
-    height: 700px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 16px 42px rgba(2, 6, 23, 0.35);
-  }
-
-  .co-canvas-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .canvas-nodes-layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-  }
-
-  .canvas-node {
-    position: absolute;
-    width: 200px;
-    background: linear-gradient(135deg, #131b2e 0%, #0d1322 100%);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.5);
-    padding: 0.65rem;
-    cursor: grab;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  }
-
-  .canvas-node:active {
-    cursor: grabbing;
-    box-shadow: 0 15px 32px rgba(0,0,0,0.6);
-  }
-
-  .canvas-node-title {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .canvas-node-text {
-    font-size: 0.72rem;
-    line-height: 1.4;
-    color: var(--muted-strong);
-    word-break: break-word;
-  }
-
-  .node-close-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    color: var(--muted);
-    border: none;
-    cursor: pointer;
-    font-size: 8px;
-    display: flex;
+  .sq-button,
+  .sq-tab {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .node-close-btn:hover {
-    background: var(--sq-red);
-    color: white;
-  }
-
-  /* Node type styling */
-  .node-signal { border-color: var(--sq-blue); }
-  .node-signal .canvas-node-title { color: var(--sq-blue); }
-  
-  .node-source { border-color: var(--muted); }
-  .node-source .canvas-node-title { color: var(--muted); }
-
-  .node-question { border-color: var(--sq-amber); }
-  .node-question .canvas-node-title { color: var(--sq-amber); }
-
-  .node-mentor { border-color: var(--sq-green); }
-  .node-mentor .canvas-node-title { color: var(--sq-green); }
-
-  .node-hypothesis { border-color: var(--sq-violet); }
-  .node-hypothesis .canvas-node-title { color: var(--sq-violet); }
-
-  .node-counter { border-color: var(--sq-red); }
-  .node-counter .canvas-node-title { color: var(--sq-red); }
-
-  .node-idea { border-color: var(--sq-orange); }
-  .node-idea .canvas-node-title { color: var(--sq-orange); }
-
-  .node-trail { border-color: var(--sq-blue-2); }
-  .node-trail .canvas-node-title { color: var(--sq-blue-2); }
-
-  .canvas-toolbar {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    z-index: 10;
-    display: flex;
-    gap: 0.5rem;
-    background: rgba(13, 19, 34, 0.9);
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    padding: 0.4rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  }
-
-  .canvas-btn {
-    border: 1px solid var(--sq-line);
-    background: rgba(255,255,255,0.02);
-    color: var(--text);
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 0.35rem 0.7rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .canvas-btn:hover {
-    background: rgba(56, 189, 248, 0.08);
-    border-color: var(--sq-blue);
-  }
-
-  .canvas-btn.btn-accent {
-    background: rgba(56, 189, 248, 0.12);
-    border-color: var(--sq-blue);
-    color: var(--sq-blue);
-  }
-
-  .canvas-btn.btn-accent:hover {
-    background: var(--sq-blue);
-    color: #070B17;
-  }
-
-  .canvas-legend {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    z-index: 10;
-    background: rgba(13, 19, 34, 0.9);
-    border: 1px solid var(--sq-line);
-    border-radius: 6px;
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.65rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--muted-strong);
-  }
-
-  .legend-color {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-
-  /* Co-Create Banner Section */
-  .co-create-banner {
-    border: 1px solid var(--sq-line-strong);
-    background: linear-gradient(90deg, rgba(8, 13, 26, 0.95) 0%, rgba(56, 189, 248, 0.04) 50%, rgba(8, 13, 26, 0.95) 100%);
-    border-radius: 8px;
-    padding: 1.25rem;
-    box-shadow: 0 16px 42px rgba(2, 6, 23, 0.22);
-    display: flex;
-    flex-direction: column;
     gap: 0.45rem;
-    position: relative;
-    overflow: hidden;
+    min-height: 36px;
+    border-radius: 7px;
+    border: 1px solid var(--sq-line);
+    background: var(--sq-input);
+    color: var(--muted-strong);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    white-space: nowrap;
   }
 
-  .co-create-banner::before {
+  .sq-button {
+    padding: 0 0.85rem;
+  }
+
+  .sq-button:hover,
+  .sq-tab:hover,
+  .sq-tab.is-active {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: var(--sq-line-strong);
+    color: var(--text);
+  }
+
+  .sq-button:focus-visible,
+  .sq-tab:focus-visible,
+  .concept-tag:focus-visible,
+  .network-nav-btn:focus-visible {
+    outline: 2px solid var(--sq-ring);
+    outline-offset: 2px;
+  }
+
+  .sq-button svg,
+  .sq-card-title svg,
+  .sq-mini-icon {
+    width: 1rem;
+    height: 1rem;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: 0 0 auto;
+  }
+
+  .sq-callout {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.09), rgba(245, 158, 11, 0.04));
+    color: #fbbf24;
+    display: grid;
+    gap: 0.45rem;
+    padding: 1rem;
+  }
+
+  .sq-callout strong {
+    color: #fde68a;
+    font-size: 0.86rem;
+  }
+
+  .sq-callout span {
+    color: rgba(254, 243, 199, 0.78);
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .sq-status-card {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .sq-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    min-height: 32px;
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 7px;
+    background: rgba(56, 189, 248, 0.08);
+    color: var(--sq-blue);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0 0.75rem;
+  }
+
+  .sq-status-card h2 {
+    color: var(--text);
+    font-size: 1.05rem;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .sq-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .sq-metric {
+    position: relative;
+    display: grid;
+    gap: 0.48rem;
+    min-height: 150px;
+    padding: 0.9rem;
+    overflow: hidden;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+
+  .sq-metric:hover {
+    background: var(--sq-card-hover);
+    border-color: var(--sq-line-strong);
+  }
+
+  .sq-metric::after {
     content: "";
     position: absolute;
     left: 0;
+    right: 0;
     top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(180deg, var(--sq-blue), var(--sq-violet));
+    height: 2px;
+    background: linear-gradient(90deg, var(--sq-blue), var(--sq-green));
+    opacity: 0.82;
   }
 
-  .co-create-title {
-    font-size: 1.1rem;
+  .sq-metric-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.65rem;
+  }
+
+  .sq-metric-label,
+  .sq-section-label,
+  .sq-insight-label {
+    color: var(--muted);
+    font-size: 0.68rem;
     font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .sq-metric-badge {
+    border: 1px solid var(--sq-line);
+    border-radius: 6px;
+    background: rgba(2, 6, 23, 0.28);
+    color: var(--muted-strong);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    line-height: 1;
+    padding: 0.32rem 0.45rem;
+    white-space: nowrap;
+  }
+
+  .sq-metric-value {
     color: var(--text);
-    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .sq-metric-sub {
+    color: var(--muted);
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .sq-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .sq-insight {
+    border: 1px solid var(--sq-line);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.58);
+    padding: 0.9rem;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .sq-insight:hover {
+    border-color: var(--sq-line-strong);
+    background: rgba(15, 23, 42, 0.78);
+  }
+
+  .sq-insight-value {
+    color: var(--muted-strong);
+    font-size: 0.82rem;
+    line-height: 1.58;
+    margin-top: 0.42rem;
+  }
+
+  .sq-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.2rem;
+  }
+
+  .sq-section-title {
+    color: var(--text);
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0.18rem 0 0;
+  }
+
+  .sq-tabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 0.05rem;
+  }
+
+  .sq-tab {
+    padding: 0 0.72rem;
+  }
+
+  .sq-chart-grid,
+  .sq-wide-grid {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .sq-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sq-wide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sq-card {
+    display: grid;
+    gap: 0.85rem;
+    min-height: 100%;
+    padding: 1rem;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .sq-card:hover {
+    border-color: var(--sq-line-strong);
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  .sq-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.9rem;
+  }
+
+  .sq-card-title {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-  }
-
-  .co-create-copy {
-    font-size: 0.84rem;
-    line-height: 1.55;
-    color: var(--muted-strong);
+    gap: 0.55rem;
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.3;
     margin: 0;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+  .sq-card-title svg {
+    color: var(--sq-blue);
   }
 
-  @media (max-width: 1200px) {
-    .lens-workspace {
+  .sq-card-copy {
+    margin: 0.25rem 0 0;
+  }
+
+  .sq-chart-box {
+    position: relative;
+    min-height: 320px;
+    border: 1px solid var(--sq-line);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.28);
+    padding: 0.75rem;
+  }
+
+  .sq-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .sq-lab {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+    gap: 0.9rem;
+  }
+
+  .sq-control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+  }
+
+  .sq-field {
+    display: grid;
+    gap: 0.34rem;
+  }
+
+  .sq-field label,
+  .sq-toggle label {
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sq-field select,
+  .sq-field input {
+    min-height: 36px;
+    width: 100%;
+    border: 1px solid var(--sq-line);
+    border-radius: 7px;
+    background: #0b1220;
+    color: var(--text);
+    padding: 0 0.68rem;
+  }
+
+  .sq-field select {
+    color-scheme: dark;
+  }
+
+  .sq-field select option {
+    background: #0b1220;
+    color: #f8fafc;
+  }
+
+  .sq-field select:focus,
+  .sq-field input:focus {
+    border-color: var(--sq-line-strong);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+    outline: none;
+  }
+
+  .sq-field input[type="range"] {
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .sq-check-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .sq-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 36px;
+    border: 1px solid var(--sq-line);
+    border-radius: 7px;
+    background: rgba(2, 6, 23, 0.24);
+    padding: 0 0.65rem;
+  }
+
+  .sq-toggle input {
+    accent-color: var(--sq-blue);
+  }
+
+  .sq-diagnostic-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .sq-diagnostic {
+    border: 1px solid var(--sq-line);
+    border-radius: 7px;
+    background: rgba(2, 6, 23, 0.22);
+    padding: 0.68rem;
+  }
+
+  .sq-diagnostic span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sq-diagnostic strong {
+    display: block;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    margin-top: 0.18rem;
+  }
+
+  .sq-question-list {
+    display: grid;
+    gap: 0.42rem;
+    margin-top: 0.55rem;
+  }
+
+  .sq-question-list button {
+    width: 100%;
+    border: 1px solid var(--sq-line);
+    border-radius: 7px;
+    background: #0d1b2f;
+    color: #e2e8f0;
+    cursor: pointer;
+    padding: 0.52rem 0.65rem;
+    text-align: left;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+
+  .sq-question-list button:hover {
+    background: #123154;
+    border-color: var(--sq-line-strong);
+    color: #ffffff;
+  }
+
+  .sq-question-list button.is-active {
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.48);
+    color: #fde68a;
+  }
+
+  .sq-question-output {
+    border: 1px solid rgba(245, 158, 11, 0.34);
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.08);
+    color: #fde68a;
+    font-size: 0.82rem;
+    line-height: 1.58;
+    margin-top: 0.7rem;
+    min-height: 54px;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .sq-question-output strong {
+    display: block;
+    color: #fbbf24;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.28rem;
+    text-transform: uppercase;
+  }
+
+  .sq-evidence-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.76rem;
+  }
+
+  .sq-evidence-table th,
+  .sq-evidence-table td {
+    border-bottom: 1px solid var(--sq-line);
+    color: var(--muted-strong);
+    padding: 0.5rem 0.45rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .sq-evidence-table th:first-child,
+  .sq-evidence-table td:first-child {
+    color: var(--text);
+    text-align: left;
+  }
+
+  .sq-evidence-table th {
+    color: var(--muted);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sq-validation-list,
+  .community-strip {
+    display: grid;
+    gap: 0.62rem;
+  }
+
+  .validation-item,
+  .community-card {
+    border: 1px solid var(--sq-line);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.22);
+    padding: 0.78rem 0.85rem;
+  }
+
+  .validation-item strong,
+  .community-card strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.84rem;
+    margin-bottom: 0.24rem;
+  }
+
+  .validation-item span,
+  .community-card span,
+  .community-intro,
+  .cluster-size {
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .sig-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    border-radius: 999px;
+    padding: 0 0.58rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-top: 0.55rem;
+  }
+
+  .sig-yes {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.34);
+  }
+
+  .sig-no {
+    background: rgba(167, 139, 250, 0.12);
+    color: #c4b5fd;
+    border: 1px solid rgba(167, 139, 250, 0.34);
+  }
+
+  .cluster-concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.58rem;
+  }
+
+  .concept-tag,
+  .network-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  }
+
+  .concept-tag {
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    background: rgba(56, 189, 248, 0.08);
+    color: var(--sq-blue);
+    font-size: 0.74rem;
+    padding: 0 0.7rem;
+  }
+
+  .concept-tag:hover {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.48);
+  }
+
+  .network-nav-btn {
+    width: fit-content;
+    border: 1px solid rgba(167, 139, 250, 0.34);
+    background: rgba(167, 139, 250, 0.1);
+    color: #c4b5fd;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-top: 0.75rem;
+    padding: 0 0.82rem;
+  }
+
+  .network-nav-btn:hover {
+    background: rgba(167, 139, 250, 0.18);
+    border-color: rgba(167, 139, 250, 0.56);
+  }
+
+  .sq-state {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .sq-state.is-visible {
+    display: flex;
+  }
+
+  .state-title {
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+  }
+
+  .state-copy {
+    color: var(--muted);
+    max-width: 62ch;
+    line-height: 1.6;
+  }
+
+  .error-state .state-title {
+    color: var(--sq-red);
+  }
+
+  .sq-matrix-wrap {
+    overflow-x: auto;
+    margin-top: 0.1rem;
+    border: 1px solid var(--sq-line);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.22);
+  }
+
+  .sq-matrix-table {
+    border-collapse: separate;
+    border-spacing: 0.22rem;
+    min-width: 100%;
+    padding: 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .sq-matrix-table th,
+  .sq-matrix-table td {
+    border-radius: 6px;
+    padding: 0.42rem 0.55rem;
+    white-space: nowrap;
+  }
+
+  .sq-matrix-table th {
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .sq-matrix-table td:first-child {
+    color: var(--text);
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .sq-matrix-table td:not(:first-child) {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .sq-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 1120px) {
+    .analytics-hero,
+    .sq-lab,
+    .sq-chart-grid {
       grid-template-columns: 1fr;
     }
-    .left-lens, .right-mentor {
-      position: static;
+
+    .sq-kpi-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .analytics-workspace {
+      gap: 0.75rem;
+    }
+
+    .analytics-hero,
+    .sq-control-grid,
+    .sq-check-grid,
+    .sq-diagnostic-grid,
+    .sq-insight-grid,
+    .sq-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sq-panel,
+    .sq-card,
+    .sq-metric {
+      padding: 0.85rem;
+    }
+
+    .sq-hero-main {
+      min-height: auto;
+    }
+
+    .sq-hero-copy {
+      display: none;
+    }
+
+    .sq-section-head,
+    .sq-card-head {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .sq-chart-box {
+      min-height: 260px;
+    }
+
+    .sq-chart-box canvas {
+      height: 245px !important;
     }
   }
 </style>
@@ -884,376 +858,345 @@
 
 {% block body %}
 <span style="display:none">Yearly Quantum Topic Engagement</span>
-<span style="display:none">Infinite Hypothesis Machine</span>
 <section class="analytics-workspace" aria-labelledby="analytics-heading">
-  
-  <!-- Workspace Header Modes -->
-  <div class="workspace-modes-bar">
-    <h1 style="font-size:1.15rem; font-weight:700; margin:0; display:flex; align-items:center; gap:0.5rem; color:var(--text)">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--sq-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <span class="th-text">เครื่องมือสมมติฐานอินฟินิตี้</span>
-      <span class="en-text">Infinite Hypothesis Machine</span>
-    </h1>
-    <div class="workspace-modes">
-      <button class="mode-btn is-active" id="mode-explorer-btn">Explorer View</button>
-      <button class="mode-btn" id="mode-canvas-btn">Co-Ideation Canvas</button>
+  <div class="analytics-hero">
+    <div class="sq-panel sq-hero-main">
+      <div class="sq-hero-content">
+        <div class="sq-eyebrow">
+          <span class="th-text">การวิเคราะห์รายปี</span>
+          <span class="en-text">Yearly Trends</span>
+        </div>
+        <div>
+          <h1 class="sq-hero-title" id="analytics-heading">
+            <span class="th-text">การมีส่วนร่วมตามหัวข้อและรูปแบบเนื้อหา</span>
+            <span class="en-text">Engagement by Topic &amp; Content Form</span>
+          </h1>
+          <p class="sq-hero-copy">
+            <span class="th-text">แยกการมีส่วนร่วมตามหัวข้อควอนตัมและรูปแบบเนื้อหา พร้อมการทดสอบทางสถิติเพื่อยืนยันความมีนัยสำคัญ กลุ่มแนวคิดที่พบเชื่อมโยงกับ Concept Network</span>
+            <span class="en-text">Compare engagement by topic and content form over time, validate statistical signals, and move from every topic cluster into the network view.</span>
+          </p>
+        </div>
+        <div class="sq-toolbar" aria-label="Analytics actions">
+          <a class="sq-button" href="/database?scope=relevant">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+            <span class="th-text">ดูแหล่งข้อมูล</span><span class="en-text">Browse sources</span>
+          </a>
+          <a class="sq-button" href="/network">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6"/><path d="m8.2 13.2 7.6 3.6"/></svg>
+            <span class="th-text">เปิดเครือข่าย</span><span class="en-text">Open network</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sq-panel sq-status-card" aria-label="Analytics scope">
+      <div class="sq-status-pill" id="status-pill"><span class="sq-status-dot"></span><span>Loading</span></div>
+      <div>
+        <h2>
+          <span class="th-text">ขอบเขต: วาทกรรมควอนตัมไทยเท่านั้น</span>
+          <span class="en-text">Scope: Thai quantum discourse only</span>
+        </h2>
+        <p class="sq-muted">
+          <span class="th-text">หน้านี้วิเคราะห์เฉพาะแหล่งข้อมูลที่เชื่อมโยงกับประเทศไทยและมีข้อมูลการมีส่วนร่วม ผลลัพธ์เหมาะสำหรับตั้งสมมติฐาน ไม่ใช่ข้อสรุปเชิงเหตุผล</span>
+          <span class="en-text">This page looks at Thai-linked quantum coverage with visible engagement. Use it to spot patterns, not to make causal claims.</span>
+        </p>
+      </div>
+      <div class="sq-callout">
+        <strong><span class="th-text">หมายเหตุทางสถิติ</span><span class="en-text">Statistical note</span></strong>
+        <span class="th-text">ผลลัพธ์ขึ้นกับความครอบคลุมของ taxonomy และข้อมูล engagement ที่มีอยู่ในคลังปัจจุบัน</span>
+        <span class="en-text">Signals depend on the taxonomy coverage and engagement fields currently available in the corpus.</span>
+      </div>
+    </aside>
+  </div>
+
+  <div class="sq-kpi-grid" aria-label="Analytics summary">
+    <div class="sq-metric">
+      <div class="sq-metric-top">
+        <div class="sq-metric-label"><span class="th-text">แหล่งข้อมูลที่วิเคราะห์</span><span class="en-text">Sources Reviewed</span></div>
+        <div class="sq-metric-badge" id="kpi-years-badge">n=0</div>
+      </div>
+      <div class="sq-metric-value" id="stat-sources">-</div>
+      <div class="sq-metric-sub" id="kpi-years-sub"><span class="th-text">ปีที่มีข้อมูล: -</span><span class="en-text">Years with data: -</span></div>
+    </div>
+    <div class="sq-metric">
+      <div class="sq-metric-top">
+        <div class="sq-metric-label"><span class="th-text">หัวข้อที่วิเคราะห์</span><span class="en-text">Topic Labels</span></div>
+        <div class="sq-metric-badge">TOPICS</div>
+      </div>
+      <div class="sq-metric-value" id="stat-topics">-</div>
+      <div class="sq-metric-sub"><span class="th-text">กลุ่มหัวข้อควอนตัม</span><span class="en-text">Quantum topic groups</span></div>
+    </div>
+    <div class="sq-metric">
+      <div class="sq-metric-top">
+        <div class="sq-metric-label"><span class="th-text">ปีที่มีข้อมูล</span><span class="en-text">Years with Data</span></div>
+        <div class="sq-metric-badge">YEARS</div>
+      </div>
+      <div class="sq-metric-value" id="stat-years">-</div>
+      <div class="sq-metric-sub"><span class="th-text">ช่วงการวิเคราะห์</span><span class="en-text">Analysis time span</span></div>
+    </div>
+    <div class="sq-metric">
+      <div class="sq-metric-top">
+        <div class="sq-metric-label"><span class="th-text">แนวโน้มที่พบ</span><span class="en-text">Signals Found</span></div>
+        <div class="sq-metric-badge" id="kpi-sig-badge">alpha=0.05</div>
+      </div>
+      <div class="sq-metric-value" id="stat-significance">0</div>
+      <div class="sq-metric-sub" id="kpi-sig-sub"><span class="th-text">ผ่านการทดสอบทางสถิติ</span><span class="en-text">Passing current tests</span></div>
     </div>
   </div>
 
-  <!-- Co-create Section banner -->
-  <div class="co-create-banner">
-    <h2 class="co-create-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sq-amber)" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="th-text">ร่วมสร้างสรรค์กับอสุรกายข้อมูล (Co-create with the Atlas)</span>
-      <span class="en-text">Co-create with the Atlas</span>
-    </h2>
-    <p class="co-create-copy">
-      <span class="th-text">เลือกแนวโน้ม หัวข้อ หรือจุดข้อมูลใดๆ เพื่อแปลงเป็นวัตถุความรู้ (Knowledge Object) ระบบจะพาคุณตั้งสมมติฐาน ตรวจสอบสมมติฐาน ค้นหาหลักฐานแย้ง และแปลงข้อมูลวิจัยให้เป็นข้อเสนอความร่วมมือ นวัตกรรม หรือนิทรรศการ</span>
-      <span class="en-text">Select any trend, topic, source, or matrix cell and turn it into a living knowledge object. The Atlas will help you ask better questions, compare explanations, challenge assumptions, and transform Thai quantum discourse data into research ideas, public exhibitions, or policy proposals.</span>
-    </p>
+  <div class="sq-insight-grid">
+    <div class="sq-insight">
+      <div class="sq-insight-label"><span class="th-text">วิธีคำนวณ</span><span class="en-text">Method Used</span></div>
+      <div class="sq-insight-value">
+        <span class="th-text">ใช้ SciPy และ pymannkendall สำหรับการทดสอบทางสถิติ และ Chart.js สำหรับการแสดงผล</span>
+        <span class="en-text">Uses standard statistical libraries for tests and Chart.js for visualization.</span>
+      </div>
+    </div>
+    <div class="sq-insight">
+      <div class="sq-insight-label"><span class="th-text">คะแนนการมีส่วนร่วม</span><span class="en-text">Engagement Score</span></div>
+      <div class="sq-insight-value">
+        <span class="th-text">แต่ละจุดคือค่าเฉลี่ยเรขาคณิตแบบ Bootstrap ซึ่งลดผลกระทบจากค่าสุดขีด</span>
+        <span class="en-text">Each point uses a robust geometric mean so outliers do less damage.</span>
+      </div>
+    </div>
+    <div class="sq-insight">
+      <div class="sq-insight-label"><span class="th-text">กลุ่มหัวข้อ</span><span class="en-text">Topic Groups</span></div>
+      <div class="sq-insight-value">
+        <span class="th-text">กลุ่มด้านล่างมาจากโครงสร้างกราฟเดียวกับ Concept Network คลิก tag เพื่อสำรวจ</span>
+        <span class="en-text">Groups come from the same graph structure as the network view. Click a tag to inspect it there.</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Main 3-Column Workspace -->
-  <div class="lens-workspace" id="main-workspace-grid">
-    
-    <!-- LEFT PANEL: Data Lens Control Center -->
-    <aside class="left-lens">
-      <div class="lens-panel">
-        <h3 class="lens-section-title">
-          <span class="th-text">เลนส์ข้อมูล (Data Lens)</span>
-          <span class="en-text">Data Lens Panel</span>
+  <div class="sq-state empty-state" id="empty-state">
+    <div>
+      <div class="state-title">Not enough trend data yet</div>
+      <div class="state-copy">The current database does not yet have enough topic or production taxonomy coverage to render these views.</div>
+    </div>
+  </div>
+
+  <div class="sq-state error-state" id="error-state">
+    <div>
+      <div class="state-title">Could not load trends</div>
+      <div class="state-copy" id="error-message">The page could not load the current analytics payload.</div>
+    </div>
+  </div>
+
+  <div class="sq-section-head">
+    <div>
+      <div class="sq-section-label"><span class="th-text">ชุดข้อมูลหลัก</span><span class="en-text">Primary analytics</span></div>
+      <h2 class="sq-section-title"><span class="th-text">แนวโน้ม, การทดสอบ, และกลุ่มที่เชื่อมโยงกัน</span><span class="en-text">Trends, tests, and connected groups</span></h2>
+    </div>
+    <div class="sq-tabs" role="tablist" aria-label="Analytics sections">
+      <button class="sq-tab is-active" type="button" data-scroll-target="trend-cards">Trends</button>
+      <button class="sq-tab" type="button" data-scroll-target="group-cards">Groups</button>
+      <button class="sq-tab" type="button" data-scroll-target="coverage-grid">Coverage</button>
+    </div>
+  </div>
+
+  <div class="sq-lab" id="analysis-lab">
+    <article class="sq-card">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+          <span class="th-text">ห้องทดลองแนวโน้ม</span><span class="en-text">Trend exploration lab</span>
         </h3>
-        
-        <div class="lens-group">
-          <!-- Scientific Topic Lens -->
-          <div class="lens-field">
-            <label for="lens-topic">Scientific Topic</label>
-            <select id="lens-topic">
-              <option value="all">All Topics</option>
-            </select>
-          </div>
-
-          <!-- Content Format Lens -->
-          <div class="lens-field">
-            <label for="lens-format">Content Format</label>
-            <select id="lens-format">
-              <option value="all">All Formats</option>
-              <option value="video">Video / YouTube</option>
-              <option value="article">News / Article</option>
-              <option value="paper">Academic Paper</option>
-              <option value="podcast">Podcast</option>
-            </select>
-          </div>
-
-          <!-- User Intent Lens -->
-          <div class="lens-field">
-            <label for="lens-intent">User Intent</label>
-            <select id="lens-intent">
-              <option value="all">All Intents</option>
-              <option value="educational">Educational / Learning</option>
-              <option value="commercial">Commercial / Business</option>
-              <option value="news">News Reporting</option>
-              <option value="research">Scientific Research</option>
-            </select>
-          </div>
-
-          <!-- Quantum Domain Lens -->
-          <div class="lens-field">
-            <label for="lens-domain">Quantum Domain</label>
-            <select id="lens-domain">
-              <option value="all">All Domains</option>
-              <option value="computing">Quantum Computing</option>
-              <option value="cryptography">Quantum Cryptography</option>
-              <option value="sensing">Quantum Sensing</option>
-              <option value="general">General / Popular Science</option>
-            </select>
-          </div>
-
-          <!-- Platform Lens -->
-          <div class="lens-field">
-            <label for="lens-platform">Platform</label>
-            <select id="lens-platform">
-              <option value="all">All Platforms</option>
-              <option value="youtube">YouTube</option>
-              <option value="gdelt">GDELT Global News</option>
-              <option value="facebook">Facebook</option>
-              <option value="medium">Medium / Blogs</option>
-            </select>
-          </div>
-
-          <!-- Year Range Lens -->
-          <div class="lens-field">
-            <label for="lens-years">Year Range</label>
-            <select id="lens-years">
-              <option value="2021-2026">2021 - 2026</option>
-              <option value="2023-2026">2023 - 2026</option>
-              <option value="2024">2024 Spike Only</option>
-            </select>
-          </div>
-
-          <!-- Institution / Location Lens -->
-          <div class="lens-field">
-            <label for="lens-location">Institution / Location</label>
-            <select id="lens-location">
-              <option value="all">All Locations / Institutions</option>
-              <option value="bangkok">Bangkok Hubs</option>
-              <option value="chiangmai">Northern Region</option>
-              <option value="korat">Nakhon Ratchasima</option>
-              <option value="mhesi">MHESI Network</option>
-            </select>
-          </div>
-
-          <!-- Engagement Type Lens -->
-          <div class="lens-field">
-            <label for="lens-engagement">Engagement Type</label>
-            <select id="lens-engagement">
-              <option value="views">View Counts</option>
-              <option value="reactions">Reactions / Shares</option>
-              <option value="comments">Comments / Discussions</option>
-            </select>
-          </div>
-
-          <!-- Evidence Strength Lens -->
-          <div class="lens-field">
-            <label for="lens-strength">Evidence Strength</label>
-            <select id="lens-strength">
-              <option value="any">Any Evidence (n >= 1)</option>
-              <option value="robust">Robust Signals (n >= 5)</option>
-              <option value="significant">Significant Differences (p < 0.05)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="lens-actions">
-          <button type="button" class="lens-btn btn-glow" id="lens-generate-question">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-            <span class="th-text">ตั้งคำถามจากฟิลเตอร์</span><span class="en-text">Generate Question</span>
-          </button>
-          <button type="button" class="lens-btn" id="lens-create-ko">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <span class="th-text">สร้างวัตถุความรู้</span><span class="en-text">Create Knowledge Object</span>
-          </button>
-          <button type="button" class="lens-btn" id="lens-send-canvas">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-            <span class="th-text">ส่งเข้าบอร์ดไอเดีย</span><span class="en-text">Send to Canvas</span>
-          </button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- CENTER PANEL: Interactive Evidence Canvas -->
-    <main class="center-canvas">
-      
-      <!-- Interactive hint -->
-      <div class="interactive-hint">
-        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M15 18l-2 2-2-2M15 6l-2-2-2 2M18 15l2-2-2-2M6 15l-2-2 2-2"/></svg>
-        <span>
-          <strong class="th-text">ระบบตอบรับอัจฉริยะแบบคลิก:</strong><strong class="en-text">Interactive Canvas Mode Active:</strong>
-          <span class="th-text">คลิกที่แท่งกราฟ จุด หรือช่องในเมทริกซ์การมีส่วนร่วม เพื่อจับทิศทางและวิเคราะห์เป็นสมมติฐานร่วมกัน</span>
-          <span class="en-text">Click any data point, chart bar, or matrix cell to generate a Data Object Card and begin co-ideating.</span>
-        </span>
-      </div>
-
-      <!-- Generated Knowledge Object / Data Object Card Section (collapsible/expandable) -->
-      <div id="dynamic-data-card-anchor"></div>
-
-      <!-- Main Charts grid -->
-      <div class="sq-chart-grid" id="trend-cards">
-        <article class="sq-card">
-          <div class="sq-card-head">
-            <div>
-              <h3 class="sq-card-title">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg>
-                <span class="th-text">การมีส่วนร่วมตามหัวข้อควอนตัมรายปี</span><span class="en-text">Topic Trends by Year</span>
-              </h3>
-              <p class="sq-card-copy">
-                <span class="th-text">คลิกจุดข้อมูลเพื่อวิเคราะห์ความเชื่อมั่น สมมติฐาน และผลลัพธ์จากเครือข่าย</span>
-                <span class="en-text">Click data points to review local sample size, confidence interval, and network explanations.</span>
-              </p>
-            </div>
-          </div>
-          <div class="sq-chart-box"><canvas id="topic-chart"></canvas></div>
-          <div class="sq-validation-list" id="topic-validation"></div>
-        </article>
-
-        <article class="sq-card">
-          <div class="sq-card-head">
-            <div>
-              <h3 class="sq-card-title">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/></svg>
-                <span class="th-text">การมีส่วนร่วมตามรูปแบบเนื้อหารายปี</span><span class="en-text">Format Trends by Year</span>
-              </h3>
-              <p class="sq-card-copy">
-                <span class="th-text">คลิกแท่งกราฟเพื่อดูสถิติและเปรียบเทียบกับโดเมนอื่น</span>
-                <span class="en-text">Click bars to inspect content form distribution and verify statistical significance.</span>
-              </p>
-            </div>
-          </div>
-          <div class="sq-chart-box"><canvas id="production-chart"></canvas></div>
-          <div class="sq-validation-list" id="production-validation"></div>
-        </article>
-      </div>
-
-      <!-- Core KPI status metrics -->
-      <div class="sq-kpi-grid" aria-label="Analytics summary" style="display:none">
-        <!-- Kept hidden to declutter, but populated in background -->
-        <div id="stat-sources">-</div>
-        <div id="stat-topics">-</div>
-        <div id="stat-years">-</div>
-        <div id="stat-significance">-</div>
-        <div id="kpi-years-badge"></div>
-        <div id="kpi-years-sub"></div>
-        <div id="kpi-sig-badge"></div>
-        <div id="kpi-sig-sub"></div>
-        <div id="status-pill"></div>
-      </div>
-
-      <!-- Evidence Table -->
-      <article class="sq-card" id="evidence-card">
-        <div class="sq-card-head">
-          <div>
-            <h3 class="sq-card-title">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M4 10h16"/><path d="M4 15h16"/><path d="M4 20h16"/><path d="M9 5v15"/><path d="M15 5v15"/></svg>
-              <span class="th-text">ตารางหลักฐานรายปี (Evidence Deck)</span><span class="en-text">Year-level Evidence Table</span>
-            </h3>
-            <p class="sq-card-copy">
-              <span class="th-text">แสดงค่าเฉลี่ย ช่วงความเชื่อมั่น และจำนวนตัวอย่างประกอบการคำนวณ</span>
-              <span class="en-text">Shows geometric mean, confidence interval, and sample counts for the active focus topic.</span>
-            </p>
-          </div>
-          <a class="sq-button" id="lab-open-sources" href="/database?scope=relevant"><span class="th-text">เปิดข้อมูลดิบ</span><span class="en-text">Open raw data</span></a>
-        </div>
-        <div class="sq-matrix-wrap" id="lab-evidence"></div>
-      </article>
-
-      <!-- Matrix and Domain Charts -->
-      <div class="sq-wide-grid">
-        <article class="sq-card" id="engagement-matrix-card" style="display:none">
-          <div>
-            <h3 class="sq-card-title">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 10h16"/><path d="M4 15h16"/><path d="M10 4v16"/><path d="M15 4v16"/></svg>
-              <span class="th-text">เมทริกซ์การมีส่วนร่วม: รูปแบบเนื้อหา x เจตนา (คลิกได้)</span><span class="en-text">Cross-tab Engagement Matrix: Format x Intent (Interactive)</span>
-            </h3>
-            <p class="sq-card-copy">
-              <span class="th-text">คลิกแต่ละช่องเพื่อดึงประเด็นขึ้นมาตั้งสมมติฐานและตรวจสอบกับ AI Mentor</span>
-              <span class="en-text">Click any cell to query its specific format x intent combination and ask the data back.</span>
-            </p>
-          </div>
-          <div class="sq-matrix-wrap" id="engagement-matrix-body"></div>
-        </article>
-
-        <article class="sq-card" id="domain-coverage-card" style="display:none">
-          <div class="sq-card-head">
-            <div>
-              <h3 class="sq-card-title">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V8"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg>
-                <span class="th-text">ความครอบคลุมโดเมนในคลังข้อมูล</span><span class="en-text">Coverage by Domain</span>
-              </h3>
-              <p class="sq-card-copy"><span class="th-text">คลิกแท่งกราฟเพื่อกรองข้อมูลดิบตามโดเมน</span><span class="en-text">Inspecting domain volumes and sample counts.</span></p>
-            </div>
-          </div>
-          <div class="sq-chart-box"><canvas id="domain-chart"></canvas></div>
-        </article>
-
-        <article class="sq-card" id="platform-coverage-card" style="display:none">
-          <div class="sq-card-head">
-            <div>
-              <h3 class="sq-card-title">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><rect x="6" y="8" width="3" height="8" rx="1"/><rect x="11" y="5" width="3" height="11" rx="1"/><rect x="16" y="11" width="3" height="5" rx="1"/></svg>
-                <span class="th-text">แพลตฟอร์มรายปี</span><span class="en-text">Platform Distribution by Year</span>
-              </h3>
-            </div>
-          </div>
-          <div class="sq-chart-box"><canvas id="coverage-chart"></canvas></div>
-        </article>
-      </div>
-
-      <!-- Bottom Panel: Possibility Branches (Answer Garden) -->
-      <article class="answer-garden" id="possibility-garden" style="display:none">
-        <h3 class="sq-card-title" style="color:var(--sq-violet)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3-1.912 5.886H3.886L9.773 12.5 7.86 18.386 12 14.773l4.14 3.613-1.913-5.886 5.887-3.614h-6.202L12 3Z"/></svg>
-          <span class="th-text">สวนสมมติฐานและกิ่งความเป็นไปได้ (Possibility Branches)</span>
-          <span class="en-text">Possibility Branches (Answer Garden)</span>
-        </h3>
-        <p class="sq-card-copy" style="margin-top:-0.3rem">
-          <span class="th-text">นำสัญญาณข้อมูลที่เลือกไปขยายผลผ่านเลนส์ความคิดแบบต่างๆ เพื่อหาทางเชื่อมโยงหรือสร้างโครงการใหม่</span>
-          <span class="en-text">Select a thinking branch to expand the active signal into a concrete hypothesis, question, or project idea.</span>
+        <p class="sq-card-copy">
+          <span class="th-text">ปรับแกน เปรียบเทียบหัวข้อ เปิดช่วงความเชื่อมั่น และกรองจุดข้อมูลที่มีตัวอย่างน้อยเกินไป</span>
+          <span class="en-text">Switch axes, compare labels, show uncertainty, normalize baselines, and remove low-sample points before interpreting the signal.</span>
         </p>
-
-        <!-- Garden tabs -->
-        <div class="garden-tabs">
-          <button class="garden-tab is-active" data-branch="understand">Understand</button>
-          <button class="garden-tab" data-branch="compare">Compare</button>
-          <button class="garden-tab" data-branch="explain">Explain</button>
-          <button class="garden-tab" data-branch="create">Create</button>
-          <button class="garden-tab" data-branch="challenge">Challenge</button>
-          <button class="garden-tab" data-branch="forecast">Forecast</button>
-        </div>
-
-        <div class="garden-content" id="garden-branches-output">
-          <!-- Populated dynamically based on clicked signal -->
-        </div>
-      </article>
-
-      <!-- Classical Sections kept in DOM but moved lower -->
-      <div class="sq-wide-grid" id="group-cards" style="display:none">
-        <div id="topic-communities"></div>
-        <div id="production-communities"></div>
       </div>
-      <div id="empty-state" class="sq-state"></div>
-      <div id="error-state" class="sq-state"><div id="error-message"></div></div>
-      <div style="display:none">
-        <!-- Hidden baseline selects for backward compatibility with classic logic -->
-        <select id="lab-axis"><option value="topics">Topics</option></select>
-        <select id="lab-label"></select>
-        <select id="lab-compare"></select>
-        <input id="lab-min-n" type="range" min="1" max="10" value="1">
-               </div>
+      <div class="sq-control-grid">
+        <div class="sq-field">
+          <label for="lab-axis"><span class="th-text">แกนวิเคราะห์</span><span class="en-text">Analysis axis</span></label>
+          <select id="lab-axis">
+            <option value="topics">Scientific topics</option>
+            <option value="productions">Content formats</option>
+          </select>
         </div>
+        <div class="sq-field">
+          <label for="lab-label"><span class="th-text">ชุดข้อมูลหลัก</span><span class="en-text">Focus label</span></label>
+          <select id="lab-label"></select>
+        </div>
+        <div class="sq-field">
+          <label for="lab-compare"><span class="th-text">เปรียบเทียบกับ</span><span class="en-text">Compare against</span></label>
+          <select id="lab-compare"></select>
+        </div>
+        <div class="sq-field">
+          <label for="lab-min-n"><span class="th-text">ตัวอย่างขั้นต่ำ: <span id="lab-min-n-value">1</span></span><span class="en-text">Minimum n: <span id="lab-min-n-value-en">1</span></span></label>
+          <input id="lab-min-n" type="range" min="1" max="10" value="1">
+        </div>
+      </div>
+      <div class="sq-check-grid">
+        <div class="sq-toggle">
+          <input id="lab-ci" type="checkbox" checked>
+          <label for="lab-ci"><span class="th-text">ช่วงความเชื่อมั่น</span><span class="en-text">95% CI bands</span></label>
+        </div>
+        <div class="sq-toggle">
+          <input id="lab-normalize" type="checkbox">
+          <label for="lab-normalize"><span class="th-text">ทำให้ฐานปีแรก = 100</span><span class="en-text">Index first year = 100</span></label>
+        </div>
+        <div class="sq-toggle">
+          <input id="lab-all" type="checkbox">
+          <label for="lab-all"><span class="th-text">แสดงทุกชุดข้อมูล</span><span class="en-text">Show all labels</span></label>
+        </div>
+        <div class="sq-toggle">
+          <input id="lab-bars" type="checkbox">
+          <label for="lab-bars"><span class="th-text">ดูเป็นแท่ง</span><span class="en-text">Bar mode</span></label>
+        </div>
+      </div>
+    </article>
 
-        <!-- Live response -->
-        <div class="mentor-response-box">
-          <div class="mentor-pill-container" id="active-confidence-pills">
-            <span class="confidence-pill conf-needs-evidence">SELECT A DATA SIGNAL FIRST</span>
-          </div>
-          <p class="mentor-text" id="active-mentor-text">
-            Please click on any chart element (like a trend point or a matrix cell) to activate the AI analysis. The selected mentor will decode the patterns based on the grounding rules of bounded infinity.
+    <article class="sq-card">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20v-8"/><path d="M18 20V8"/><path d="M6 20v-4"/><path d="M4 4h16"/></svg>
+          <span class="th-text">หลักฐานและคำถามถัดไป</span><span class="en-text">Evidence and next questions</span>
+        </h3>
+        <p class="sq-card-copy" id="lab-interpretation">Choose a label to inspect its sample sizes, uncertainty, and trend tests.</p>
+      </div>
+      <div class="sq-diagnostic-grid" id="lab-diagnostics"></div>
+      <div class="sq-question-list" id="lab-questions" aria-label="Suggested follow-up questions"></div>
+      <div class="sq-question-output" id="lab-question-output" aria-live="polite">
+        <strong>Selected question</strong>
+        Choose a question above to turn the chart into a specific hypothesis check.
+      </div>
+    </article>
+  </div>
+
+  <div class="sq-chart-grid" id="trend-cards">
+    <article class="sq-card">
+      <div class="sq-card-head">
+        <div>
+          <h3 class="sq-card-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg>
+            <span class="th-text">การมีส่วนร่วมตามหัวข้อควอนตัมรายปี</span><span class="en-text">Topic Trends by Year</span>
+          </h3>
+          <p class="sq-card-copy">
+            <span class="th-text">แนวโน้มการมีส่วนร่วมตามหัวข้อย่อยของควอนตัมในแต่ละปี</span>
+            <span class="en-text">Yearly engagement trends by quantum subject area.</span>
           </p>
         </div>
       </div>
-    </aside>
+      <div class="sq-chart-box"><canvas id="topic-chart"></canvas></div>
+      <div class="sq-validation-list" id="topic-validation"></div>
+    </article>
 
+    <article class="sq-card">
+      <div class="sq-card-head">
+        <div>
+          <h3 class="sq-card-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/></svg>
+            <span class="th-text">การมีส่วนร่วมตามรูปแบบเนื้อหารายปี</span><span class="en-text">Format Trends by Year</span>
+          </h3>
+          <p class="sq-card-copy">
+            <span class="th-text">แนวโน้มตามรูปแบบเนื้อหา เช่น บทความ พอดแคสต์ วิดีโอ งานวิชาการ</span>
+            <span class="en-text">Yearly trends by content form, separating articles, podcasts, videos, papers, and more.</span>
+          </p>
+        </div>
+      </div>
+      <div class="sq-chart-box"><canvas id="production-chart"></canvas></div>
+      <div class="sq-validation-list" id="production-validation"></div>
+    </article>
   </div>
 
-  <!-- NODE-BASED CO-IDEATION CANVAS -->
-  <div class="co-ideation-canvas-container" id="co-ideation-workspace">
-    <!-- SVG layer for connector lines -->
-    <svg class="co-canvas-svg" id="canvas-connections-svg"></svg>
-    
-    <!-- HTML nodes layer -->
-    <div class="canvas-nodes-layer" id="canvas-nodes-container">
-      <!-- Generated nodes will float here -->
+  <article class="sq-card" id="evidence-card">
+    <div class="sq-card-head">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M4 10h16"/><path d="M4 15h16"/><path d="M4 20h16"/><path d="M9 5v15"/><path d="M15 5v15"/></svg>
+          <span class="th-text">ตารางหลักฐานรายปี</span><span class="en-text">Year-level evidence table</span>
+        </h3>
+        <p class="sq-card-copy">
+          <span class="th-text">แสดงค่าเฉลี่ยเรขาคณิต ช่วงความเชื่อมั่น และจำนวนตัวอย่างของชุดข้อมูลที่เลือก</span>
+          <span class="en-text">Shows geometric mean, confidence interval, and sample count for the selected label and comparison.</span>
+        </p>
+      </div>
+      <a class="sq-button" id="lab-open-sources" href="/database?scope=relevant"><span class="th-text">เปิดข้อมูลดิบ</span><span class="en-text">Open raw data</span></a>
     </div>
+    <div class="sq-matrix-wrap" id="lab-evidence"></div>
+  </article>
 
-    <!-- Canvas controls -->
-    <div class="canvas-toolbar">
-      <button class="canvas-btn btn-accent" id="canvas-add-node-btn">+ Add Thinking Node</button>
-      <button class="canvas-btn" id="canvas-clear-btn">Clear Canvas</button>
-      <button class="canvas-btn" id="canvas-export-btn">Export Evidence Trail</button>
-      <button class="canvas-btn" id="canvas-close-btn">Return to Explorer</button>
-    </div>
+  <div class="sq-wide-grid" id="group-cards">
+    <article class="sq-card">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/><path d="m9.4 9.2 1.4 4.9"/><path d="m14.6 9.2-1.4 4.9"/></svg>
+          <span class="th-text">กลุ่มหัวข้อที่เชื่อมโยงกัน</span><span class="en-text">Topic Groups</span>
+        </h3>
+        <p class="sq-card-copy">
+          <span class="th-text">กลุ่มเหล่านี้มาจากโครงสร้างกราฟเดียวกับ Concept Network คลิก tag เพื่อสำรวจในหน้า Network</span>
+          <span class="en-text">These groups come from the same graph as the network view. Click any tag to inspect it interactively.</span>
+        </p>
+      </div>
+      <div class="community-strip" id="topic-communities"></div>
+    </article>
 
-    <!-- Canvas Legend -->
-    <div class="canvas-legend">
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-blue)"></div><span>Data Signal</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-green)"></div><span>AI Lens Answer</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-amber)"></div><span>Question / Path</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-violet)"></div><span>Hypothesis</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-orange)"></div><span>Project / Art Idea</span></div>
-      <div class="legend-item"><div class="legend-color" style="background:var(--sq-red)"></div><span>Skeptic Counter</span></div>
+    <article class="sq-card">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="6" rx="1"/><rect x="14" y="5" width="6" height="6" rx="1"/><rect x="4" y="15" width="6" height="4" rx="1"/><rect x="14" y="15" width="6" height="4" rx="1"/></svg>
+          <span class="th-text">กลุ่มรูปแบบเนื้อหาที่เชื่อมโยงกัน</span><span class="en-text">Content Format Groups</span>
+        </h3>
+        <p class="sq-card-copy">
+          <span class="th-text">โครงสร้างกลุ่มจากกราฟรูปแบบเนื้อหา สำรวจรูปแบบการปรากฏร่วมกันได้ใน Concept Network</span>
+          <span class="en-text">These format groups show which content types tend to appear together in the network view.</span>
+        </p>
+      </div>
+      <div class="community-strip" id="production-communities"></div>
+    </article>
+  </div>
+
+  <div class="sq-section-head">
+    <div>
+      <div class="sq-section-label"><span class="th-text">ความครอบคลุมและเมทริกซ์</span><span class="en-text">Coverage and matrix</span></div>
+      <h2 class="sq-section-title"><span class="th-text">ขอบเขตคลังข้อมูลและการมีส่วนร่วมแบบไขว้</span><span class="en-text">Corpus breadth and cross-tab engagement</span></h2>
     </div>
   </div>
 
+  <div class="sq-wide-grid" id="coverage-grid">
+    <article class="sq-card" id="domain-coverage-card" style="display:none">
+      <div class="sq-card-head">
+        <div>
+          <h3 class="sq-card-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V8"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg>
+            <span class="th-text">แหล่งข้อมูลตามโดเมน</span><span class="en-text">Coverage by Domain</span>
+          </h3>
+          <p class="sq-card-copy"><span class="th-text">จำนวนแหล่งข้อมูลแบ่งตามหมวดโดเมน</span><span class="en-text">Source counts by corpus domain category.</span></p>
+        </div>
+        <a class="sq-button" href="/database?scope=relevant"><span class="th-text">ดูแหล่งข้อมูล</span><span class="en-text">Browse sources</span></a>
+      </div>
+      <div class="sq-chart-box"><canvas id="domain-chart"></canvas></div>
+    </article>
+
+    <article class="sq-card" id="platform-coverage-card" style="display:none">
+      <div class="sq-card-head">
+        <div>
+          <h3 class="sq-card-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><rect x="6" y="8" width="3" height="8" rx="1"/><rect x="11" y="5" width="3" height="11" rx="1"/><rect x="16" y="11" width="3" height="5" rx="1"/></svg>
+            <span class="th-text">แหล่งข้อมูลตามแพลตฟอร์มและปี</span><span class="en-text">Coverage by Platform &amp; Year</span>
+          </h3>
+          <p class="sq-card-copy"><span class="th-text">จำนวนแหล่งข้อมูลแบ่งตามแพลตฟอร์มและช่วงปี</span><span class="en-text">Stacked source counts across platforms and years.</span></p>
+        </div>
+        <a class="sq-button" href="/database?scope=relevant"><span class="th-text">ดูแหล่งข้อมูล</span><span class="en-text">Browse sources</span></a>
+      </div>
+      <div class="sq-chart-box"><canvas id="coverage-chart"></canvas></div>
+    </article>
+
+    <article class="sq-card" id="engagement-matrix-card" style="display:none">
+      <div>
+        <h3 class="sq-card-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 10h16"/><path d="M4 15h16"/><path d="M10 4v16"/><path d="M15 4v16"/></svg>
+          <span class="th-text">เมทริกซ์การมีส่วนร่วม: รูปแบบ x เจตนา</span><span class="en-text">Engagement Matrix: Format x Intent</span>
+        </h3>
+        <p class="sq-card-copy">
+          <span class="th-text">ค่าเฉลี่ยเรขาคณิตแบบ Bootstrap ของ view_count สำหรับแต่ละคู่รูปแบบเนื้อหาและเจตนาผู้ใช้</span>
+          <span class="en-text">Bootstrap geometric mean of view_count for each content format x user intent cell. Darker cells indicate higher engagement.</span>
+        </p>
+      </div>
+      <div class="sq-matrix-wrap" id="engagement-matrix-body"></div>
+    </article>
+  </div>
 </section>
 
 <script>
@@ -1272,20 +1215,8 @@
     minN: 1,
     showCi: true,
     normalize: false,
-    showAll: true,
+    showAll: false,
     barMode: false
-  };
-
-  // State for active Signal & Canvas
-  const machineState = {
-    activeSignal: null, // format: { type, title, details, valueText, sampleSize, ciText, warningText }
-    activeBranchTab: "understand",
-    askDataBackActive: false,
-    canvasNodes: [],
-    canvasLinks: [],
-    nodeIdCounter: 1,
-    selectedNodeId: null,
-    matrixPayload: null
   };
 
   const elements = {
@@ -1321,46 +1252,38 @@
     labOpenSources: document.getElementById("lab-open-sources")
   };
 
-  function escapeHtml(unsafe) {
-    if (unsafe == null) return "";
-    return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-  }
-
   function copyForLang(th, en) {
     return document.documentElement.dataset.lang === "th" ? th : en;
   }
 
   function setStatus(text) {
-    if (elements.status) {
-      elements.status.innerHTML = '<span class="sq-status-dot"></span><span>' + escapeHtml(text) + '</span>';
-    }
+    if (!elements.status) return;
+    elements.status.innerHTML = '<span class="sq-status-dot"></span><span>' + escapeHtml(text) + '</span>';
   }
 
   function showEmpty(message) {
-    if (elements.empty) {
-      elements.empty.querySelector(".state-copy").textContent = message;
-      elements.empty.classList.add("is-visible");
-    }
-    if (elements.error) elements.error.classList.remove("is-visible");
-    if (elements.trendCards) elements.trendCards.classList.add("sq-hidden");
-    if (elements.groupCards) elements.groupCards.classList.add("sq-hidden");
+    elements.empty.querySelector(".state-copy").textContent = message;
+    elements.empty.classList.add("is-visible");
+    elements.error.classList.remove("is-visible");
+    elements.trendCards.classList.add("sq-hidden");
+    elements.groupCards.classList.add("sq-hidden");
     setStatus(copyForLang("ไม่มีข้อมูล", "No analytics data"));
   }
 
   function showError(message) {
-    if (elements.errorMessage) elements.errorMessage.textContent = message;
-    if (elements.error) elements.error.classList.add("is-visible");
-    if (elements.empty) elements.empty.classList.remove("is-visible");
-    if (elements.trendCards) elements.trendCards.classList.add("sq-hidden");
-    if (elements.groupCards) elements.groupCards.classList.add("sq-hidden");
+    elements.errorMessage.textContent = message;
+    elements.error.classList.add("is-visible");
+    elements.empty.classList.remove("is-visible");
+    elements.trendCards.classList.add("sq-hidden");
+    elements.groupCards.classList.add("sq-hidden");
     setStatus(copyForLang("โหลดข้อมูลไม่สำเร็จ", "Request failed"));
   }
 
   function hideStates() {
-    if (elements.empty) elements.empty.classList.remove("is-visible");
-    if (elements.error) elements.error.classList.remove("is-visible");
-    if (elements.trendCards) elements.trendCards.classList.remove("sq-hidden");
-    if (elements.groupCards) elements.groupCards.classList.remove("sq-hidden");
+    elements.empty.classList.remove("is-visible");
+    elements.error.classList.remove("is-visible");
+    elements.trendCards.classList.remove("sq-hidden");
+    elements.groupCards.classList.remove("sq-hidden");
   }
 
   function chartOptions() {
@@ -1438,7 +1361,6 @@
     return Number.isFinite(value) ? value : null;
   }
 
-  // Set showAll default in new mode so we see all labels clearly
   function labSeries(axisPayload) {
     if (labState.showAll) return axisPayload.series || [];
     const selected = [labState.focus, labState.compare]
@@ -1494,24 +1416,6 @@
       data: { labels: axisPayload.years, datasets },
       options: {
         ...chartOptions(),
-        onClick: (event, activeElements) => {
-          if (activeElements && activeElements.length > 0) {
-            const index = activeElements[0].index;
-            const datasetIndex = activeElements[0].datasetIndex;
-            const year = axisPayload.years[index];
-            const dataset = datasets[datasetIndex];
-            if (dataset) {
-              let label = dataset.label;
-              if (label.endsWith(" CI high")) {
-                label = label.substring(0, label.length - 8);
-              } else if (label.endsWith(" CI low")) {
-                label = label.substring(0, label.length - 7);
-              }
-              const val = dataset.data[index];
-              handleSignalClick(label, year, val, canvasId);
-            }
-          }
-        },
         scales: {
           ...chartOptions().scales,
           y: {
@@ -1534,7 +1438,6 @@
   }
 
   function renderValidation(host, axisPayload, title) {
-    if (!host) return;
     const overall = axisPayload.tests.overall_kruskal_wallis || {};
     const composition = axisPayload.tests.year_x_label_chi2 || {};
     const trend = axisPayload.tests.strongest_trend || null;
@@ -1563,8 +1466,11 @@
     `;
   }
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   function renderCommunities(host, graphPayload, title) {
-    if (!host) return;
     const items = Array.isArray(graphPayload.community_summaries) ? graphPayload.community_summaries : [];
     if (!items.length) {
       host.innerHTML = `
@@ -1610,18 +1516,18 @@
     if (labState.focus && !labels.some((item) => item.key === labState.focus)) labState.focus = labels[0] ? labels[0].key : "";
     if (labState.compare && !labels.some((item) => item.key === labState.compare)) labState.compare = "";
 
-    if (elements.labLabel) elements.labLabel.innerHTML = options;
-    if (elements.labCompare) elements.labCompare.innerHTML = compareOptions;
-    if (elements.labAxis) elements.labAxis.value = labState.axis;
-    if (elements.labLabel) elements.labLabel.value = labState.focus;
-    if (elements.labCompare) elements.labCompare.value = labState.compare;
-    if (elements.labMinN) elements.labMinN.value = String(labState.minN);
-    if (elements.labMinNValue) elements.labMinNValue.textContent = String(labState.minN);
-    if (elements.labMinNValueEn) elements.labMinNValueEn.textContent = String(labState.minN);
-    if (elements.labCi) elements.labCi.checked = labState.showCi;
-    if (elements.labNormalize) elements.labNormalize.checked = labState.normalize;
-    if (elements.labAll) elements.labAll.checked = labState.showAll;
-    if (elements.labBars) elements.labBars.checked = labState.barMode;
+    elements.labLabel.innerHTML = options;
+    elements.labCompare.innerHTML = compareOptions;
+    elements.labAxis.value = labState.axis;
+    elements.labLabel.value = labState.focus;
+    elements.labCompare.value = labState.compare;
+    elements.labMinN.value = String(labState.minN);
+    elements.labMinNValue.textContent = String(labState.minN);
+    elements.labMinNValueEn.textContent = String(labState.minN);
+    elements.labCi.checked = labState.showCi;
+    elements.labNormalize.checked = labState.normalize;
+    elements.labAll.checked = labState.showAll;
+    elements.labBars.checked = labState.barMode;
   }
 
   function renderLabDiagnostics() {
@@ -1635,46 +1541,40 @@
     const latestYear = [...(axisPayload.years || [])].reverse().find((year) => metricValue(focus, year, "geo_mean") !== null);
     const latestPoint = latestYear ? seriesPoint(focus, latestYear) : null;
 
-    if (elements.labDiagnostics) {
-      elements.labDiagnostics.innerHTML = [
-        ["Observed years", visiblePoints],
-        ["Total n", totalN],
-        ["Latest mean", latestPoint ? fmtNumber(metricValue(focus, latestYear, "geo_mean"), labState.normalize ? 1 : 0) : "n/a"],
-        ["MK tau", trend.mannkendall_tau != null ? fmtNumber(trend.mannkendall_tau, 3) : "n/a"]
-      ].map(([label, value]) => `<div class="sq-diagnostic"><span>${label}</span><strong>${value}</strong></div>`).join("");
-    }
+    elements.labDiagnostics.innerHTML = [
+      ["Observed years", visiblePoints],
+      ["Total n", totalN],
+      ["Latest mean", latestPoint ? fmtNumber(metricValue(focus, latestYear, "geo_mean"), labState.normalize ? 1 : 0) : "n/a"],
+      ["MK tau", trend.mannkendall_tau != null ? fmtNumber(trend.mannkendall_tau, 3) : "n/a"]
+    ].map(([label, value]) => `<div class="sq-diagnostic"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
     const kw = tests.overall_kruskal_wallis || {};
     const chi = tests.year_x_label_chi2 || {};
-    if (elements.labInterpretation) {
-      elements.labInterpretation.textContent = focus
-        ? `${focus.label}: n=${totalN}, visible years=${visiblePoints}, Kruskal-Wallis p=${kw.p ?? "n/a"}, chi-square p=${chi.p ?? "n/a"}. Interpret only points that pass the minimum-n filter and compare the confidence interval overlap before treating a visual gap as meaningful.`
-        : "Choose a label to inspect its sample sizes, uncertainty, and trend tests.";
-    }
+    elements.labInterpretation.textContent = focus
+      ? `${focus.label}: n=${totalN}, visible years=${visiblePoints}, Kruskal-Wallis p=${kw.p ?? "n/a"}, chi-square p=${chi.p ?? "n/a"}. Interpret only points that pass the minimum-n filter and compare the confidence interval overlap before treating a visual gap as meaningful.`
+      : "Choose a label to inspect its sample sizes, uncertainty, and trend tests.";
 
     const focusLabel = focus ? focus.label : "this label";
-    if (elements.labQuestions) {
-      elements.labQuestions.innerHTML = [
-        `Why does ${focusLabel} change in the years with enough observations?`,
-        `Why might the confidence interval widen or narrow for ${focusLabel}?`,
-        `Why does the comparison label differ after normalizing the first observed year?`,
-        `Why would media format or user intent explain this topic trend?`
-      ].map((question) => `<button type="button" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>`).join("");
+    elements.labQuestions.innerHTML = [
+      `Why does ${focusLabel} change in the years with enough observations?`,
+      `Why might the confidence interval widen or narrow for ${focusLabel}?`,
+      `Why does the comparison label differ after normalizing the first observed year?`,
+      `Why would media format or user intent explain this topic trend?`
+    ].map((question) => `<button type="button" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>`).join("");
 
-      elements.labQuestions.querySelectorAll("button").forEach((button) => {
-        button.addEventListener("click", () => {
-          elements.labQuestions.querySelectorAll("button").forEach((item) => item.classList.remove("is-active"));
-          button.classList.add("is-active");
-          const response = button.dataset.question + " Check the year-level evidence table below: start with sample size, then confidence interval width, then direction of change. Treat it as a hypothesis if the signal survives the minimum-n filter.";
-          if (elements.labInterpretation) elements.labInterpretation.textContent = response;
-          if (elements.labQuestionOutput) {
-            elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>' + escapeHtml(response);
-          }
-        });
+    elements.labQuestions.querySelectorAll("button").forEach((button) => {
+      button.addEventListener("click", () => {
+        elements.labQuestions.querySelectorAll("button").forEach((item) => item.classList.remove("is-active"));
+        button.classList.add("is-active");
+        const response = button.dataset.question + " Check the year-level evidence table below: start with sample size, then confidence interval width, then direction of change. Treat it as a hypothesis if the signal survives the minimum-n filter.";
+        elements.labInterpretation.textContent = response;
+        if (elements.labQuestionOutput) {
+          elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>' + escapeHtml(response);
+        }
       });
-    }
+    });
 
-    if (elements.labQuestionOutput && (!elements.labQuestions || !elements.labQuestions.querySelector(".is-active"))) {
+    if (elements.labQuestionOutput && !elements.labQuestions.querySelector(".is-active")) {
       elements.labQuestionOutput.innerHTML = '<strong>Selected question</strong>Choose a question above to turn the chart into a specific hypothesis check.';
     }
   }
@@ -1682,7 +1582,6 @@
   function renderEvidenceTable() {
     const axisPayload = selectedAxis();
     const selected = labSeries(axisPayload);
-    if (!elements.labEvidence) return;
     if (!selected.length) {
       elements.labEvidence.innerHTML = '<div class="validation-item"><span>No labels selected.</span></div>';
       return;
@@ -1736,48 +1635,34 @@
       labState.compare = "";
       renderLab();
     });
-    if (elements.labLabel) {
-      elements.labLabel.addEventListener("change", () => {
-        labState.focus = elements.labLabel.value;
-        renderLab();
-      });
-    }
-    if (elements.labCompare) {
-      elements.labCompare.addEventListener("change", () => {
-        labState.compare = elements.labCompare.value;
-        renderLab();
-      });
-    }
-    if (elements.labMinN) {
-      elements.labMinN.addEventListener("input", () => {
-        labState.minN = Number(elements.labMinN.value || 1);
-        renderLab();
-      });
-    }
-    if (elements.labCi) {
-      elements.labCi.addEventListener("change", () => {
-        labState.showCi = elements.labCi.checked;
-        renderLab();
-      });
-    }
-    if (elements.labNormalize) {
-      elements.labNormalize.addEventListener("change", () => {
-        labState.normalize = elements.labNormalize.checked;
-        renderLab();
-      });
-    }
-    if (elements.labAll) {
-      elements.labAll.addEventListener("change", () => {
-        labState.showAll = elements.labAll.checked;
-        renderLab();
-      });
-    }
-    if (elements.labBars) {
-      elements.labBars.addEventListener("change", () => {
-        labState.barMode = elements.labBars.checked;
-        renderLab();
-      });
-    }
+    elements.labLabel.addEventListener("change", () => {
+      labState.focus = elements.labLabel.value;
+      renderLab();
+    });
+    elements.labCompare.addEventListener("change", () => {
+      labState.compare = elements.labCompare.value;
+      renderLab();
+    });
+    elements.labMinN.addEventListener("input", () => {
+      labState.minN = Number(elements.labMinN.value || 1);
+      renderLab();
+    });
+    elements.labCi.addEventListener("change", () => {
+      labState.showCi = elements.labCi.checked;
+      renderLab();
+    });
+    elements.labNormalize.addEventListener("change", () => {
+      labState.normalize = elements.labNormalize.checked;
+      renderLab();
+    });
+    elements.labAll.addEventListener("change", () => {
+      labState.showAll = elements.labAll.checked;
+      renderLab();
+    });
+    elements.labBars.addEventListener("change", () => {
+      labState.barMode = elements.labBars.checked;
+      renderLab();
+    });
   }
 
   async function parseApiResponse(response, fallbackMessage) {
@@ -1821,12 +1706,12 @@
       hideStates();
 
       const totalSources = years.reduce((sum, year) => sum + Number((counts[year] || {}).total || 0), 0);
-      if (elements.years) elements.years.textContent = String(topicAxis.years.length);
-      if (elements.sources) elements.sources.textContent = String(totalSources);
-      if (elements.topics) elements.topics.textContent = String((topicAxis.labels || []).length);
+      elements.years.textContent = String(topicAxis.years.length);
+      elements.sources.textContent = String(totalSources);
+      elements.topics.textContent = String((topicAxis.labels || []).length);
 
       const sigCount = countSignificant(topicAxis) + countSignificant(productionAxis);
-      if (elements.significance) elements.significance.textContent = String(sigCount);
+      elements.significance.textContent = String(sigCount);
 
       const yearsBadge = document.getElementById("kpi-years-badge");
       if (yearsBadge) yearsBadge.textContent = "n=" + totalSources;
@@ -1836,12 +1721,6 @@
       if (sigBadgeEl) sigBadgeEl.textContent = sigCount > 0 ? "p < 0.05" : "alpha=0.05";
       const sigSub = document.getElementById("kpi-sig-sub");
       if (sigSub) sigSub.innerHTML = '<span>' + copyForLang("หัวข้อและรูปแบบ " + (topicAxis.labels || []).length + " กลุ่ม", (topicAxis.labels || []).length + " label groups tested") + '</span>';
-
-      const lensTopicSelect = document.getElementById("lens-topic");
-      if (lensTopicSelect && Array.isArray(topicAxis.labels)) {
-        lensTopicSelect.innerHTML = `<option value="all">All Topics</option>` + 
-          topicAxis.labels.map(l => `<option value="${escapeHtml(l.key)}">${escapeHtml(l.label)}</option>`).join("");
-      }
 
       labState.taxonomy = taxonomy;
       syncLabControls();
@@ -1941,13 +1820,12 @@
       }
 
       if (matResp.ok && matPayload.ok && Array.isArray(matPayload.data?.cells) && matPayload.data.cells.length) {
-        machineState.matrixPayload = matPayload.data;
         const { cells, formats, intents } = matPayload.data;
         const card = document.getElementById("engagement-matrix-card");
         const body = document.getElementById("engagement-matrix-body");
         if (card && body) {
           card.style.display = "";
-          const maxVal = Math.max(1, ...cells.map((c) => c.geo_mean || c.geo_mean_views || 0));
+          const maxVal = Math.max(1, ...cells.map((c) => c.geo_mean || 0));
           let html = '<table class="sq-matrix-table"><thead><tr><th></th>';
           intents.forEach((intent) => {
             html += `<th>${escapeHtml(String(intent).replaceAll("_", " "))}</th>`;
@@ -1957,10 +1835,10 @@
             html += `<tr><td>${escapeHtml(fmt)}</td>`;
             intents.forEach((intent) => {
               const cell = cells.find((c) => c.media_format === fmt && c.user_intent === intent);
-              const val = cell ? (cell.geo_mean || cell.geo_mean_views || 0) : 0;
+              const val = cell ? (cell.geo_mean || 0) : 0;
               const alpha = val > 0 ? Math.max(0.1, val / maxVal) : 0;
               const display = val > 1000 ? (val / 1000).toFixed(1) + "k" : val > 0 ? Math.round(val).toLocaleString() : "-";
-              html += `<td class="matrix-cell" data-format="${escapeHtml(fmt)}" data-intent="${escapeHtml(intent)}" data-value="${val}" style="background:rgba(56,189,248,${(alpha * 0.58).toFixed(2)});color:${val > 0 ? "var(--text)" : "var(--muted)"}; cursor:pointer">${display}</td>`;
+              html += `<td style="background:rgba(56,189,248,${(alpha * 0.58).toFixed(2)});color:${val > 0 ? "var(--text)" : "var(--muted)"}">${display}</td>`;
             });
             html += '</tr>';
           });
@@ -1969,7 +1847,7 @@
         }
       }
     } catch (_) {
-      /* non-critical */
+      /* non-critical - main analytics still visible */
     }
   }
 
@@ -1984,771 +1862,8 @@
     });
   }
 
-  // --- INFINITE HYPOTHESIS MACHINE LOGIC ---
-
-  function injectCustomStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-      .matrix-cell { cursor: pointer; transition: all 0.2s ease; }
-      .matrix-cell:hover { outline: 1.5px solid var(--sq-blue) !important; background: rgba(56, 189, 248, 0.35) !important; }
-      .canvas-node.is-selected { border-color: var(--sq-amber) !important; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4); }
-      .canvas-node { transition: transform 0.1s ease; }
-      .co-canvas-svg path { transition: d 0.1s ease; }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function handleSignalClick(label, year, val, canvasId) {
-    const axis = canvasId === "topic-chart" ? "topics" : "productions";
-    if (!labState.taxonomy) return;
-    const axisPayload = labState.taxonomy[axis];
-    if (!axisPayload) return;
-    const series = axisPayload.series.find((s) => s.label === label || s.key === label);
-    if (!series) return;
-    const point = series.years[String(year)];
-    if (!point) return;
-
-    const count = point.count || 0;
-    const geoMean = point.geo_mean || 0;
-    const ciLow = point.ci_low != null ? point.ci_low : 0;
-    const ciHigh = point.ci_high != null ? point.ci_high : 0;
-    
-    let warningText = "";
-    if (count < 5) {
-      warningText = `Small sample size (n = ${count}) warning. Interpret this trend with caution.`;
-    }
-    
-    const title = `${series.label} (${year})`;
-    const type = axis === "topics" ? "topic signal" : "format signal";
-    const valueText = fmtNumber(geoMean, 0) + " views";
-    const ciText = `${fmtNumber(ciLow, 0)} - ${fmtNumber(ciHigh, 0)}`;
-
-    renderDataObjectCard(title, { axis, key: series.key, label: series.label, year, geoMean, count, ciLow, ciHigh }, type, valueText, count, ciText, warningText);
-  }
-
-  function handleMatrixClick(fmt, intent, val) {
-    if (!machineState.matrixPayload) return;
-    const cells = machineState.matrixPayload.cells || [];
-    const cell = cells.find((c) => c.media_format === fmt && c.user_intent === intent);
-    
-    const count = cell ? cell.count : 0;
-    const geoMean = cell ? (cell.geo_mean || cell.geo_mean_views || 0) : val;
-    const ciLow = cell && cell.ci_low != null ? cell.ci_low : 0;
-    const ciHigh = cell && cell.ci_high != null ? cell.ci_high : 0;
-
-    let warningText = "";
-    if (count < 3) {
-      warningText = `Small sample size (n = ${count}) warning. Highly speculative.`;
-    }
-
-    const title = `${fmt.replaceAll("_", " ")} x ${intent.replaceAll("_", " ")}`;
-    const type = "matrix intersection";
-    const valueText = fmtNumber(geoMean, 0) + " views";
-    const ciText = `${fmtNumber(ciLow, 0)} - ${fmtNumber(ciHigh, 0)}`;
-
-    renderDataObjectCard(title, { fmt, intent, geoMean, count, ciLow, ciHigh }, type, valueText, count, ciText, warningText);
-  }
-
-  function renderDataObjectCard(title, details, type, valueText, sampleSize, ciText, warningText) {
-    const anchor = document.getElementById("dynamic-data-card-anchor");
-    if (!anchor) return;
-    
-    machineState.activeSignal = {
-      type,
-      title,
-      details,
-      valueText,
-      sampleSize,
-      ciText,
-      warningText
-    };
-
-    const garden = document.getElementById("possibility-garden");
-    if (garden) garden.style.display = "block";
-
-    triggerAIMentorResponse();
-    renderGardenBranch();
-
-    anchor.innerHTML = `
-      <div class="data-object-card animate-fade-in" style="margin-bottom:1.5rem">
-        <div class="doc-head">
-          <div>
-            <div class="doc-eyebrow">${escapeHtml(type.toUpperCase())}</div>
-            <div class="doc-title">${escapeHtml(title)}</div>
-          </div>
-        </div>
-        
-        <div class="doc-stats">
-          <div class="doc-stat-pill">
-            <span class="doc-stat-label">Geometric Mean</span>
-            <span class="doc-stat-value">${escapeHtml(valueText)}</span>
-          </div>
-          <div class="doc-stat-pill">
-            <span class="doc-stat-label">Sample Size (n)</span>
-            <span class="doc-stat-value">${escapeHtml(sampleSize)}</span>
-          </div>
-          <div class="doc-stat-pill">
-            <span class="doc-stat-label">95% Confidence Interval</span>
-            <span class="doc-stat-value">${escapeHtml(ciText)}</span>
-          </div>
-        </div>
-
-        ${warningText ? `
-        <div class="doc-warning">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>${escapeHtml(warningText)}</span>
-        </div>` : `
-        <div class="doc-body" style="color:var(--sq-green); background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.15); border-radius:6px; padding:0.5rem 0.75rem; font-size:0.78rem; display:flex; align-items:center; gap:0.4rem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>Robust signal with statistically stable sample size.</span>
-        </div>`}
-
-        <div class="doc-actions">
-          <button type="button" class="doc-act-btn primary-action" onclick="sendSignalToCanvas()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-            Send to Board
-          </button>
-          <button type="button" class="doc-act-btn" onclick="startAskDataBack()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Ask the Data Back
-          </button>
-          <button type="button" class="doc-act-btn" onclick="document.getElementById('possibility-garden').scrollIntoView({behavior: 'smooth'})">
-            Explore Branches
-          </button>
-        </div>
-      </div>
-    `;
-    anchor.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function triggerAIMentorResponse() {
-    const selector = document.getElementById("mentor-selector");
-    if (!selector) return;
-    const activeMentorKey = selector.value;
-    const signal = machineState.activeSignal;
-    
-    if (!signal) {
-      document.getElementById("active-confidence-pills").innerHTML = `
-        <span class="confidence-pill conf-needs-evidence">SELECT A DATA SIGNAL FIRST</span>
-      `;
-      document.getElementById("active-mentor-text").textContent = `
-        Please click on any chart element (like a trend point or a matrix cell) to activate the AI analysis. The selected mentor will decode the patterns based on the grounding rules of bounded infinity.
-      `;
-      return;
-    }
-
-    const title = signal.title;
-    const n = signal.sampleSize;
-
-    const mentors = {
-      researcher: {
-        name: "Dr. Lalita",
-        role: "Academic Researcher",
-        icon: "👩‍🔬",
-        getPills: (n) => n >= 10 ? ["conf-grounded"] : ["conf-inferred"],
-        getText: (title, n) => {
-          return `Based on academic literature, the focus on "${title}" represents a key milestone in Thai quantum research. With a sample size of ${n}, this indicates a rising scholarly interest. We should map this against international peer-reviewed datasets to see if the Thai research agenda aligns with global milestones.`;
-        }
-      },
-      statistician: {
-        name: "Dr. Anan",
-        role: "Data Scientist",
-        icon: "📊",
-        getPills: (n) => n >= 10 ? ["conf-grounded"] : (n >= 5 ? ["conf-inferred"] : ["conf-needs-evidence"]),
-        getText: (title, n) => {
-          if (n < 5) {
-            return `Warning: the sample size for "${title}" is only ${n}. The bootstrap confidence intervals are wide, making any claims about a significant positive trend mathematically weak. I recommend running additional Kruskal-Wallis tests or collecting more sources to stabilize this signal.`;
-          }
-          return `The signal for "${title}" is statistically stable with n = ${n}. The geometric mean is well-separated from zero, and the 95% confidence interval shows clear differentiation from other categories. This represents a genuine cluster of engagement rather than variation.`;
-        }
-      },
-      policy: {
-        name: "Dr. Somchai",
-        role: "Strategic Planner",
-        icon: "🏛️",
-        getPills: (n) => n >= 8 ? ["conf-inferred"] : ["conf-speculative"],
-        getText: (title, n) => {
-          return `From a national strategy perspective, "${title}" suggests a policy alignment with MHESI directives. To capitalize on this interest, funding agencies should establish targeted grants, fostering industry-academia consortia to pivot this public interest into economic value.`;
-        }
-      },
-      communicator: {
-        name: "Dr. Kitti",
-        role: "Science Communicator",
-        icon: "📣",
-        getPills: (n) => n >= 5 ? ["conf-grounded"] : ["conf-inferred"],
-        getText: (title, n) => {
-          return `This is a fascinating public interest hub! "${title}" shows that science communication formats have succeeded in capturing attention. We should package these insights into digestible infographics, short video summaries, and community-driven content to further democratize quantum literacy in Thailand.`;
-        }
-      },
-      curator: {
-        name: "Dr. Pim",
-        role: "Exhibition Curator",
-        icon: "🎨",
-        getPills: (n) => ["conf-speculative"],
-        getText: (title, n) => {
-          return `What an inspiring signal! We can design an interactive zone at the National Science Museum themed around "${title}". Visitors could play with interactive simulations or participate in co-creation workshops to explore this concept physically.`;
-        }
-      },
-      skeptic: {
-        name: "Dr. Preecha",
-        role: "Skeptic & Peer Reviewer",
-        icon: "🧐",
-        getPills: (n) => n < 10 ? ["conf-needs-evidence"] : ["conf-inferred"],
-        getText: (title, n) => {
-          return `Let's not get carried away. While "${title}" looks intriguing, the sample size of ${n} could easily be skewed by a single viral video or press release. Before calling this a 'trend', we need to check for confounding variables and verify if the interest is sustained or just temporary hype.`;
-        }
-      }
-    };
-
-    const mentor = mentors[activeMentorKey] || mentors.researcher;
-    
-    document.getElementById("active-mentor-icon").textContent = mentor.icon;
-    document.getElementById("active-mentor-name").textContent = mentor.name;
-    document.getElementById("active-mentor-role").textContent = mentor.role;
-
-    const pillClasses = mentor.getPills(n);
-    const pillsHtml = pillClasses.map(cls => {
-      let text = "SPECULATIVE IDEA";
-      if (cls === "conf-grounded") text = "GROUNDED IN DATA";
-      if (cls === "conf-inferred") text = "INFERRED FROM PATTERN";
-      if (cls === "conf-needs-evidence") text = "NEEDS MORE EVIDENCE";
-      return `<span class="confidence-pill ${cls}">${text}</span>`;
-    }).join("");
-    document.getElementById("active-confidence-pills").innerHTML = pillsHtml;
-
-    document.getElementById("active-mentor-text").textContent = mentor.getText(title, n);
-  }
-
-  function renderGardenBranch() {
-    const output = document.getElementById("garden-branches-output");
-    if (!output) return;
-    const signal = machineState.activeSignal;
-    if (!signal) {
-      output.innerHTML = `<div class="validation-item"><span>Please select a data signal to populate the Possibility Garden.</span></div>`;
-      return;
-    }
-
-    const title = signal.title;
-    const tab = machineState.activeBranchTab;
-    
-    const items = {
-      understand: [
-        { type: "question", title: `What underlying factor drove the engagement of "${title}"?` },
-        { type: "hypothesis", title: `The interest in "${title}" is sustained by educational creators.` }
-      ],
-      compare: [
-        { type: "question", title: `How does the engagement of "${title}" compare to other topics in the same year?` },
-        { type: "hypothesis", title: `"${title}" has a higher engagement-to-volume ratio than theoretical quantum papers.` }
-      ],
-      explain: [
-        { type: "hypothesis", title: `The spikes in "${title}" can be explained by public news coverage.` },
-        { type: "idea", title: `Create an explanatory infographic detailing "${title}" for high schools.` }
-      ],
-      create: [
-        { type: "idea", title: `Develop a mobile app demo showcasing "${title}" interactions.` },
-        { type: "idea", title: `Design an NSM science center gallery zone dedicated to "${title}".` }
-      ],
-      challenge: [
-        { type: "counter", title: `The popularity of "${title}" is heavily skewed by a few viral channels.` },
-        { type: "counter", title: `Is there any evidence that high views of "${title}" translate to deep comprehension?` }
-      ],
-      forecast: [
-        { type: "hypothesis", title: `Without major policy changes, interest in "${title}" will plateau by next year.` },
-        { type: "question", title: `What new content format will dominate the discussion of "${title}" in the next 24 months?` }
-      ]
-    }[tab] || [];
-
-    let html = "";
-    items.forEach((item) => {
-      html += `
-        <div class="garden-branch animate-fade-in" onclick="addBranchToCanvas('${item.type}', '${escapeHtml(item.title)}')">
-          <div class="garden-branch-left">
-            <span class="garden-branch-type">${item.type.toUpperCase()}</span>
-            <span class="garden-branch-title">${escapeHtml(item.title)}</span>
-          </div>
-          <button type="button" class="doc-act-btn primary-action" style="padding:0.25rem 0.5rem; font-size:0.7rem">+ Send to Board</button>
-        </div>
-      `;
-    });
-    output.innerHTML = html;
-  }
-
-  function addBranchToCanvas(type, text) {
-    let nodeType = "idea";
-    if (type === "question") nodeType = "question";
-    if (type === "hypothesis") nodeType = "hypothesis";
-    if (type === "counter") nodeType = "counter";
-
-    addNodeToCanvas(nodeType, text, 200 + Math.random() * 100, 200 + Math.random() * 100);
-    toggleWorkspaceMode("canvas");
-  }
-
-  function startAskDataBack() {
-    const chk = document.getElementById("adb-mode-checkbox");
-    if (chk) chk.checked = true;
-    machineState.askDataBackActive = true;
-    renderAskDataBack();
-  }
-
-  function renderAskDataBack() {
-    const container = document.getElementById("active-mentor-text");
-    const pills = document.getElementById("active-confidence-pills");
-    const signal = machineState.activeSignal;
-    
-    if (!signal) {
-      if (pills) pills.innerHTML = `<span class="confidence-pill conf-needs-evidence">SELECT A SIGNAL FIRST</span>`;
-      if (container) container.innerHTML = `Please select a data signal first to initiate the Ask the Data Back interview.`;
-      return;
-    }
-
-    if (pills) {
-      pills.innerHTML = `<span class="confidence-pill" style="background:rgba(245,158,11,0.1); color:var(--sq-amber); border-color:var(--sq-amber)">INTERACTIVE INTERVIEW ACTIVE</span>`;
-    }
-
-    if (container) {
-      container.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:0.8rem">
-          <p style="font-weight:600; color:var(--text); margin:0">Co-ideate on: "${escapeHtml(signal.title)}"</p>
-          <span style="font-size:0.75rem; color:var(--muted)">Select a creative path:</span>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem">
-            <button type="button" class="mode-btn" onclick="selectAdbPath('media')">Media Path</button>
-            <button type="button" class="mode-btn" onclick="selectAdbPath('education')">Education</button>
-            <button type="button" class="mode-btn" onclick="selectAdbPath('policy')">Policy Path</button>
-            <button type="button" class="mode-btn" onclick="selectAdbPath('culture')">Cultural</button>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  function selectAdbPath(path) {
-    const signal = machineState.activeSignal;
-    if (!signal) return;
-    
-    let question = "";
-    if (path === "media") question = `How would you package "${signal.title}" into a viral social media format?`;
-    if (path === "education") question = `What student project or school science task would you design around "${signal.title}"?`;
-    if (path === "policy") question = `If you were a funding agency, how would you allocate resources to support "${signal.title}"?`;
-    if (path === "culture") question = `How would you design a physical museum exhibition showcasing "${signal.title}"?`;
-
-    const container = document.getElementById("active-mentor-text");
-    if (container) {
-      container.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:0.6rem">
-          <p style="font-weight:600; color:var(--text); margin:0">${escapeHtml(question)}</p>
-          <textarea id="adb-user-response" rows="4" style="background:#0b1220; border:1px solid var(--sq-line); color:white; border-radius:6px; padding:0.4rem; font-size:0.78rem" placeholder="Type your ideas here..."></textarea>
-          <div style="display:flex; gap:0.4rem">
-            <button type="button" class="doc-act-btn primary-action" onclick="saveAdbResponseToCanvas('${escapeHtml(path)}')">Save Node</button>
-            <button type="button" class="doc-act-btn" onclick="renderAskDataBack()">Back</button>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  function saveAdbResponseToCanvas(path) {
-    const textarea = document.getElementById("adb-user-response");
-    const val = textarea ? textarea.value.trim() : "";
-    if (!val) {
-      alert("Please enter a response first.");
-      return;
-    }
-    const signal = machineState.activeSignal;
-    const nodeText = `Idea (${path.toUpperCase()} path) for "${signal.title}": ${val}`;
-    addNodeToCanvas("idea", nodeText, 250, 250);
-    
-    const chk = document.getElementById("adb-mode-checkbox");
-    if (chk) chk.checked = false;
-    machineState.askDataBackActive = false;
-    triggerAIMentorResponse();
-    
-    toggleWorkspaceMode("canvas");
-  }
-
-  function sendSignalToCanvas() {
-    const signal = machineState.activeSignal;
-    if (!signal) return;
-    
-    const text = `${signal.title} - ${signal.valueText} (n=${signal.sampleSize})`;
-    const type = signal.type.includes("topic") ? "signal" : "trail";
-    
-    addNodeToCanvas(type, text, 100 + Math.random() * 100, 100 + Math.random() * 100);
-    toggleWorkspaceMode("canvas");
-  }
-
-  function toggleWorkspaceMode(mode) {
-    const explorerBtn = document.getElementById("mode-explorer-btn");
-    const canvasBtn = document.getElementById("mode-canvas-btn");
-    const workspaceGrid = document.getElementById("main-workspace-grid");
-    const canvasWorkspace = document.getElementById("co-ideation-workspace");
-    
-    if (mode === "canvas") {
-      if (explorerBtn) explorerBtn.classList.remove("is-active");
-      if (canvasBtn) canvasBtn.classList.add("is-active");
-      if (workspaceGrid) workspaceGrid.style.display = "none";
-      if (canvasWorkspace) canvasWorkspace.style.display = "block";
-      drawCanvasLinks();
-    } else {
-      if (explorerBtn) explorerBtn.classList.add("is-active");
-      if (canvasBtn) canvasBtn.classList.remove("is-active");
-      if (workspaceGrid) workspaceGrid.style.display = "grid";
-      if (canvasWorkspace) canvasWorkspace.style.display = "none";
-    }
-  }
-
-  // --- CANVAS WORKSPACE CORE LOGIC ---
-
-  function initSvgDefs() {
-    const svg = document.getElementById("canvas-connections-svg");
-    if (!svg) return;
-    
-    let defs = svg.querySelector("defs");
-    if (!defs) {
-      defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-      svg.appendChild(defs);
-    }
-    
-    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    marker.setAttribute("id", "arrow");
-    marker.setAttribute("viewBox", "0 0 10 10");
-    marker.setAttribute("refX", "6");
-    marker.setAttribute("refY", "5");
-    marker.setAttribute("markerWidth", "6");
-    marker.setAttribute("markerHeight", "6");
-    marker.setAttribute("orient", "auto-start-reverse");
-    
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-    path.setAttribute("fill", "rgba(56, 189, 248, 0.45)");
-    
-    marker.appendChild(path);
-    defs.appendChild(marker);
-  }
-
-  function addNodeToCanvas(type, text, x = 150, y = 150) {
-    const id = machineState.nodeIdCounter++;
-    const node = { id, type, text, x, y };
-    machineState.canvasNodes.push(node);
-    
-    renderNodes();
-    drawCanvasLinks();
-    return node;
-  }
-
-  function deleteNode(id) {
-    machineState.canvasNodes = machineState.canvasNodes.filter(n => n.id !== id);
-    machineState.canvasLinks = machineState.canvasLinks.filter(l => l.from !== id && l.to !== id);
-    if (machineState.selectedNodeId === id) machineState.selectedNodeId = null;
-    renderNodes();
-    drawCanvasLinks();
-  }
-
-  function createLink(fromId, toId) {
-    const exists = machineState.canvasLinks.some(l => l.from === fromId && l.to === toId);
-    if (!exists && fromId !== toId) {
-      machineState.canvasLinks.push({ from: fromId, to: toId });
-      drawCanvasLinks();
-    }
-  }
-
-  function renderNodes() {
-    const container = document.getElementById("canvas-nodes-container");
-    if (!container) return;
-    container.innerHTML = "";
-    
-    machineState.canvasNodes.forEach(node => {
-      const nodeEl = document.createElement("div");
-      nodeEl.className = `canvas-node node-${node.type}`;
-      nodeEl.id = `canvas-node-${node.id}`;
-      nodeEl.style.left = `${node.x}px`;
-      nodeEl.style.top = `${node.y}px`;
-      
-      if (machineState.selectedNodeId === node.id) {
-        nodeEl.classList.add("is-selected");
-      }
-
-      nodeEl.innerHTML = `
-        <button type="button" class="node-close-btn" onclick="event.stopPropagation(); deleteNode(${node.id})">×</button>
-        <span class="canvas-node-title">${escapeHtml(node.type)}</span>
-        <span class="canvas-node-text" id="node-text-${node.id}">${escapeHtml(node.text)}</span>
-      `;
-
-      nodeEl.addEventListener("dblclick", (e) => {
-        e.stopPropagation();
-        const newText = prompt("Edit node text:", node.text);
-        if (newText !== null && newText.trim() !== "") {
-          node.text = newText.trim();
-          const nodeTextSpan = document.getElementById(`node-text-${node.id}`);
-          if (nodeTextSpan) nodeTextSpan.textContent = node.text;
-        }
-      });
-
-      nodeEl.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (machineState.selectedNodeId && machineState.selectedNodeId !== node.id) {
-          createLink(machineState.selectedNodeId, node.id);
-          machineState.selectedNodeId = null;
-        } else {
-          machineState.selectedNodeId = node.id;
-        }
-        renderNodes();
-      });
-
-      let isDragging = false;
-      let startX = 0;
-      let startY = 0;
-
-      nodeEl.addEventListener("mousedown", (e) => {
-        if (e.target.classList.contains("node-close-btn")) return;
-        isDragging = true;
-        
-        const rect = nodeEl.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
-        
-        nodeEl.style.cursor = "grabbing";
-        e.preventDefault();
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        
-        const containerRect = container.getBoundingClientRect();
-        let newX = e.clientX - containerRect.left - startX;
-        let newY = e.clientY - containerRect.top - startY;
-        
-        const parentWidth = container.clientWidth || 1000;
-        const parentHeight = container.clientHeight || 700;
-        
-        node.x = Math.max(10, Math.min(newX, parentWidth - 210));
-        node.y = Math.max(10, Math.min(newY, parentHeight - 120));
-
-        nodeEl.style.left = `${node.x}px`;
-        nodeEl.style.top = `${node.y}px`;
-        drawCanvasLinks();
-      });
-
-      document.addEventListener("mouseup", () => {
-        if (isDragging) {
-          isDragging = false;
-          nodeEl.style.cursor = "grab";
-        }
-      });
-
-      container.appendChild(nodeEl);
-    });
-  }
-
-  function drawCanvasLinks() {
-    const svg = document.getElementById("canvas-connections-svg");
-    if (!svg) return;
-    svg.innerHTML = "";
-    
-    machineState.canvasLinks.forEach(link => {
-      const fromEl = document.getElementById(`canvas-node-${link.from}`);
-      const toEl = document.getElementById(`canvas-node-${link.to}`);
-      if (!fromEl || !toEl) return;
-      
-      const x1 = fromEl.offsetLeft + fromEl.offsetWidth / 2;
-      const y1 = fromEl.offsetTop + fromEl.offsetHeight / 2;
-      const x2 = toEl.offsetLeft + toEl.offsetWidth / 2;
-      const y2 = toEl.offsetTop + toEl.offsetHeight / 2;
-
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const dx = Math.abs(x2 - x1) * 0.5;
-      const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
-      
-      path.setAttribute("d", d);
-      path.setAttribute("stroke", "rgba(56, 189, 248, 0.45)");
-      path.setAttribute("stroke-width", "2");
-      path.setAttribute("fill", "none");
-      path.setAttribute("marker-end", "url(#arrow)");
-      
-      svg.appendChild(path);
-    });
-  }
-
-  function getActiveLensSettings() {
-    const topic = document.getElementById("lens-topic") ? document.getElementById("lens-topic").value : "all";
-    const format = document.getElementById("lens-format") ? document.getElementById("lens-format").value : "all";
-    const intent = document.getElementById("lens-intent") ? document.getElementById("lens-intent").value : "all";
-    const domain = document.getElementById("lens-domain") ? document.getElementById("lens-domain").value : "all";
-    const platform = document.getElementById("lens-platform") ? document.getElementById("lens-platform").value : "all";
-    const years = document.getElementById("lens-years") ? document.getElementById("lens-years").value : "2021-2026";
-
-    return { topic, format, intent, domain, platform, years };
-  }
-
-  function handleLensGenerateQuestion() {
-    const s = getActiveLensSettings();
-    let text = `How does quantum engagement in ${s.topic === 'all' ? 'general topics' : s.topic} change when delivered via ${s.format === 'all' ? 'various formats' : s.format} to support ${s.intent === 'all' ? 'different user intents' : s.intent} between ${s.years}?`;
-    addNodeToCanvas("question", text, 150, 150);
-    toggleWorkspaceMode("canvas");
-  }
-
-  function handleLensCreateKO() {
-    const s = getActiveLensSettings();
-    let text = `Knowledge Object: ${s.domain.toUpperCase()} domain, Format: ${s.format}, Intent: ${s.intent}, Years: ${s.years}. Calculated interest index points to stable public uptake.`;
-    addNodeToCanvas("trail", text, 200, 200);
-    toggleWorkspaceMode("canvas");
-  }
-
-  function handleLensSendCanvas() {
-    const s = getActiveLensSettings();
-    let text = `Data Lens Focus: [Topic: ${s.topic}, Format: ${s.format}, Intent: ${s.intent}, Platform: ${s.platform}]`;
-    addNodeToCanvas("signal", text, 250, 250);
-    toggleWorkspaceMode("canvas");
-  }
-
-  function initLeftLensActions() {
-    const genQ = document.getElementById("lens-generate-question");
-    if (genQ) genQ.addEventListener("click", handleLensGenerateQuestion);
-    
-    const createKo = document.getElementById("lens-create-ko");
-    if (createKo) createKo.addEventListener("click", handleLensCreateKO);
-    
-    const sendCanvas = document.getElementById("lens-send-canvas");
-    if (sendCanvas) sendCanvas.addEventListener("click", handleLensSendCanvas);
-  }
-
-  function initMentorEvents() {
-    const mentorSelector = document.getElementById("mentor-selector");
-    if (mentorSelector) {
-      mentorSelector.addEventListener("change", () => {
-        if (machineState.askDataBackActive) {
-          const chk = document.getElementById("adb-mode-checkbox");
-          if (chk) chk.checked = false;
-          machineState.askDataBackActive = false;
-        }
-        triggerAIMentorResponse();
-      });
-    }
-
-    const adbCheckbox = document.getElementById("adb-mode-checkbox");
-    if (adbCheckbox) {
-      adbCheckbox.addEventListener("change", () => {
-        machineState.askDataBackActive = adbCheckbox.checked;
-        if (machineState.askDataBackActive) {
-          renderAskDataBack();
-        } else {
-          triggerAIMentorResponse();
-        }
-      });
-    }
-  }
-
-  function initGardenEvents() {
-    document.querySelectorAll(".garden-tab").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".garden-tab").forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        machineState.activeBranchTab = btn.dataset.branch;
-        renderGardenBranch();
-      });
-    });
-  }
-
-  function initCanvasControls() {
-    const addBtn = document.getElementById("canvas-add-node-btn");
-    if (addBtn) {
-      addBtn.addEventListener("click", () => {
-        const text = prompt("Enter text for new thinking node:");
-        if (text && text.trim()) {
-          addNodeToCanvas("hypothesis", text.trim(), 150 + Math.random()*100, 150 + Math.random()*100);
-        }
-      });
-    }
-
-    const clearBtn = document.getElementById("canvas-clear-btn");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to clear the canvas?")) {
-          machineState.canvasNodes = [];
-          machineState.canvasLinks = [];
-          machineState.selectedNodeId = null;
-          renderNodes();
-          drawCanvasLinks();
-        }
-      });
-    }
-
-    const exportBtn = document.getElementById("canvas-export-btn");
-    if (exportBtn) {
-      exportBtn.addEventListener("click", () => {
-        if (machineState.canvasNodes.length === 0) {
-          alert("The canvas is currently empty.");
-          return;
-        }
-        let summary = "=== SIAMQUANT ATLAS EVIDENCE TRAIL ===\n\n";
-        summary += "NODES:\n";
-        machineState.canvasNodes.forEach(n => {
-          summary += `[ID: ${n.id}] [${n.type.toUpperCase()}] ${n.text}\n`;
-        });
-        
-        summary += "\nCONNECTIONS:\n";
-        machineState.canvasLinks.forEach(l => {
-          summary += `Node ${l.from} -> Node ${l.to}\n`;
-        });
-
-        const blob = new Blob([summary], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "siamquantum_evidence_trail.txt";
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    }
-
-    const closeBtn = document.getElementById("canvas-close-btn");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        toggleWorkspaceMode("explorer");
-      });
-    }
-
-    const explorerModeBtn = document.getElementById("mode-explorer-btn");
-    if (explorerModeBtn) {
-      explorerModeBtn.addEventListener("click", () => {
-        toggleWorkspaceMode("explorer");
-      });
-    }
-
-    const canvasModeBtn = document.getElementById("mode-canvas-btn");
-    if (canvasModeBtn) {
-      canvasModeBtn.addEventListener("click", () => {
-        toggleWorkspaceMode("canvas");
-      });
-    }
-  }
-
-  function initMatrixClickDelegation() {
-    const body = document.getElementById("engagement-matrix-body");
-    if (body) {
-      body.addEventListener("click", (e) => {
-        const cell = e.target.closest(".matrix-cell");
-        if (cell) {
-          const fmt = cell.dataset.format;
-          const intent = cell.dataset.intent;
-          const val = parseFloat(cell.dataset.value || 0);
-          handleMatrixClick(fmt, intent, val);
-        }
-      });
-    }
-  }
-
-  // --- INITIALIZATION ---
-
-  injectCustomStyles();
   initSectionTabs();
   initLabEvents();
-  initLeftLensActions();
-  initMentorEvents();
-  initGardenEvents();
-  initCanvasControls();
-  initSvgDefs();
-  initMatrixClickDelegation();
-
   loadAnalytics();
   loadCoverageAndMatrix();
 </script>
