@@ -157,14 +157,16 @@
     font-size: clamp(2.35rem, 5vw, 4.1rem);
     line-height: 1.04;
     color: var(--overview-text);
-    white-space: nowrap;
+    white-space: normal;
     text-wrap: balance;
   }
 
   .hero-title .hero-title-line {
-    display: inline-flex;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.28em;
-    white-space: nowrap;
+    white-space: normal;
+    max-width: 100%;
   }
 
   .hero-title span { color: var(--overview-accent-2); }
