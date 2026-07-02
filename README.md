@@ -4,6 +4,8 @@ SiamQuantum Atlas is the current web-based research tool for Thai quantum discou
 
 This repository is not a speculative product shell. It is the live baseline used for corpus review, graph inspection, taxonomy-aware analytics, and operator-led source expansion.
 
+For builders who want to reuse this pattern for another topic, see the topic-neutral open-source blueprint in [`docs/open-source-research-atlas-guide.md`](docs/open-source-research-atlas-guide.md). It covers architecture, data modeling, algorithms, statistics, optimization, phase-gated CLI prompts, and UI/UX designer prompts for creating similar atlas platforms beyond quantum.
+
 ## Current stack
 
 - Python 3.11+
