@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
+from xml.sax.saxutils import escape as xml_escape
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -58,6 +59,78 @@ _PAGE_FETCH_HEADERS = {
     "User-Agent": "SiamQuantumAtlas/1.0 (+https://siamquantum.org; research metadata fetch)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "th,en;q=0.9",
+}
+
+_PUBLIC_SEO_PAGES: dict[str, dict[str, str]] = {
+    "/overview": {
+        "title": "SiamQuantum Atlas | Thai Quantum Research Intelligence",
+        "description": (
+            "Explore Thai-linked quantum technology signals across news, video, maps, "
+            "topic networks, trend analytics, and a searchable source library."
+        ),
+        "changefreq": "daily",
+        "priority": "1.0",
+    },
+    "/dashboard": {
+        "title": "Thai Quantum Source Map | SiamQuantum Atlas",
+        "description": (
+            "Map the geographic origins of Thai-linked quantum technology sources and "
+            "compare coverage by platform, place, year, and research domain."
+        ),
+        "changefreq": "daily",
+        "priority": "0.8",
+    },
+    "/network": {
+        "title": "Thai Quantum Topic Network | SiamQuantum Atlas",
+        "description": (
+            "Inspect concept and entity connections across the SiamQuantum Atlas corpus "
+            "to understand how Thai quantum research signals cluster and evolve."
+        ),
+        "changefreq": "daily",
+        "priority": "0.8",
+    },
+    "/analytics": {
+        "title": "Thai Quantum Trend Analytics | SiamQuantum Atlas",
+        "description": (
+            "Review yearly taxonomy trends, corpus shifts, and statistical signals in "
+            "Thai-linked quantum technology coverage."
+        ),
+        "changefreq": "weekly",
+        "priority": "0.7",
+    },
+    "/database": {
+        "title": "Thai Quantum Source Library | SiamQuantum Atlas",
+        "description": (
+            "Search the SiamQuantum Atlas source library for Thai-linked quantum articles, "
+            "videos, metadata, research domains, and platform records."
+        ),
+        "changefreq": "daily",
+        "priority": "0.8",
+    },
+    "/submit-data": {
+        "title": "Submit Thai Quantum Data | SiamQuantum Atlas",
+        "description": (
+            "Contribute Thai quantum technology articles, videos, datasets, and research "
+            "signals to the SiamQuantum Atlas community review workflow."
+        ),
+        "changefreq": "monthly",
+        "priority": "0.5",
+    },
+}
+
+_NOINDEX_PAGES: dict[str, dict[str, str]] = {
+    "/profile": {
+        "title": "Profile | SiamQuantum Atlas",
+        "description": "Manage your SiamQuantum Atlas profile.",
+    },
+    "/my-submissions": {
+        "title": "My Submissions | SiamQuantum Atlas",
+        "description": "Review your SiamQuantum Atlas community submissions.",
+    },
+    "/admin/submitted-data": {
+        "title": "Admin Review | SiamQuantum Atlas",
+        "description": "Review submitted SiamQuantum Atlas data.",
+    },
 }
 
 
@@ -1018,6 +1091,60 @@ def _process_community_submission(submission_id: int, url: str) -> None:
             CommunitySubmissionRepo(conn).update_status(submission_id, "failed")
 
 
+def _absolute_url(request: Request, path: str) -> str:
+    return f"{str(request.base_url).rstrip('/')}{path}"
+
+
+def _seo_context(request: Request, path: str) -> dict[str, Any]:
+    page = (
+        _PUBLIC_SEO_PAGES.get(path)
+        or _NOINDEX_PAGES.get(path)
+        or _PUBLIC_SEO_PAGES["/overview"]
+    )
+    canonical_path = path if path in _PUBLIC_SEO_PAGES else "/overview"
+    canonical_url = _absolute_url(request, canonical_path)
+    image_url = _absolute_url(request, "/static/brand/SQAlogo.png")
+    noindex = path in _NOINDEX_PAGES
+    title = page["title"]
+    description = page["description"]
+    return {
+        "title": title,
+        "description": description,
+        "canonical_url": canonical_url,
+        "image_url": image_url,
+        "site_name": "SiamQuantum Atlas",
+        "type": "website",
+        "robots": "noindex, nofollow" if noindex else "index, follow",
+        "json_ld": {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": title,
+            "description": description,
+            "url": canonical_url,
+            "inLanguage": ["th", "en"],
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "SiamQuantum Atlas",
+                "url": _absolute_url(request, "/overview"),
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "SiamQuantum Atlas",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": image_url,
+                },
+            },
+        },
+    }
+
+
+def _page_context(request: Request, path: str, active: str, **extra: Any) -> dict[str, Any]:
+    context: dict[str, Any] = {"active": active, "seo": _seo_context(request, path)}
+    context.update(extra)
+    return context
+
+
 # ---------------------------------------------------------------------------
 # Root redirect
 # ---------------------------------------------------------------------------
@@ -1027,9 +1154,53 @@ def root() -> RedirectResponse:
     return RedirectResponse(url="/overview", status_code=307)
 
 
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt(request: Request) -> StreamingResponse:
+    body = "\n".join(
+        [
+            "User-agent: *",
+            "Allow: /",
+            "Disallow: /api/",
+            "Disallow: /admin/",
+            "Disallow: /profile",
+            "Disallow: /my-submissions",
+            f"Sitemap: {_absolute_url(request, '/sitemap.xml')}",
+            "",
+        ]
+    )
+    return StreamingResponse(io.BytesIO(body.encode("utf-8")), media_type="text/plain")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml(request: Request) -> StreamingResponse:
+    urls = []
+    today = datetime.now(timezone.utc).date().isoformat()
+    for path, meta in _PUBLIC_SEO_PAGES.items():
+        loc = xml_escape(_absolute_url(request, path))
+        urls.append(
+            "  <url>\n"
+            f"    <loc>{loc}</loc>\n"
+            f"    <lastmod>{today}</lastmod>\n"
+            f"    <changefreq>{meta['changefreq']}</changefreq>\n"
+            f"    <priority>{meta['priority']}</priority>\n"
+            "  </url>"
+        )
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + "\n</urlset>\n"
+    )
+    return StreamingResponse(io.BytesIO(body.encode("utf-8")), media_type="application/xml")
+
+
 @app.get("/overview", include_in_schema=False)
 def page_overview(request: Request) -> Any:
-    return templates.TemplateResponse(request, "home.html", {"active": "overview"})
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        _page_context(request, "/overview", "overview"),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1038,22 +1209,38 @@ def page_overview(request: Request) -> Any:
 
 @app.get("/dashboard", include_in_schema=False)
 def page_dashboard(request: Request) -> Any:
-    return templates.TemplateResponse(request, "dashboard.html", {"active": "dashboard"})
+    return templates.TemplateResponse(
+        request,
+        "dashboard.html",
+        _page_context(request, "/dashboard", "dashboard"),
+    )
 
 
 @app.get("/network", include_in_schema=False)
 def page_network(request: Request) -> Any:
-    return templates.TemplateResponse(request, "network.html", {"active": "network"})
+    return templates.TemplateResponse(
+        request,
+        "network.html",
+        _page_context(request, "/network", "network"),
+    )
 
 
 @app.get("/analytics", include_in_schema=False)
 def page_analytics(request: Request) -> Any:
-    return templates.TemplateResponse(request, "analytics.html", {"active": "analytics"})
+    return templates.TemplateResponse(
+        request,
+        "analytics.html",
+        _page_context(request, "/analytics", "analytics"),
+    )
 
 
 @app.get("/database", include_in_schema=False)
 def page_database(request: Request) -> Any:
-    return templates.TemplateResponse(request, "database.html", {"active": "database"})
+    return templates.TemplateResponse(
+        request,
+        "database.html",
+        _page_context(request, "/database", "database"),
+    )
 
 
 @app.get("/submit-data", include_in_schema=False)
@@ -1061,7 +1248,12 @@ def page_submit_data(request: Request) -> Any:
     return templates.TemplateResponse(
         request,
         "community.html",
-        {"demo_mode": _is_vercel_demo_mode(), "active": "community"},
+        _page_context(
+            request,
+            "/submit-data",
+            "community",
+            demo_mode=_is_vercel_demo_mode(),
+        ),
     )
 
 
@@ -1072,17 +1264,29 @@ def page_community_redirect() -> RedirectResponse:
 
 @app.get("/profile", include_in_schema=False)
 def page_profile(request: Request) -> Any:
-    return templates.TemplateResponse(request, "profile.html", {"active": "profile"})
+    return templates.TemplateResponse(
+        request,
+        "profile.html",
+        _page_context(request, "/profile", "profile"),
+    )
 
 
 @app.get("/my-submissions", include_in_schema=False)
 def page_my_submissions(request: Request) -> Any:
-    return templates.TemplateResponse(request, "my_submissions.html", {"active": "community"})
+    return templates.TemplateResponse(
+        request,
+        "my_submissions.html",
+        _page_context(request, "/my-submissions", "community"),
+    )
 
 
 @app.get("/admin/submitted-data", include_in_schema=False)
 def page_admin_submitted_data(request: Request) -> Any:
-    return templates.TemplateResponse(request, "admin_submitted_data.html", {"active": "profile"})
+    return templates.TemplateResponse(
+        request,
+        "admin_submitted_data.html",
+        _page_context(request, "/admin/submitted-data", "profile"),
+    )
 
 
 # ---------------------------------------------------------------------------

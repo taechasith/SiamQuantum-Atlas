@@ -8,8 +8,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}SiamQuantum Atlas{% endblock %}</title>
+  <title>{% if seo %}{{ seo.title }}{% else %}{% block title %}SiamQuantum Atlas{% endblock %}{% endif %}</title>
+  {% if seo %}
+  <meta name="description" content="{{ seo.description }}">
+  <meta name="robots" content="{{ seo.robots }}">
+  <link rel="canonical" href="{{ seo.canonical_url }}">
+  <meta property="og:site_name" content="{{ seo.site_name }}">
+  <meta property="og:type" content="{{ seo.type }}">
+  <meta property="og:title" content="{{ seo.title }}">
+  <meta property="og:description" content="{{ seo.description }}">
+  <meta property="og:url" content="{{ seo.canonical_url }}">
+  <meta property="og:image" content="{{ seo.image_url }}">
+  <meta property="og:locale" content="th_TH">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ seo.title }}">
+  <meta name="twitter:description" content="{{ seo.description }}">
+  <meta name="twitter:image" content="{{ seo.image_url }}">
+  <script type="application/ld+json">{{ seo.json_ld | tojson }}</script>
+  {% endif %}
   <link rel="preload" href="/static/brand/SQAlogo.png" as="image">
+  <link rel="icon" href="/static/brand/SQAlogo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">

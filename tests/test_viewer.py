@@ -124,6 +124,47 @@ def test_pages_return_html(client: TestClient, path: str, expected: str) -> None
     assert expected in resp.text, f"{path} body missing {expected!r}"
 
 
+def test_public_pages_include_seo_metadata(client: TestClient) -> None:
+    resp = client.get("/overview")
+    assert resp.status_code == 200
+    html = resp.text
+    assert "<title>SiamQuantum Atlas | Thai Quantum Research Intelligence</title>" in html
+    assert (
+        '<meta name="description" content="Explore Thai-linked quantum technology signals'
+        in html
+    )
+    assert '<meta name="robots" content="index, follow">' in html
+    assert '<link rel="canonical" href="http://testserver/overview">' in html
+    assert (
+        '<meta property="og:title" '
+        'content="SiamQuantum Atlas | Thai Quantum Research Intelligence">'
+        in html
+    )
+    assert '<meta name="twitter:card" content="summary_large_image">' in html
+    assert '<script type="application/ld+json">' in html
+
+
+def test_private_pages_are_noindexed(client: TestClient) -> None:
+    resp = client.get("/profile")
+    assert resp.status_code == 200
+    assert '<meta name="robots" content="noindex, nofollow">' in resp.text
+
+
+def test_sitemap_and_robots_are_available(client: TestClient) -> None:
+    sitemap = client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert "application/xml" in sitemap.headers["content-type"]
+    assert "<loc>http://testserver/overview</loc>" in sitemap.text
+    assert "<loc>http://testserver/database</loc>" in sitemap.text
+    assert "/profile" not in sitemap.text
+
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "text/plain" in robots.headers["content-type"]
+    assert "Disallow: /api/" in robots.text
+    assert "Sitemap: http://testserver/sitemap.xml" in robots.text
+
+
 def test_community_category_groups_can_add_custom_categories(client: TestClient) -> None:
     resp = client.get("/community")
     assert resp.status_code == 200
