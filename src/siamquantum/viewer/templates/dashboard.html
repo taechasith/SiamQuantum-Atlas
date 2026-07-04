@@ -1,9 +1,9 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Source Map | SiamQuantum Atlas{% endblock %}
 {% set active = 'dashboard' %}
 
 {% block page_title %}
-<span class="th-text">แผนที่แหล่งข้อมูล</span><span class="en-text">Source Map</span>
+<h1 class="map-title-h1"><span class="th-text">แผนที่แหล่งข้อมูล</span><span class="en-text">Source Map</span><span class="visually-hidden"> - Thai Quantum Geo Dashboard</span></h1>
 <div class="map-kpi-chips">
   <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">แหล่งข้อมูล</span><span class="en-text">Sources</span></span><span class="map-kpi-val" id="stat-count">-</span></div>
   <div class="map-kpi-chip"><span class="map-kpi-lbl"><span class="th-text">ลิงก์แนวคิด</span><span class="en-text">Connections</span></span><span class="map-kpi-val" id="stat-triplets">-</span></div>
@@ -43,6 +43,15 @@
   }
 
   /* ── topbar KPI chips ── */
+  .map-title-h1 {
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    color: inherit;
+    margin: 0;
+    display: inline;
+  }
+
   .topbar-title {
     flex: 1;
     display: flex;
@@ -774,7 +783,6 @@
 {% endblock %}
 
 {% block body %}
-  <span style="display:none">Thai Quantum Geo Dashboard</span>
   <section class="dashboard-shell">
   <div class="ops-layout">
     <div class="map-stage">

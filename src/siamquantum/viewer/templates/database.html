@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Source Library | SiamQuantum Atlas{% endblock %}
 {% set active = 'database' %}
 
@@ -882,7 +882,7 @@
 
     return `
       <article class="source-card" id="src-${item.id}" data-source-id="${item.id}">
-        ${thumb ? `<div class="source-thumb"><img src="${thumb}" loading="lazy" alt=""><span class="source-thumb-badge">${(item.platform || "").toUpperCase()}</span></div>` : ""}
+        ${thumb ? `<div class="source-thumb"><img src="${thumb}" loading="lazy" alt="Source thumbnail"><span class="source-thumb-badge">${(item.platform || "").toUpperCase()}</span></div>` : ""}
         <div class="source-top">
           ${!thumb ? `<div class="source-platform">${(item.platform || "unknown").toUpperCase()}</div>` : ""}
           <div class="source-year">${item.published_year || "—"}</div>

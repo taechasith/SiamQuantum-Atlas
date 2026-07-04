@@ -146,7 +146,7 @@
     grid-column: 1;
     z-index: 3;
     align-self: start;
-    max-width: min(33rem, 100%);
+    max-width: min(38rem, 100%);
     padding-right: 1.5rem;
     min-width: 0;
   }
@@ -154,7 +154,7 @@
   .hero-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(2.35rem, 5vw, 4.1rem);
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
     line-height: 1.04;
     color: var(--overview-text);
     white-space: normal;
@@ -163,9 +163,9 @@
 
   .hero-title .hero-title-line {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.28em;
-    white-space: normal;
+    white-space: nowrap;
     max-width: 100%;
   }
 
@@ -752,6 +752,10 @@
   @media (max-width: 980px) {
     .topbar-title { max-width: none; }
     .hero-panel { grid-template-columns: 1fr; }
+    .hero-title .hero-title-line {
+      flex-wrap: wrap;
+      white-space: normal;
+    }
     .hero-visual {
       position: relative;
       grid-column: 1;
@@ -1063,6 +1067,22 @@
       </div>
       <a class="signals-link" href="/analytics"><span class="th-text">ดูสัญญาณทั้งหมด →</span><span class="en-text">View All Signals -></span></a>
     </article>
+  </section>
+
+  <!-- Plain-language summary section for SEO and AI crawler visibility -->
+  <section class="overview-panel seo-info-section" style="padding: 1.5rem 2rem; line-height: 1.7; font-size: 0.92rem; color: var(--overview-copy); margin-top: 1rem;">
+    <h2 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2rem; color: var(--overview-text); font-family: var(--font-display);">
+      <span class="th-text">เกี่ยวกับ SiamQuantum Atlas</span>
+      <span class="en-text">About SiamQuantum Atlas</span>
+    </h2>
+    <p style="margin: 0;">
+      <span class="th-text">
+        <strong>SiamQuantum Atlas</strong> คือแพลตฟอร์มข่าวกรองเชิงวิทยาศาสตร์และสังคม (Civic-Scientific Intelligence Platform) ที่มุ่งมั่นในการติดตาม ทำแผนที่ และแสดงภาพความก้าวหน้าทางเทคโนโลยีควอนตัมในประเทศไทย ระบบจะรวบรวมข้อมูลอย่างเป็นระบบจากสำนักข่าวออนไลน์ (ผ่าน GDELT API) วิดีโอประชาสัมพันธ์และวิชาการ (ผ่าน YouTube Data API) รวมถึงการส่งข้อมูลจากชุมชนวิจัย โดยนำมาจัดทำพิกัดภูมิสารสนเทศ ดำเนินการวิเคราะห์โครงข่ายความสัมพันธ์เชิงแนวคิด (Subject-Relation-Object) และประเมินแนวโน้มเพื่อสร้างฐานข้อมูลที่ครบถ้วนสำหรับนักวิจัย นักนโยบาย และผู้สนใจทั่วไป
+      </span>
+      <span class="en-text">
+        <strong>SiamQuantum Atlas</strong> is an open civic-scientific intelligence platform mapping, tracking, and analyzing quantum technology progress, institutional signals, and research discourse in Thailand. The system gathers data from news outlets (via GDELT), video broadcasts (via YouTube API), and community contributions, applying advanced natural language processing (via Claude API) to extract semantic triplets (subject-relation-object) and spatial-temporal coordinates. This creates a unified map and searchable directory of Thailand's quantum landscape for researchers, policy advisors, and the public.
+      </span>
+    </p>
   </section>
 
   <!-- Coverage breakdown section -->

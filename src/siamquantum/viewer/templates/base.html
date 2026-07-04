@@ -89,6 +89,18 @@
       outline-offset: 2px;
     }
 
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
     .ambient-canvas {
       position: fixed;
       inset: 0;
@@ -1330,7 +1342,7 @@
   <aside class="sidebar" id="sidebar">
     <a class="sidebar-brand" href="/" aria-label="SiamQuantum Atlas">
       <div style="width:9rem;height:9rem;flex-shrink:0;display:flex;align-items:center;justify-content:center">
-        <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="" width="144" height="144" decoding="async">
+        <img class="sidebar-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas Logo" width="144" height="144" decoding="async">
       </div>
     </a>
 
@@ -1386,7 +1398,7 @@
     <!-- TOP HEADER -->
     <header class="topbar">
       <a class="topbar-mobile-brand" href="/overview" aria-label="SiamQuantum Atlas">
-        <img class="topbar-mobile-logo" src="/static/brand/SQAlogo.png" alt="" width="26" height="26" decoding="async">
+        <img class="topbar-mobile-logo" src="/static/brand/SQAlogo.png" alt="SiamQuantum Atlas Logo" width="26" height="26" decoding="async">
         <span class="topbar-mobile-wordmark"><strong>Siam</strong>Quantum <strong>Atlas</strong></span>
       </a>
       <div class="topbar-title">

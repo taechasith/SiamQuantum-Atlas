@@ -20,7 +20,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -1107,6 +1107,89 @@ def _seo_context(request: Request, path: str) -> dict[str, Any]:
     noindex = path in _NOINDEX_PAGES
     title = page["title"]
     description = page["description"]
+
+    # Base URLs and entity IDs for Schema.org Graph
+    base_url = _absolute_url(request, "")
+    org_id = f"{base_url}#organization"
+    website_id = f"{base_url}#website"
+    webapp_id = f"{base_url}#webapp"
+
+    graph = [
+        {
+            "@type": "Organization",
+            "@id": org_id,
+            "name": "SiamQuantum Atlas",
+            "url": _absolute_url(request, "/overview"),
+            "logo": {
+                "@type": "ImageObject",
+                "url": image_url
+            }
+        },
+        {
+            "@type": "WebSite",
+            "@id": website_id,
+            "url": _absolute_url(request, "/overview"),
+            "name": "SiamQuantum Atlas",
+            "description": "Thai Quantum Research Intelligence Platform",
+            "publisher": {"@id": org_id}
+        },
+        {
+            "@type": "WebApplication",
+            "@id": webapp_id,
+            "name": "SiamQuantum Atlas",
+            "url": _absolute_url(request, "/overview"),
+            "applicationCategory": "BusinessApplication, EducationalApplication",
+            "operatingSystem": "All",
+            "browserRequirements": "Requires HTML5 and modern JavaScript.",
+            "description": "Interactive Web Intelligence Platform for Thai Quantum Research",
+            "publisher": {"@id": org_id}
+        },
+        {
+            "@type": "WebPage",
+            "@id": f"{canonical_url}#webpage",
+            "url": canonical_url,
+            "name": title,
+            "description": description,
+            "inLanguage": ["th", "en"],
+            "isPartOf": {"@id": website_id},
+            "publisher": {"@id": org_id}
+        }
+    ]
+
+    # Add BreadcrumbList for subpages
+    if path != "/overview" and path in _PUBLIC_SEO_PAGES:
+        display_name = "Page"
+        if path == "/dashboard":
+            display_name = "Source Map"
+        elif path == "/network":
+            display_name = "Topic Network"
+        elif path == "/analytics":
+            display_name = "Trend Analytics"
+        elif path == "/database":
+            display_name = "Source Library"
+        elif path == "/submit-data":
+            display_name = "Submit Data"
+
+        breadcrumb = {
+            "@type": "BreadcrumbList",
+            "@id": f"{canonical_url}#breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Overview",
+                    "item": _absolute_url(request, "/overview")
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": display_name,
+                    "item": canonical_url
+                }
+            ]
+        }
+        graph.append(breadcrumb)
+
     return {
         "title": title,
         "description": description,
@@ -1117,25 +1200,8 @@ def _seo_context(request: Request, path: str) -> dict[str, Any]:
         "robots": "noindex, nofollow" if noindex else "index, follow",
         "json_ld": {
             "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": title,
-            "description": description,
-            "url": canonical_url,
-            "inLanguage": ["th", "en"],
-            "isPartOf": {
-                "@type": "WebSite",
-                "name": "SiamQuantum Atlas",
-                "url": _absolute_url(request, "/overview"),
-            },
-            "publisher": {
-                "@type": "Organization",
-                "name": "SiamQuantum Atlas",
-                "logo": {
-                    "@type": "ImageObject",
-                    "url": image_url,
-                },
-            },
-        },
+            "@graph": graph
+        }
     }
 
 
@@ -1155,11 +1221,12 @@ def root() -> RedirectResponse:
 
 
 @app.get("/robots.txt", include_in_schema=False)
-def robots_txt(request: Request) -> StreamingResponse:
+def robots_txt(request: Request) -> PlainTextResponse:
     body = "\n".join(
         [
             "User-agent: *",
             "Allow: /",
+            "Allow: /llms.txt",
             "Disallow: /api/",
             "Disallow: /admin/",
             "Disallow: /profile",
@@ -1168,7 +1235,48 @@ def robots_txt(request: Request) -> StreamingResponse:
             "",
         ]
     )
-    return StreamingResponse(io.BytesIO(body.encode("utf-8")), media_type="text/plain")
+    return PlainTextResponse(body)
+
+
+@app.get("/llms.txt", include_in_schema=False)
+def llms_txt() -> PlainTextResponse:
+    body = (
+        "# SiamQuantum Atlas\n\n"
+        "> Thai Quantum Research Intelligence Platform mapping quantum technology signals, "
+        "academic research activity, topic networks, and geospatial directory.\n\n"
+        "SiamQuantum Atlas is a comprehensive civic-scientific intelligence platform designed to "
+        "track, cluster, and visualize quantum technology progress and discourse across Thailand.\n\n"
+        "## Key Information\n"
+        "- **Purpose**: Map research activities, news reports, video features, and institutional "
+        "signals related to quantum technology in Thailand.\n"
+        "- **Audience**: Researchers, policymakers, quantum technology enthusiasts, academic institutions, "
+        "and industry representatives.\n"
+        "- **Data Sources**: News (via GDELT API), videos (via YouTube API), and community-submitted "
+        "resources, enriched with AI-grounded metadata extraction (via Claude) and geospatial/temporal indexing.\n\n"
+        "## Main Features & Public Pages\n"
+        "- **Research Atlas (Source Map)** (`/dashboard`): Interactive geospatial visualization of "
+        "quantum activities, institutions, and platforms across Thailand.\n"
+        "- **Discourse Map (Topic Network)** (`/network`): Interactive concept relationship graph "
+        "visualizing subject-relation-object triplets extracted from research activities and discourse.\n"
+        "- **Trend Analytics** (`/analytics`): Detailed yearly charts, taxonomy trends, and "
+        "engagement analysis mapping research intensity and focus.\n"
+        "- **Source Library** (`/database`): Searchable database of all indexable corpus items "
+        "with filters by platform, year, and category.\n"
+        "- **Community Submissions** (`/submit-data`): Authenticated portal allowing researchers "
+        "to submit URLs for AI-grounded metadata extraction and inclusion.\n\n"
+        "## Primary Categories & Taxonomy\n"
+        "- Quantum Computing (ควอนตัมคอมพิวติ้ง)\n"
+        "- Quantum Sensing (ควอนตัมเซนซิง)\n"
+        "- Quantum Communications (การสื่อสารควอนตัม)\n"
+        "- Quantum Information (ข้อมูลควอนตัม)\n"
+        "- Quantum Hardware & Materials (ฮาร์ดแวร์และวัสดุควอนตัม)\n"
+        "- Quantum Education & Policy (การศึกษาและนโยบายควอนตัม)\n\n"
+        "## AI Crawler Instructions\n"
+        "- All public pages are server-rendered and structured with semantic HTML.\n"
+        "- Public APIs (`/api/sources`, `/api/graph`, `/api/geo/list`) supply structured JSON datasets of the corpus.\n"
+        "- Use canonical URLs for matching search references.\n"
+    )
+    return PlainTextResponse(body)
 
 
 @app.get("/sitemap.xml", include_in_schema=False)

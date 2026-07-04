@@ -162,7 +162,17 @@ def test_sitemap_and_robots_are_available(client: TestClient) -> None:
     assert robots.status_code == 200
     assert "text/plain" in robots.headers["content-type"]
     assert "Disallow: /api/" in robots.text
+    assert "Allow: /llms.txt" in robots.text
     assert "Sitemap: http://testserver/sitemap.xml" in robots.text
+
+
+def test_llms_txt_is_available(client: TestClient) -> None:
+    resp = client.get("/llms.txt")
+    assert resp.status_code == 200
+    assert "text/plain" in resp.headers["content-type"]
+    assert "# SiamQuantum Atlas" in resp.text
+    assert "Thai Quantum" in resp.text
+    assert "Source Map" in resp.text
 
 
 def test_community_category_groups_can_add_custom_categories(client: TestClient) -> None:
