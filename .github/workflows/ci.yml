@@ -9,24 +9,60 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11"]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: siamquantum
+          POSTGRES_PASSWORD: changeme-dev-password
+          POSTGRES_DB: siamquantum_atlas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U siamquantum -d siamquantum_atlas"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://siamquantum:changeme-dev-password@127.0.0.1:5432/siamquantum_atlas
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
+          bun-version: 1.4.4
 
-      - name: Install dependencies
+      - name: Install API dependencies
+        working-directory: server
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck API
+        working-directory: server
+        run: bun run typecheck
+
+      - name: Apply PostgreSQL migrations
+        working-directory: server
+        run: bun run migrate
+
+      - name: API tests
+        working-directory: server
+        run: bun test
+
+      - name: API smoke test
+        working-directory: server
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .[dev]
+          bun src/index.ts &
+          API_PID=$!
+          sleep 2
+          curl --fail http://127.0.0.1:8766/healthz
+          kill $API_PID
 
-      - name: Run tests
-        run: pytest
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build

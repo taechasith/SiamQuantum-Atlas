@@ -1,0 +1,36 @@
+# SiamQuantum Atlas — Caddy Ingress Reverse Proxy (Huuk/Pugu SOP Pattern)
+{
+    admin off
+    auto_https off
+}
+
+:8765 {
+    encode zstd gzip
+
+    # Security Headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;"
+        -Server
+    }
+
+    # API Proxy to Hono Backend
+    handle /api/* {
+        reverse_proxy hono:8766
+    }
+
+    # Health Check
+    handle /healthz {
+        respond "OK" 200
+    }
+
+    # Single Page Application (Vue 3 + Vite + Bun SPA)
+    handle {
+        root * /var/www/html
+        try_files {path} /index.html
+        header Cache-Control "no-cache"
+        file_server
+    }
+}

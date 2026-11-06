@@ -1,0 +1,32 @@
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: [
+    './index.html',
+    './src/**/*.{vue,js,ts,jsx,tsx}',
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        sq: {
+          bg: '#070B17',
+          sidebar: '#060A15',
+          surface: '#131B2E',
+          'surface-2': '#192338',
+          'surface-hover': '#202D46',
+          primary: '#38BDF8',
+          secondary: '#10B981',
+          tertiary: '#60A5FA',
+          warning: '#F59E0B',
+          danger: '#F87171',
+        },
+      },
+      fontFamily: {
+        sans: ['"IBM Plex Sans Thai"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config
