@@ -9,12 +9,32 @@
 uirefs/
 ui refs/
 doc.md
+CLAUDE.md
+.antigravitycli/
+.playwright-cli/
+archive/
+screenshots/
+docs/
+Screenshot*.png
+scripts/download_geoip.sh
 
 
 # data
 data/raw/
+data/processed/*.db
+data/processed/*.db-*
 data/processed/*.backup-*.db
 data/geoip/*.mmdb
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.turbo/
+
+# server
+server/node_modules/
+server/.env
+server/.env.local
 
 # python
 __pycache__/

@@ -94,7 +94,7 @@ const copy = computed(() =>
 <template>
   <div class="mx-auto w-full max-w-[1320px] space-y-6 pb-10">
     <section
-      class="relative overflow-hidden rounded-[30px] border border-sky-200/15 p-5 text-white sm:p-7 lg:p-9"
+      class="relative overflow-hidden rounded-[30px] p-5 text-white sm:p-7 lg:p-9"
       style="background: linear-gradient(135deg, #1d4ed8 0%, #0b2a68 55%, #020617 100%);"
     >
       <div class="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full bg-sky-300/15 blur-3xl" />
@@ -107,19 +107,19 @@ const copy = computed(() =>
             <router-link to="/atlas" class="rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-sky-100">
               {{ copy.primary }} ↗
             </router-link>
-            <router-link to="/dashboard" class="rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/[0.08] hover:text-white">
+            <router-link to="/dashboard" class="rounded-xl bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.08] hover:text-white">
               {{ copy.secondary }}
             </router-link>
           </div>
         </div>
 
         <div class="relative">
-          <div class="relative h-[300px] overflow-hidden rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_50%_38%,rgba(56,189,248,.2),transparent_46%)] sm:h-[380px] lg:h-[430px]">
+          <div class="relative h-[300px] overflow-hidden rounded-[26px] bg-[radial-gradient(circle_at_50%_38%,rgba(56,189,248,.2),transparent_46%)] sm:h-[380px] lg:h-[430px]">
             <div class="absolute inset-0">
               <QuantumCat height="100%" />
             </div>
           </div>
-          <div class="absolute -bottom-4 -left-4 hidden rounded-2xl border border-white/10 bg-[#071126]/90 px-4 py-3 shadow-2xl backdrop-blur-xl sm:block">
+          <div class="absolute -bottom-4 -left-4 hidden rounded-2xl bg-[#071126]/90 px-4 py-3 shadow-2xl backdrop-blur-xl sm:block">
             <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">{{ copy.stats.sources }}</p>
             <p class="mt-1 font-mono text-2xl font-black text-white"><CountTo :value="stats?.total_sources ?? 170" :duration="1200" /></p>
           </div>
@@ -127,7 +127,7 @@ const copy = computed(() =>
       </div>
     </section>
 
-    <section class="grid grid-cols-2 gap-3 rounded-[24px] border border-white/10 bg-white/[0.03] p-3 md:grid-cols-4">
+    <section class="grid grid-cols-2 gap-3 rounded-[24px] bg-white/[0.03] p-3 md:grid-cols-4">
       <div class="rounded-2xl bg-black/25 px-4 py-4">
         <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">{{ copy.stats.sources }}</p>
         <p class="mt-1.5 font-mono text-2xl font-black"><CountTo :value="stats?.total_sources ?? 170" :duration="1000" /></p>
@@ -146,12 +146,12 @@ const copy = computed(() =>
       </div>
     </section>
 
-    <section class="grid gap-6 rounded-[26px] border border-white/10 bg-white/[0.03] p-6 md:p-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-14">
+    <section class="grid gap-6 rounded-[26px] bg-white/[0.03] p-6 md:p-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-14">
       <div>
         <h2 class="text-2xl font-black tracking-tight sm:text-3xl">{{ copy.principlesTitle }}</h2>
         <p class="mt-3 max-w-md text-sm leading-7 text-white/48">{{ copy.principlesLead }}</p>
       </div>
-      <div class="divide-y divide-white/10 border-y border-white/10">
+      <div class="">
         <div v-for="(principle, index) in copy.principles" :key="principle.title" class="grid grid-cols-[2.5rem_1fr] gap-3 py-5">
           <span class="font-mono text-[10px] tracking-[0.2em] text-sky-200/45">0{{ index + 1 }}</span>
           <div>
@@ -162,7 +162,7 @@ const copy = computed(() =>
       </div>
     </section>
 
-    <section class="rounded-[26px] border border-white/10 bg-[#040914] p-6 md:p-8">
+    <section class="rounded-[26px] bg-[#040914] p-6 md:p-8">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-sky-200/60">{{ copy.methodEyebrow }}</p>
@@ -173,7 +173,7 @@ const copy = computed(() =>
         </router-link>
       </div>
       <div class="mt-6 grid gap-3 md:grid-cols-3">
-        <div v-for="step in copy.steps" :key="step.number" class="rounded-2xl border border-white/8 bg-white/[0.035] p-5">
+        <div v-for="step in copy.steps" :key="step.number" class="rounded-2xl bg-white/[0.035] p-5">
           <span class="font-mono text-[10px] tracking-[0.2em] text-sky-200/45">{{ step.number }}</span>
           <h3 class="mt-4 text-lg font-black">{{ step.title }}</h3>
           <p class="mt-1.5 text-sm leading-6 text-white/48">{{ step.description }}</p>
@@ -181,7 +181,7 @@ const copy = computed(() =>
       </div>
     </section>
 
-    <section class="relative overflow-hidden rounded-[26px] border border-sky-200/15 bg-[linear-gradient(120deg,#1d4ed8_0%,#0b2a68_55%,#020617_100%)] px-6 py-8 sm:px-9">
+    <section class="relative overflow-hidden rounded-[26px] bg-[linear-gradient(120deg,#1d4ed8_0%,#0b2a68_55%,#020617_100%)] px-6 py-8 sm:px-9">
       <div class="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full bg-sky-300/15 blur-3xl" />
       <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>

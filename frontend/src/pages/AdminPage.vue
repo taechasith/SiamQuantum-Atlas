@@ -459,5 +459,3 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
     </template>
   </div>
 </template>
-
-

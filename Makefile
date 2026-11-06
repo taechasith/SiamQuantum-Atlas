@@ -1,22 +1,23 @@
-.PHONY: install db ingest-historical serve test lint
+.PHONY: install dev migrate import frontend test typecheck
 
 install:
-	pip install -e ".[dev]"
+	cd server && bun install
+	cd frontend && npm ci
 
-db:
-	python -m siamquantum db init
+dev:
+	cd server && bun run dev
 
-ingest-historical:
-	python -m siamquantum ingest gdelt --year 2024 --all-years
-	python -m siamquantum ingest youtube --year 2024 --all-years
-	python -m siamquantum ingest geo --pending
+migrate:
+	cd server && bun run migrate
 
-serve:
-	python -m siamquantum serve
+import:
+	cd server && bun run import
 
-test:
-	pytest
+frontend:
+	cd frontend && npm run dev
 
-lint:
-	ruff check src tests
-	ruff format --check src tests
+typecheck:
+	cd server && bun run typecheck
+
+test: typecheck
+	cd frontend && npm run build

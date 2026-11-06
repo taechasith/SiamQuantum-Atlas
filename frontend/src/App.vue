@@ -372,7 +372,7 @@ const dockOffsetStyle = computed(() => ({
       <div class="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
         <main
           class="flex-1 min-h-0 min-w-0 ml-0 lg:ml-3 overflow-hidden flex flex-col [scrollbar-gutter:stable_both-edges]"
-         
+
           :class="[
             route.path === '/atlas' || route.path === '/map' || route.path === '/network'
               ? 'p-0 overflow-hidden'
