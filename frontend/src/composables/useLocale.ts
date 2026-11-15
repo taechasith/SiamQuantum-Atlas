@@ -391,6 +391,7 @@ const th: Record<string, string> = {
   Rejected: 'ไม่อนุมัติ',
   'All Categories': 'ทุกหมวดหมู่',
   submissions: 'รายการ',
+  submission: 'รายการ',
   pending: 'รอดำเนินการ',
   'Refreshing...': 'กำลังรีเฟรช...',
   Refresh: 'รีเฟรช',

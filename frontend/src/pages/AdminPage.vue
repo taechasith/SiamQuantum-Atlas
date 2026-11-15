@@ -54,6 +54,7 @@ const categories = [
 const pendingCount = computed(
   () => (submissions.value ?? []).filter((item) => item.status === 'pending').length
 )
+const submissionCount = computed(() => submissions.value?.length ?? 0)
 
 function statusLabel(item: AdminSubmission) {
   const primary = item.status || 'pending'
@@ -202,7 +203,7 @@ async function updateProvince(item: AdminSubmission, value: string) {
           </Select>
 
           <span class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[10px] font-mono font-bold text-white">
-            {{ submissions?.length ?? 0 }} {{ t('submissions') }}
+            {{ submissionCount }} {{ submissionCount === 1 ? t('submission') : t('submissions') }}
           </span>
           <span v-if="pendingCount" class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[10px] font-mono font-bold text-white">
             {{ pendingCount }} {{ t('pending') }}
@@ -248,100 +249,102 @@ async function updateProvince(item: AdminSubmission, value: string) {
       </div>
 
       <!-- Submission list -->
-      <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div v-else class="grid grid-cols-1 gap-4">
         <article
           v-for="item in submissions"
           :key="item.id"
-          class="rounded-[26px] p-5 text-white flex flex-col justify-between gap-4"
+          class="rounded-[26px] p-5 text-white sm:p-6"
           style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
         >
-          <div class="space-y-3">
-            <div class="flex items-start justify-between gap-3">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
+            <div class="min-w-0 flex-1 space-y-4">
               <div class="min-w-0">
-                <h2 class="text-base sm:text-lg font-bold leading-snug m-0 break-words">
-                  {{ item.title || item.source_url || '—' }}
-                </h2>
-                <p class="text-[11px] font-mono text-sky-200/80 m-0 mt-1">
+                <p class="m-0 text-[10px] font-mono uppercase tracking-[0.14em] text-sky-200/70">
                   #{{ item.id }} · {{ formatDate(item.created_at) }}
                   <span v-if="item.submitted_by"> · {{ item.submitted_by }}</span>
                 </p>
+                <h2 class="m-0 mt-2 break-words text-xl font-black leading-snug tracking-tight sm:text-2xl">
+                  {{ item.title || item.source_url || '—' }}
+                </h2>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[9px] font-mono font-bold uppercase text-white whitespace-nowrap">
+
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[10px] font-mono font-bold text-white">
+                  {{ item.category ? t(item.category) : t('Uncategorized') }}
+                </span>
+                <a
+                  v-if="item.source_url"
+                  :href="item.source_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="max-w-[320px] truncate rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[10px] font-mono font-bold text-white no-underline transition hover:bg-black/70"
+                >
+                  {{ t('Open Source') }} ↗
+                </a>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-sky-200/70">{{ t('Province') }}</span>
+                <Select
+                  :model-value="item.province_code ?? 'none'"
+                  @update:model-value="(value) => updateProvince(item, String(value))"
+                >
+                  <SelectTrigger class="h-8 w-[200px] text-[11px]">
+                    <SelectValue :placeholder="t('Not specified (country-level)')" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{{ t('Not specified (country-level)') }}</SelectItem>
+                    <SelectItem v-for="province in THAI_PROVINCES" :key="province" :value="province">
+                      {{ province }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3 border-t border-white/10 pt-4 lg:w-[280px] lg:flex-none lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              <span class="self-start rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[9px] font-mono font-bold uppercase text-white">
                 {{ statusLabel(item) }}
               </span>
+              <div class="flex flex-wrap gap-2 lg:flex-col">
+                <button
+                  v-if="item.status !== 'approved'"
+                  type="button"
+                  class="rounded-xl bg-[#ff4c2b] px-3.5 py-2 font-mono text-[11px] font-bold text-white transition hover:bg-[#e84324] disabled:opacity-50 lg:w-full"
+                  :disabled="isUpdating"
+                  @click="patchSubmission(item, { status: 'approved' })"
+                >
+                  {{ t('Approve') }}
+                </button>
+                <button
+                  v-if="item.status !== 'rejected'"
+                  type="button"
+                  class="rounded-xl bg-black/35 px-3.5 py-2 font-mono text-[11px] font-bold text-white transition hover:bg-black/50 disabled:opacity-50 lg:w-full"
+                  :disabled="isUpdating"
+                  @click="patchSubmission(item, { status: 'rejected' })"
+                >
+                  {{ t('Reject') }}
+                </button>
+                <button
+                  v-if="item.analysis_status !== 'completed'"
+                  type="button"
+                  class="rounded-xl bg-black/35 px-3.5 py-2 font-mono text-[11px] font-bold text-white transition hover:bg-black/50 disabled:opacity-50 lg:w-full"
+                  :disabled="isUpdating"
+                  @click="patchSubmission(item, { analysis_status: 'completed' })"
+                >
+                  {{ t('Mark Completed') }}
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="rounded-xl bg-black/35 px-3.5 py-2 font-mono text-[11px] font-bold text-white transition hover:bg-black/50 disabled:opacity-50 lg:w-full"
+                  :disabled="isUpdating"
+                  @click="patchSubmission(item, { analysis_status: 'processing' })"
+                >
+                  {{ t('Set Processing') }}
+                </button>
+              </div>
             </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[10px] font-mono font-bold text-white">
-                {{ item.category ? t(item.category) : t('Uncategorized') }}
-              </span>
-              <a
-                v-if="item.source_url"
-                :href="item.source_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[10px] font-mono font-bold text-white no-underline hover:bg-black/70 transition truncate max-w-[240px]"
-              >
-                {{ t('Open Source') }} ↗
-              </a>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-mono uppercase tracking-wider text-sky-200/70">{{ t('Province') }}</span>
-              <Select
-                :model-value="item.province_code ?? 'none'"
-                @update:model-value="(value) => updateProvince(item, String(value))"
-              >
-                <SelectTrigger class="h-8 w-[180px] text-[11px]">
-                  <SelectValue :placeholder="t('Not specified (country-level)')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{{ t('Not specified (country-level)') }}</SelectItem>
-                  <SelectItem v-for="province in THAI_PROVINCES" :key="province" :value="province">
-                    {{ province }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              v-if="item.status !== 'approved'"
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-              :disabled="isUpdating"
-              @click="patchSubmission(item, { status: 'approved' })"
-            >
-              {{ t('Approve') }}
-            </button>
-            <button
-              v-if="item.status !== 'rejected'"
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-black/35 hover:bg-black/50 text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-              :disabled="isUpdating"
-              @click="patchSubmission(item, { status: 'rejected' })"
-            >
-              {{ t('Reject') }}
-            </button>
-            <button
-              v-if="item.analysis_status !== 'completed'"
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-black/35 hover:bg-black/50 text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-              :disabled="isUpdating"
-              @click="patchSubmission(item, { analysis_status: 'completed' })"
-            >
-              {{ t('Mark Completed') }}
-            </button>
-            <button
-              v-else
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-black/35 hover:bg-black/50 text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
-              :disabled="isUpdating"
-              @click="patchSubmission(item, { analysis_status: 'processing' })"
-            >
-              {{ t('Set Processing') }}
-            </button>
           </div>
         </article>
       </div>
@@ -381,7 +384,7 @@ async function updateProvince(item: AdminSubmission, value: string) {
           {{ t('Admin roles are provisioned directly in the database by an operator and cannot be changed from this page.') }}
         </p>
 
-        <div v-if="isUsersPending" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div v-if="isUsersPending" class="grid grid-cols-1 gap-4">
           <div v-for="i in 4" :key="i" class="rounded-[26px] h-28 animate-pulse bg-white/[0.04]" />
         </div>
 
@@ -393,7 +396,7 @@ async function updateProvince(item: AdminSubmission, value: string) {
           <p class="text-base font-bold m-0">{{ t('No users found') }}</p>
         </div>
 
-        <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div v-else class="grid grid-cols-1 gap-4">
           <article
             v-for="user in adminUsers"
             :key="user.id"
