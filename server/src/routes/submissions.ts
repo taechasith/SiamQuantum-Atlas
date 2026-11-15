@@ -115,7 +115,7 @@ submissionRoutes.get('/submitted-data/public', async (c) => {
   const limit = intParam(c.req.query('limit'), 50, 1, 200)
   const rows = await sql<SubmissionRow[]>`
     SELECT * FROM local_submitted_data
-    WHERE status = 'approved' AND analysis_status = 'completed'
+    WHERE status = 'approved'
     ORDER BY created_at DESC
     LIMIT ${limit}
   `

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useSourcesQuery, type SourceItem } from '@/api/queries'
+import { useRoute } from 'vue-router'
+import { useApprovedSubmissionsQuery, useSourcesQuery, type AdminSubmission, type SourceItem } from '@/api/queries'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import AppTooltip from '@/components/ui/AppTooltip.vue'
@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { t } from '@/composables/useLocale'
 
 const route = useRoute()
-const router = useRouter()
 const { data: sources, isPending, isError, error: sourcesError, refetch } = useSourcesQuery()
+const { data: approvedSubmissions } = useApprovedSubmissionsQuery()
 
 const searchQuery = ref(String(route.query.q ?? ''))
 const selectedPlatform = ref('all')
@@ -49,9 +49,38 @@ function setViewMode(value: string) {
   if (value === 'table' || value === 'card') viewMode.value = value
 }
 
+function submissionToSource(item: AdminSubmission): SourceItem | null {
+  if (!item.source_url) return null
+  const parsedYear = item.created_at ? new Date(item.created_at).getFullYear() : new Date().getFullYear()
+  return {
+    id: 1_000_000 + item.id,
+    display_id: `C${item.id}`,
+    title: item.title,
+    url: item.source_url,
+    platform: 'community',
+    published_year: Number.isFinite(parsedYear) ? parsedYear : new Date().getFullYear(),
+    raw_text: item.description,
+    channel_title: item.submitted_by,
+  }
+}
+
+const allSources = computed(() => {
+  const base = sources.value ?? []
+  const seen = new Set(base.map((item) => item.url))
+  const community = (approvedSubmissions.value ?? [])
+    .map(submissionToSource)
+    .filter((item): item is SourceItem => {
+      if (!item || seen.has(item.url)) return false
+      seen.add(item.url)
+      return true
+    })
+  return [...base, ...community].sort(
+    (a, b) => (b.published_year ?? 0) - (a.published_year ?? 0) || b.id - a.id
+  )
+})
+
 const filteredSources = computed(() => {
-  if (!sources.value) return []
-  return sources.value.filter((item: SourceItem) => {
+  return allSources.value.filter((item: SourceItem) => {
     const matchSearch =
       !searchQuery.value ||
       item.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -96,23 +125,12 @@ watch(totalPages, (pages) => {
   if (currentPage.value > pages) currentPage.value = pages
 })
 
-function resetFilters() {
-  searchQuery.value = ''
-  selectedPlatform.value = 'all'
-  selectedYear.value = 'all'
-  currentPage.value = 1
-  if (route.query.q) {
-    const query = { ...route.query }
-    delete query.q
-    void router.replace({ query })
-  }
-}
-
 const platformNames: Record<string, string> = {
   youtube: 'YouTube',
   gdelt: 'GDELT',
   manual_seed: 'Manual Seed',
   web: 'Web',
+  community: 'Community',
 }
 
 const failedThumbs = ref<Set<number>>(new Set())
@@ -163,6 +181,8 @@ function coverTint(platform: string): string {
       return 'bg-gradient-to-br from-sky-500/30 via-slate-950 to-black'
     case 'manual_seed':
       return 'bg-gradient-to-br from-amber-500/30 via-slate-950 to-black'
+    case 'community':
+      return 'bg-gradient-to-br from-emerald-500/30 via-slate-950 to-black'
     default:
       return 'bg-gradient-to-br from-cyan-500/30 via-slate-950 to-black'
   }
@@ -271,6 +291,7 @@ function coverTint(platform: string): string {
                 <SelectItem value="gdelt">GDELT</SelectItem>
                 <SelectItem value="manual_seed">{{ t('Manual Seed') }}</SelectItem>
                 <SelectItem value="web">{{ t('Web') }}</SelectItem>
+                <SelectItem value="community">{{ t('Community') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -328,20 +349,7 @@ function coverTint(platform: string): string {
               </tr>
               <tr v-else-if="!paginatedSources.length">
                 <td colspan="5" class="p-8">
-                  <EmptyState
-                    :title="t('No Matching Records')"
-                    :message="t('Try a different keyword or clear the filters to see all sources.')"
-                  >
-                    <template #actions>
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-white transition hover:border-cyan-300/40 hover:bg-white/[0.1]"
-                        @click="resetFilters"
-                      >
-                        {{ t('Clear filters') }}
-                      </button>
-                    </template>
-                  </EmptyState>
+                  <EmptyState :title="t('No Data Here')" />
                 </td>
               </tr>
               <tr
@@ -349,7 +357,7 @@ function coverTint(platform: string): string {
                 :key="item.id"
                 class="bg-[#329dd2] transition group"
               >
-                <td class="p-3.5 pl-6 font-mono text-cyan-300/70 text-[11px] whitespace-nowrap">#{{ item.id }}</td>
+                <td class="p-3.5 pl-6 font-mono text-cyan-300/70 text-[11px] whitespace-nowrap">#{{ item.display_id ?? item.id }}</td>
                 <td class="p-3.5">
                   <div class="line-clamp-2 break-words font-medium text-white group-hover:text-cyan-300 transition text-[13px] leading-snug">
                     {{ item.title || item.url }}
@@ -404,20 +412,7 @@ function coverTint(platform: string): string {
           </div>
 
           <div v-else-if="!paginatedSources.length" class="py-6">
-            <EmptyState
-              :title="t('No Matching Records')"
-              :message="t('Try a different keyword or clear the filters to see all sources.')"
-            >
-              <template #actions>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-white transition hover:border-cyan-300/40 hover:bg-white/[0.1]"
-                  @click="resetFilters"
-                >
-                  {{ t('Clear filters') }}
-                </button>
-              </template>
-            </EmptyState>
+            <EmptyState :title="t('No Data Here')" />
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
@@ -484,7 +479,7 @@ function coverTint(platform: string): string {
                   </span>
                 </p>
                 <div class="mt-auto flex items-center justify-between pt-3">
-                  <span class="font-mono text-[11px] text-white/60">#{{ item.id }}</span>
+                  <span class="font-mono text-[11px] text-white/60">#{{ item.display_id ?? item.id }}</span>
                   <span class="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-white transition group-hover:text-sky-100">
                     {{ t('Source') }} <span aria-hidden="true">↗</span>
                   </span>

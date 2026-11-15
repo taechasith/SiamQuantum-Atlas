@@ -58,11 +58,13 @@ const th: Record<string, string> = {
   'All Years': 'ทุกปี',
   'Manual Seed': 'ข้อมูลนำเข้าเอง',
   Web: 'เว็บไซต์',
+  Community: 'ชุมชน',
   ID: 'รหัส',
   'Title / Subject': 'ชื่อเรื่อง / หัวข้อ',
   Platform: 'แพลตฟอร์ม',
   Year: 'ปี',
   Provenance: 'แหล่งที่มา',
+  'No Data Here': 'ไม่มีข้อมูล',
   'No Matching Records': 'ไม่พบรายการที่ตรงกัน',
   'No quantum sources found matching the current search parameters.':
     'ไม่พบแหล่งข้อมูลควอนตัมที่ตรงกับเงื่อนไขการค้นหาปัจจุบัน',

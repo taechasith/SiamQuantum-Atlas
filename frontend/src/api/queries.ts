@@ -77,6 +77,7 @@ export interface NetworkData {
 
 export interface SourceItem {
   id: number
+  display_id?: string
   title?: string
   url: string
   platform: string
@@ -391,6 +392,19 @@ export interface AdminSubmission extends MySubmission {
   submitted_by?: string
 }
 
+export function useApprovedSubmissionsQuery() {
+  return useQuery({
+    queryKey: ['submitted-data', 'public'],
+    queryFn: async (): Promise<AdminSubmission[]> => {
+      const res = await fetch('/api/submitted-data/public?limit=200')
+      if (!res.ok) return []
+      const json = await res.json().catch(() => null)
+      return json?.ok && Array.isArray(json?.data?.items) ? json.data.items : []
+    },
+    staleTime: 1000 * 30,
+  })
+}
+
 export function useAdminSubmissionsQuery(status: Ref<string>, category: Ref<string>, enabled: Ref<boolean>) {
   return useQuery({
     queryKey: computed(() => ['admin', 'submissions', status.value, category.value]),
@@ -434,6 +448,7 @@ export function useAdminUpdateSubmissionMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'submissions'] })
       queryClient.invalidateQueries({ queryKey: ['submitted-data', 'mine'] })
+      queryClient.invalidateQueries({ queryKey: ['submitted-data', 'public'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'audit-log'] })
     },
   })

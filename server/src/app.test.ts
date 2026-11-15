@@ -71,6 +71,27 @@ describe('SiamQuantum Hono API', () => {
     }
   })
 
+  it('includes approved submissions in the public list', async () => {
+    const now = new Date().toISOString()
+    database.run(
+      `INSERT INTO local_users (id, email, password_salt, password_hash, role, created_at, updated_at)
+       VALUES ('approved-test-user', 'approved-test@example.com', 'salt', 'hash', 'user', ?, ?)`,
+      [now, now]
+    )
+    database.run(
+      `INSERT INTO local_submitted_data
+        (user_id, title, description, source_url, category, status, analysis_status, metadata, created_at, updated_at)
+       VALUES ('approved-test-user', 'Approved test submission', 'Description', 'https://example.com/approved-test',
+               'Quantum Computing', 'approved', 'queued', '{}', ?, ?)`,
+      [now, now]
+    )
+
+    const response = await app.request('/api/submitted-data/public?limit=5')
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as any
+    expect(body.data.items.some((item: any) => item.title === 'Approved test submission')).toBe(true)
+  })
+
   it('returns a JSON 404 for unknown API routes', async () => {
     const response = await app.request('/api/does-not-exist')
     expect(response.status).toBe(404)
