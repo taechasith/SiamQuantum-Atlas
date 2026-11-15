@@ -16,12 +16,13 @@ withDefaults(
 </script>
 
 <template>
-  <Tooltip>
+  <Tooltip v-if="content && !disabled">
     <TooltipTrigger as-child>
       <slot />
     </TooltipTrigger>
-    <TooltipContent v-if="content && !disabled" :side="side">
+    <TooltipContent :side="side">
       {{ content }}
     </TooltipContent>
   </Tooltip>
+  <slot v-else />
 </template>

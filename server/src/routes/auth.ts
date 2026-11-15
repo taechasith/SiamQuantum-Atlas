@@ -23,11 +23,20 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 })
 
+const avatarUrlSchema = z
+  .string()
+  .trim()
+  .max(400_000)
+  .refine(
+    (value) => value === '' || /^https?:\/\//i.test(value) || /^data:image\/(?:png|jpe?g|webp);base64,/i.test(value),
+    'Avatar must be an HTTP(S) URL or a PNG/JPEG/WebP data URL.'
+  )
+
 const profilePatchSchema = z.object({
   display_name: z.string().trim().max(160).optional().nullable(),
   bio: z.string().trim().max(1000).optional().nullable(),
   website_url: z.string().trim().max(500).optional().nullable(),
-  avatar_url: z.string().trim().max(1000).optional().nullable(),
+  avatar_url: avatarUrlSchema.optional().nullable(),
   organization: z.string().trim().max(200).optional().nullable(),
   focus: z.string().trim().max(200).optional().nullable(),
   citation: z.string().trim().max(300).optional().nullable(),
@@ -68,8 +77,7 @@ authRoutes.post('/auth/local/register', async (c) => {
     const [existing] = await sql<{ id: string }[]>`SELECT id FROM local_users WHERE email = ${email} LIMIT 1`
     if (existing) return fail(c, 409, 'email_exists', 'An account with this email already exists.')
 
-    const [countRow] = await sql<{ count: number }[]>`SELECT COUNT(*)::int AS count FROM local_users`
-    const role = (countRow?.count ?? 0) === 0 ? 'admin' : 'user'
+    const role = 'user'
     const id = newUserId()
     const salt = newSalt()
     const now = nowIso()
@@ -113,6 +121,17 @@ authRoutes.post('/auth/local/logout', async (c) => {
   if (token) await sql`DELETE FROM local_sessions WHERE token = ${decodeURIComponent(token)}`
   clearSessionCookie(c)
   return ok(c, { logged_out: true })
+})
+
+authRoutes.delete('/auth/account', async (c) => {
+  const user = await requireUser(c)
+  if (user instanceof Response) return user
+  const [deleted] = await sql<{ id: string }[]>`
+    DELETE FROM local_users WHERE id = ${user.id} RETURNING id
+  `
+  if (!deleted) return fail(c, 404, 'account_not_found', 'Account not found.')
+  clearSessionCookie(c)
+  return ok(c, { deleted: true })
 })
 
 authRoutes.get('/auth/me', async (c) => {

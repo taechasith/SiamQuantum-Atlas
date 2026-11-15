@@ -73,7 +73,7 @@ const pathData = computed(() => {
 <template>
   <article
     class="card-fade group flex h-full flex-col justify-between p-3 sm:p-3.5 rounded-[24px] sm:rounded-[28px] overflow-hidden select-none transition-all duration-300 hover:scale-[1.01]"
-    style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+    style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
   >
     <!-- Top Information Section -->
     <div class="relative z-10">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
+import { useIntersectionObserver } from '@vueuse/core'
 
 const props = withDefaults(
   defineProps<{
@@ -20,7 +21,20 @@ const props = withDefaults(
 )
 
 const displayValue = ref(0)
+const rootRef = ref<HTMLElement | null>(null)
+const hasStarted = ref(false)
 let animationFrameId: number | null = null
+
+const { stop } = useIntersectionObserver(
+  rootRef,
+  (entries) => {
+    if (hasStarted.value || !entries.some((entry) => entry.isIntersecting)) return
+    hasStarted.value = true
+    stop()
+    startAnimation(props.value)
+  },
+  { threshold: 0.15 }
+)
 
 const startAnimation = (target: number) => {
   if (animationFrameId !== null) {
@@ -60,14 +74,10 @@ const startAnimation = (target: number) => {
   animationFrameId = requestAnimationFrame(step)
 }
 
-onMounted(() => {
-  startAnimation(props.value)
-})
-
 watch(
   () => props.value,
   (newVal) => {
-    startAnimation(newVal)
+    if (hasStarted.value) startAnimation(newVal)
   }
 )
 
@@ -79,7 +89,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <span class="inline-block tabular-nums">
+  <span ref="rootRef" class="inline-block tabular-nums">
     {{ prefix }}{{ format ? displayValue.toLocaleString('en-US') : displayValue }}{{ suffix }}
   </span>
 </template>

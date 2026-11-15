@@ -50,7 +50,7 @@ async function initRobotCat() {
   wrap.appendChild(renderer.domElement)
 
   // ── SOFT MODERN STUDIO LIGHTING (CI BLUE ACCENTED) ─────────────────────
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x1e3a8a, 1.35)
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x0a3a4f, 1.35)
   hemi.position.set(0, 3, 0)
   scene.add(hemi)
 
@@ -58,7 +58,7 @@ async function initRobotCat() {
   keyLight.position.set(1.8, 2.8, 3.2)
   scene.add(keyLight)
 
-  const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.75)
+  const fillLight = new THREE.DirectionalLight(0x8fd5ec, 0.75)
   fillLight.position.set(-2.2, 1.4, 1.8)
   scene.add(fillLight)
 
@@ -104,7 +104,7 @@ async function initRobotCat() {
     fctx.clip()
 
     // Pure Deep Matte Black OLED Screen
-    fctx.fillStyle = '#0d1017'
+    fctx.fillStyle = '#080f1b'
     fctx.fillRect(0, 0, w, h)
 
     // Soft top ambient reflection
@@ -135,17 +135,17 @@ async function initRobotCat() {
       const ry = eyeH / 2
       const cornerR = Math.min(rx, ry, 62)
 
-      fctx.shadowColor = '#0284c7'
+      fctx.shadowColor = '#329dd2'
       fctx.shadowBlur = 18
 
-      fctx.fillStyle = '#38bdf8'
+      fctx.fillStyle = '#329dd2'
       fctx.beginPath()
       fctx.roundRect(-rx, -ry, eyeW, eyeH, cornerR)
       fctx.fill()
 
       if (blinkAmount < 0.6) {
         fctx.shadowBlur = 0
-        fctx.fillStyle = '#0d1017'
+        fctx.fillStyle = '#080f1b'
         fctx.beginPath()
         fctx.arc(
           pupilShiftX,
@@ -185,7 +185,7 @@ async function initRobotCat() {
     blushCenters.forEach((bc) => {
       fctx.save()
       fctx.translate(bc.x, bc.y)
-      fctx.strokeStyle = '#60a5fa'
+      fctx.strokeStyle = '#329dd2'
       fctx.lineWidth = 7
       fctx.lineCap = 'round'
       for (let i = -1; i <= 1; i++) {
@@ -201,7 +201,7 @@ async function initRobotCat() {
     fctx.save()
     fctx.translate(w * 0.5 + eyeShiftX * 0.7, h * 0.62 + eyeShiftY * 0.7)
 
-    fctx.fillStyle = '#38bdf8'
+    fctx.fillStyle = '#329dd2'
     fctx.beginPath()
     fctx.moveTo(-10, -17)
     fctx.lineTo(10, -17)
@@ -209,7 +209,7 @@ async function initRobotCat() {
     fctx.closePath()
     fctx.fill()
 
-    fctx.strokeStyle = '#38bdf8'
+    fctx.strokeStyle = '#329dd2'
     fctx.lineWidth = 7.5
     fctx.lineCap = 'round'
     fctx.lineJoin = 'round'
@@ -231,7 +231,7 @@ async function initRobotCat() {
 
   // ── MODERN DESIGNER-TOY MATERIALS (CI ROYAL QUANTUM BLUE & SKY CYAN) ───
   const armorWhiteMat = new THREE.MeshPhysicalMaterial({
-    color: 0x1d4ed8, // Rich Royal Blue (from user reference)
+    color: 0x329dd2, // Rich Royal Blue (from user reference)
     roughness: 0.32,
     metalness: 0.1,
     clearcoat: 0.55,
@@ -239,7 +239,7 @@ async function initRobotCat() {
   })
 
   const silverAccentMat = new THREE.MeshStandardMaterial({
-    color: 0x93c5fd, // Light sky blue metallic
+    color: 0x8fd5ec, // Light sky blue metallic
     roughness: 0.28,
     metalness: 0.35,
   })
@@ -251,13 +251,13 @@ async function initRobotCat() {
   })
 
   const indigoMat = new THREE.MeshStandardMaterial({
-    color: 0x1e3a8a, // Navy blue
+    color: 0x0a3a4f, // Navy blue
     roughness: 0.38,
     metalness: 0.12,
   })
 
   const coralMat = new THREE.MeshStandardMaterial({
-    color: 0x38bdf8, // Sky Cyan inner ear (from user reference)
+    color: 0x329dd2, // Sky Cyan inner ear (from user reference)
     roughness: 0.35,
     metalness: 0.0,
     polygonOffset: true,
@@ -266,7 +266,7 @@ async function initRobotCat() {
   })
 
   const cyanGlowMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8, // Electric Sky Cyan glow
+    color: 0x329dd2, // Electric Sky Cyan glow
   })
 
   const visorMat = new THREE.MeshBasicMaterial({
@@ -350,7 +350,7 @@ async function initRobotCat() {
     lctx.clearRect(0, 0, lw, lh)
 
     // Deep OLED Dark Background
-    lctx.fillStyle = '#0a0a0c'
+    lctx.fillStyle = '#080f1b'
     lctx.beginPath()
     lctx.arc(lw / 2, lh / 2, lw / 2, 0, Math.PI * 2)
     lctx.fill()

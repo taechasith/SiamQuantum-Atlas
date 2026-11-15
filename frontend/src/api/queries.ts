@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 
 export interface SummaryStats {
@@ -65,11 +65,31 @@ export interface SourceItem {
   view_count?: number
 }
 
-export function useStatsSummaryQuery() {
+export interface AnalyticsFilters {
+  year?: string
+  platform?: string
+  domain?: string
+  q?: string
+}
+
+export function useStatsSummaryQuery(filters?: Ref<AnalyticsFilters | undefined>) {
   return useQuery({
-    queryKey: ['stats', 'summary'],
+    queryKey: computed(() => [
+      'stats',
+      'summary',
+      filters?.value?.year ?? 'all',
+      filters?.value?.platform ?? 'all',
+      filters?.value?.domain ?? 'all',
+      filters?.value?.q ?? '',
+    ]),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<SummaryStats> => {
-      const res = await fetch('/api/stats/summary')
+      const params = new URLSearchParams()
+      if (filters?.value?.year && filters.value.year !== 'all') params.set('year', filters.value.year)
+      if (filters?.value?.platform && filters.value.platform !== 'all') params.set('platform', filters.value.platform)
+      if (filters?.value?.domain && filters.value.domain !== 'all') params.set('domain', filters.value.domain)
+      if (filters?.value?.q?.trim()) params.set('q', filters.value.q.trim())
+      const res = await fetch(`/api/stats/summary${params.size ? `?${params}` : ''}`)
       if (!res.ok) throw new Error('Failed to load stats summary')
       const json = await res.json()
       return json.data
@@ -101,11 +121,24 @@ export interface CorpusCoverageData {
   years: string[]
 }
 
-export function useCorpusCoverageQuery() {
+export function useCorpusCoverageQuery(filters?: Ref<AnalyticsFilters | undefined>) {
   return useQuery({
-    queryKey: ['corpus', 'coverage'],
+    queryKey: computed(() => [
+      'corpus',
+      'coverage',
+      filters?.value?.year ?? 'all',
+      filters?.value?.platform ?? 'all',
+      filters?.value?.domain ?? 'all',
+      filters?.value?.q ?? '',
+    ]),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<CorpusCoverageData> => {
-      const res = await fetch('/api/corpus/coverage')
+      const params = new URLSearchParams()
+      if (filters?.value?.year && filters.value.year !== 'all') params.set('year', filters.value.year)
+      if (filters?.value?.platform && filters.value.platform !== 'all') params.set('platform', filters.value.platform)
+      if (filters?.value?.domain && filters.value.domain !== 'all') params.set('domain', filters.value.domain)
+      if (filters?.value?.q?.trim()) params.set('q', filters.value.q.trim())
+      const res = await fetch(`/api/corpus/coverage${params.size ? `?${params}` : ''}`)
       if (!res.ok) throw new Error('Failed to load corpus coverage')
       const json = await res.json()
       return json.data
@@ -183,6 +216,7 @@ export interface SubmitDataPayload {
   url: string
   category: string
   handle?: string
+  province_code?: string | null
 }
 
 export function useSubmitDataMutation() {
@@ -193,10 +227,10 @@ export function useSubmitDataMutation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: payload.title,
-          source_url: payload.url,
+          url: payload.url,
           category: payload.category,
-          categories: [payload.category],
-          metadata: payload.handle ? { submitted_by: payload.handle } : {},
+          handle: payload.handle,
+          province_code: payload.province_code ?? null,
         }),
       })
       const json = await res.json().catch(() => ({}))
@@ -212,6 +246,7 @@ export interface AuthUser {
   id: string
   email: string
   display_name?: string
+  avatar_url?: string | null
   role?: string
 }
 
@@ -244,7 +279,7 @@ export function useLocalLoginMutation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: payload.email,
-          password: payload.password || 'password123',
+          password: payload.password ?? '',
         }),
       })
       const json = await res.json()
@@ -291,6 +326,7 @@ export interface MySubmission {
   status?: string
   analysis_status?: string
   metadata?: Record<string, unknown>
+  province_code?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -336,6 +372,7 @@ export interface AdminSubmissionPatch {
   status?: string
   analysis_status?: string
   analysis_result?: unknown
+  province_code?: string | null
 }
 
 export function useAdminUpdateSubmissionMutation() {
@@ -383,29 +420,6 @@ export function useAdminUsersQuery(enabled: Ref<boolean>, search: Ref<string>) {
       return json?.ok && Array.isArray(json?.data?.items) ? json.data.items : []
     },
     staleTime: 1000 * 30,
-  })
-}
-
-export function useAdminUpdateUserRoleMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: 'admin' | 'user' }) => {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok || json?.ok === false) {
-        throw new Error(json?.error?.message || 'Failed to update role')
-      }
-      return json
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'audit-log'] })
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
-    },
   })
 }
 

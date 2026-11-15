@@ -7,13 +7,12 @@
 }
 
 h1 {
-  font-size: 36px !important;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
 body {
-  background-color: #000000;
+  background-color: #080f1b;
   color: #F1F5F9;
   overflow: hidden;
 }

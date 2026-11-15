@@ -17,7 +17,7 @@ withDefaults(
   <div
     class="rounded-[30px] xl:rounded-[34px] p-5 sm:p-6 xl:p-[24px] text-white h-auto flex flex-col gap-4 select-none"
     :class="customClass"
-    style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+    style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
   >
     <header v-if="title || $slots.header || $slots.icon" class="flex items-center justify-between flex-shrink-0">
       <div>

@@ -7,6 +7,7 @@ import Alert from '@/components/ui/Alert.vue'
 import { t } from '@/composables/useLocale'
 
 const { data: graphData, isPending, isError, error, refetch } = useNetworkGraphQuery()
+const graphRef = ref<any>(null)
 
 const selectedDomain = ref('all')
 const selectedNode = ref<any | null>(null)
@@ -111,7 +112,7 @@ function onNodeClick(node: any) {
   <div class="h-full w-full relative overflow-hidden bg-black">
     <!-- 1. isPending -->
     <div v-if="isPending" class="h-full w-full flex flex-col items-center justify-center gap-4 bg-black">
-      <div class="w-10 h-10 rounded-full bg-sky-400/20 animate-ping" />
+      <div class="w-10 h-10 rounded-full bg-[#ff4c2b]/20 animate-ping" />
       <div class="text-center space-y-1">
         <p class="text-xs font-mono text-slate-300">{{ t('Initializing 2D Force-Directed Simulation...') }}</p>
         <p class="text-[11px] text-slate-500">{{ t('Computing 2,090+ triplet edges & clustering') }}</p>
@@ -125,7 +126,7 @@ function onNodeClick(node: any) {
       </Alert>
       <button
         @click="() => refetch()"
-        class="mt-4 px-4 py-2 rounded-xl bg-sky-400 text-slate-950 font-bold text-xs cursor-pointer"
+        class="mt-4 px-4 py-2 rounded-xl bg-[#ff4c2b] text-white font-bold text-xs cursor-pointer hover:bg-[#e84324]"
       >
         {{ t('Retry Graph Engine') }}
       </button>
@@ -135,6 +136,7 @@ function onNodeClick(node: any) {
     <div v-else class="h-full w-full relative overflow-hidden">
       <!-- Fullscreen 2D Graph Canvas -->
       <NetworkGraph
+        ref="graphRef"
         :nodes="filteredGraphData.nodes"
         :links="filteredGraphData.links"
         class="w-full h-full"
@@ -153,23 +155,18 @@ function onNodeClick(node: any) {
         <div
           v-if="selectedNode"
           class="absolute bottom-4 left-4 right-4 z-20 flex max-h-[60%] flex-col justify-between rounded-[26px] p-5 text-white md:bottom-5 md:left-auto md:right-5 md:max-h-[calc(100%-6rem)] md:w-96"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.6) 60%, rgba(29, 78, 216, 0.2) 100%); backdrop-filter: blur(14px);"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.6) 60%, rgba(50, 157, 210, 0.2) 100%); backdrop-filter: blur(14px);"
         >
-          <div class="min-h-0 space-y-3.5 overflow-y-auto pr-1">
-            <div class="flex items-start justify-between">
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-black/55 text-white">
-                {{ selectedNode.group || t('Concept Entity') }}
-              </span>
-              <button
-                @click="selectedNode = null"
-                class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+          <button
+            @click="selectedNode = null"
+            class="absolute right-4 top-4 z-10 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition cursor-pointer"
+          >
+            ✕
+          </button>
 
+          <div class="min-h-0 space-y-3.5 overflow-y-auto pr-1">
             <div>
-              <h3 class="text-lg font-bold text-white tracking-tight leading-snug">
+              <h3 class="pr-10 text-lg font-bold text-white tracking-tight leading-snug">
                 {{ selectedNode.label || selectedNode.id }}
               </h3>
               <p class="text-[11px] font-mono text-sky-200/70 mt-0.5">{{ t('Entity ID:') }} {{ selectedNode.id }}</p>
@@ -197,7 +194,7 @@ function onNodeClick(node: any) {
           <div class="pt-3">
             <router-link
               :to="{ path: '/database', query: { q: selectedNode.label || selectedNode.id } }"
-              class="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs text-center transition flex items-center justify-center gap-1.5 cursor-pointer"
+              class="w-full py-2.5 rounded-xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-bold text-xs text-center transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {{ t('Browse Related Sources ↗') }}
             </router-link>
@@ -205,14 +202,19 @@ function onNodeClick(node: any) {
         </div>
       </transition>
 
-      <button
+      <div
         v-if="!selectedNode"
-        type="button"
-        class="absolute bottom-5 left-5 z-20 rounded-full border border-sky-300/20 bg-[#051028]/85 px-3 py-2 font-mono text-[10px] text-white/70 shadow-lg transition hover:border-sky-300/40 hover:text-white"
-        @click="showAllNodes = !showAllNodes"
+        class="absolute bottom-3 left-4 right-4 z-20 rounded-full bg-[#0a3a4f] p-1.5 md:bottom-5 md:left-5 md:right-auto"
       >
-        {{ showAllNodes ? t('Core network only') : t('Show all nodes') }}
-      </button>
+        <button
+          type="button"
+          class="w-full rounded-full px-4 py-2 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white md:w-auto"
+          @click="showAllNodes = !showAllNodes"
+        >
+          {{ showAllNodes ? t('Core network only') : t('Show all nodes') }}
+        </button>
+      </div>
+
     </div>
   </div>
 </template>

@@ -13,7 +13,7 @@ export const DOMAIN_LABELS: Record<string, string> = {
 export const DOMAIN_COLORS = [
   '#ffffff',
   '#67e8f9',
-  '#38bdf8',
+  '#329dd2',
   '#a5b4fc',
   '#f0abfc',
   '#fbbf24',

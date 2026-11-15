@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSourcesQuery, type SourceItem } from '@/api/queries'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import AppTooltip from '@/components/ui/AppTooltip.vue'
+import SegmentedToggle from '@/components/ui/SegmentedToggle.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { t } from '@/composables/useLocale'
 
@@ -15,13 +16,37 @@ const searchQuery = ref(String(route.query.q ?? ''))
 const selectedPlatform = ref('all')
 const selectedYear = ref('all')
 const currentPage = ref(1)
-const pageSize = 15
+const pageSize = 16
 
 type ViewMode = 'table' | 'card'
+const isMobileViewport = ref(false)
 const viewMode = ref<ViewMode>(
   typeof localStorage !== 'undefined' && localStorage.getItem('sq_db_view') === 'card' ? 'card' : 'table'
 )
 watch(viewMode, (mode) => localStorage.setItem('sq_db_view', mode))
+
+function syncViewport() {
+  isMobileViewport.value = window.innerWidth < 768
+  if (isMobileViewport.value) viewMode.value = 'card'
+}
+
+onMounted(() => {
+  syncViewport()
+  window.addEventListener('resize', syncViewport)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', syncViewport)
+})
+
+const viewOptions = computed(() => [
+  { value: 'table', label: t('Table') },
+  { value: 'card', label: t('Card') },
+])
+
+function setViewMode(value: string) {
+  if (value === 'table' || value === 'card') viewMode.value = value
+}
 
 const filteredSources = computed(() => {
   if (!sources.value) return []
@@ -134,10 +159,10 @@ function coverTint(platform: string): string {
 <template>
   <div class="space-y-6 select-none w-full max-w-[1920px] mx-auto">
     <!-- Header Controls: sticky while scrolling the corpus -->
-    <div class="sticky -top-5 z-30 -mx-[calc(1.25rem+5px)] -mt-5 border-b border-white/[0.06] bg-[#070709]/92 px-[calc(1.25rem+5px)] pb-4 pt-5 backdrop-blur-xl md:-top-7 md:-mx-[calc(1.75rem+5px)] md:-mt-7 md:px-[calc(1.75rem+5px)] md:pt-7">
+    <div class="relative z-30 -mx-[calc(1.25rem+5px)] md:sticky md:-top-5 -mt-5 bg-[#080f1b]/92 px-[calc(1.25rem+5px)] pb-0 pt-5 backdrop-blur-xl md:-top-7 md:-mx-[calc(1.75rem+5px)] md:-mt-7 md:px-[calc(1.75rem+5px)] md:pb-7 md:pt-7 lg:-ml-[calc(3rem+5px)] lg:pl-[calc(3rem+5px)]">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-2.5">
-        <h1 class="text-2xl sm:text-[36px] font-black text-white tracking-tight leading-tight m-0 uppercase">{{ t('Quantum Corpus Database') }}</h1>
+      <div class="flex items-start gap-2.5">
+        <h1 class="min-w-0 text-2xl sm:text-[36px] font-black text-white tracking-tight leading-tight m-0 uppercase">{{ t('Quantum Corpus Database') }}</h1>
 
         <!-- Info (i) Tooltip Button -->
         <AppTooltip
@@ -146,7 +171,7 @@ function coverTint(platform: string): string {
         >
           <button
             type="button"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:text-cyan-300 hover:bg-white/10 transition cursor-pointer"
+            class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white/50 hover:text-cyan-300 hover:bg-white/10 transition cursor-pointer"
             :aria-label="t('More information about the corpus')"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -157,99 +182,120 @@ function coverTint(platform: string): string {
           </button>
         </AppTooltip>
 
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-black/55 text-white">
-          {{ filteredSources.length }} {{ t('Documents') }}
-        </span>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
-        <div class="flex items-center rounded-full bg-white/[0.06] border border-white/[0.08] p-1">
-          <button
-            type="button"
-            @click="viewMode = 'table'"
-            :aria-pressed="viewMode === 'table'"
-            class="px-3.5 py-1.5 rounded-full font-mono text-[11px] font-bold uppercase tracking-wider transition cursor-pointer"
-            :class="viewMode === 'table' ? 'bg-white text-slate-950' : 'text-slate-300 hover:text-white'"
-          >
-            {{ t('Table') }}
-          </button>
-          <button
-            type="button"
-            @click="viewMode = 'card'"
-            :aria-pressed="viewMode === 'card'"
-            class="px-3.5 py-1.5 rounded-full font-mono text-[11px] font-bold uppercase tracking-wider transition cursor-pointer"
-            :class="viewMode === 'card' ? 'bg-white text-slate-950' : 'text-slate-300 hover:text-white'"
-          >
-            {{ t('Card') }}
-          </button>
-        </div>
+      <div class="flex w-full flex-nowrap items-center gap-2.5 md:w-auto">
+        <SegmentedToggle
+          class="hidden md:flex [&>button]:flex-1 md:w-auto md:[&>button]:flex-none"
+          :model-value="viewMode"
+          :options="viewOptions"
+          :aria-label="t('View mode')"
+          @update:model-value="setViewMode"
+        />
+        <router-link
+          to="/submit-data"
+          class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#ff4c2b] px-3 font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-white no-underline transition hover:bg-[#e84324] md:flex-none"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          {{ t('Research Input') }}
+        </router-link>
         <a
           href="/api/export/xlsx"
           target="_blank"
-          class="px-4 py-2 rounded-full bg-blue-600/30 hover:bg-blue-600/50 text-cyan-300 font-mono font-bold text-xs transition flex items-center gap-2 cursor-pointer"
+          class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#ff4c2b] text-white transition hover:bg-[#e84324] cursor-pointer"
+          :aria-label="t('Download XLSX')"
+          :title="t('Download XLSX')"
         >
-          <span>{{ t('Download XLSX') }}</span>
-          <span>↓</span>
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
         </a>
       </div>
       </div>
     </div>
 
     <!-- Table Card Container (Royal Sapphire CI: Zero Shadow, Zero Stroke) -->
-    <div
-      class="w-full rounded-[30px] xl:rounded-[34px] p-5 sm:p-6 text-white overflow-hidden space-y-4"
-      style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
-    >
+    <div class="w-full text-white overflow-hidden space-y-4">
       <!-- Filters Bar inside Card -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-black/30 w-full">
-        <div class="relative flex-1">
+      <div class="flex flex-col gap-3 bg-transparent w-full sm:flex-row sm:items-center sm:justify-end">
+        <div class="relative order-1 w-full max-w-[420px] sm:order-1">
+          <svg
+            class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="t('Search by keywords, title, author, URL...')"
-            class="w-full px-4 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] focus:bg-white/[0.16] text-xs text-white placeholder-white/50 focus:outline-none transition"
+            class="h-10 w-full rounded-xl bg-[#329dd2] pl-10 pr-4 text-xs text-white placeholder-white/50 transition hover:bg-[#2a8ab5] focus:bg-[#2a8ab5] focus:outline-none"
           />
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-          <Select v-model="selectedPlatform">
-            <SelectTrigger class="w-full sm:w-[178px]">
-              <SelectValue :placeholder="t('All Platforms')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{{ t('All Platforms') }}</SelectItem>
-              <SelectItem value="youtube">YouTube</SelectItem>
-              <SelectItem value="gdelt">GDELT</SelectItem>
-              <SelectItem value="manual_seed">{{ t('Manual Seed') }}</SelectItem>
-              <SelectItem value="web">{{ t('Web') }}</SelectItem>
-            </SelectContent>
-          </Select>
+        <div class="order-2 grid w-full grid-cols-2 gap-2 sm:contents">
+          <div class="order-2 min-w-0 w-full sm:w-auto">
+            <Select v-model="selectedPlatform">
+              <SelectTrigger class="w-full sm:w-[178px] bg-[#329dd2] hover:bg-[#2a8ab5]">
+                <SelectValue :placeholder="t('All Platforms')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{{ t('All Platforms') }}</SelectItem>
+                <SelectItem value="youtube">YouTube</SelectItem>
+                <SelectItem value="gdelt">GDELT</SelectItem>
+                <SelectItem value="manual_seed">{{ t('Manual Seed') }}</SelectItem>
+                <SelectItem value="web">{{ t('Web') }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select v-model="selectedYear">
-            <SelectTrigger class="w-full sm:w-[130px]">
-              <SelectValue :placeholder="t('All Years')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{{ t('All Years') }}</SelectItem>
-              <SelectItem v-for="year in ['2026','2025','2024','2023','2022','2021','2020']" :key="year" :value="year">
-                {{ year }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="order-3 min-w-0 w-full sm:w-auto">
+            <Select v-model="selectedYear">
+              <SelectTrigger class="w-full sm:w-[130px] bg-[#329dd2] hover:bg-[#2a8ab5]">
+                <SelectValue :placeholder="t('All Years')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{{ t('All Years') }}</SelectItem>
+                <SelectItem v-for="year in ['2026','2025','2024','2023','2022','2021','2020']" :key="year" :value="year">
+                  {{ year }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <!-- Table Viewport -->
-      <div class="rounded-2xl bg-black/25 overflow-hidden w-full">
-        <div v-if="viewMode === 'table'" class="overflow-x-auto w-full">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-black/55 text-white/90 uppercase font-mono tracking-wider text-[11px]">
+      <div class="rounded-[20px] bg-transparent overflow-hidden w-full">
+        <div v-if="viewMode === 'table' && !isMobileViewport" class="overflow-x-auto w-full rounded-b-[20px] bg-[#329dd2]">
+          <table class="w-full table-fixed border-separate border-spacing-0 text-left text-xs">
+            <colgroup>
+              <col style="width: 96px">
+              <col>
+              <col style="width: 120px">
+              <col style="width: 70px">
+              <col style="width: 112px">
+            </colgroup>
+            <thead class="text-white uppercase font-mono tracking-wider text-[11px]">
               <tr>
-                <th class="p-3.5 pl-6 w-24">{{ t('ID') }}</th>
-                <th class="p-3.5">{{ t('Title / Subject') }}</th>
-                <th class="p-3.5 w-36">{{ t('Platform') }}</th>
-                <th class="p-3.5 w-24">{{ t('Year') }}</th>
-                <th class="p-3.5 text-right pr-6 w-32">{{ t('Provenance') }}</th>
+                <th class="border-y border-white/20 bg-[#329dd2] p-3.5 pl-6 first:border-l first:rounded-l-[20px] last:border-r last:rounded-r-[20px]">{{ t('ID') }}</th>
+                <th class="border-y border-white/20 bg-[#329dd2] p-3.5 first:border-l first:rounded-l-[20px] last:border-r last:rounded-r-[20px]">{{ t('Title / Subject') }}</th>
+                <th class="border-y border-white/20 bg-[#329dd2] p-3.5 first:border-l first:rounded-l-[20px] last:border-r last:rounded-r-[20px]">{{ t('Platform') }}</th>
+                <th class="border-y border-white/20 bg-[#329dd2] p-3.5 first:border-l first:rounded-l-[20px] last:border-r last:rounded-r-[20px]">{{ t('Year') }}</th>
+                <th class="border-y border-white/20 bg-[#329dd2] p-3.5 text-right pr-6 first:border-l first:rounded-l-[20px] last:border-r last:rounded-r-[20px]">{{ t('Provenance') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-white/[0.06]">
@@ -264,7 +310,7 @@ function coverTint(platform: string): string {
                 <td colspan="5" class="p-8 text-center text-xs text-rose-200">
                   <p class="font-bold m-0">{{ t('Unable to load source data') }}</p>
                   <p class="mt-1 text-white/50">{{ sourcesError?.message }}</p>
-                  <button type="button" class="mt-3 rounded-lg bg-white px-3 py-1.5 text-[10px] font-bold text-slate-950" @click="refetch()">{{ t('Retry') }}</button>
+                  <button type="button" class="mt-3 rounded-lg bg-[#ff4c2b] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#e84324]" @click="refetch()">{{ t('Retry') }}</button>
                 </td>
               </tr>
               <tr v-else-if="!paginatedSources.length">
@@ -278,11 +324,11 @@ function coverTint(platform: string): string {
               <tr
                 v-for="item in paginatedSources"
                 :key="item.id"
-                class="hover:bg-white/[0.05] transition group"
+                class="bg-[#329dd2] transition group"
               >
                 <td class="p-3.5 pl-6 font-mono text-cyan-300/70 text-[11px] whitespace-nowrap">#{{ item.id }}</td>
                 <td class="p-3.5">
-                  <div class="font-medium text-white group-hover:text-cyan-300 transition text-[13px] leading-snug">
+                  <div class="line-clamp-2 break-words font-medium text-white group-hover:text-cyan-300 transition text-[13px] leading-snug">
                     {{ item.title || item.url }}
                   </div>
                   <div v-if="item.raw_text" class="text-[11.5px] text-sky-200/60 line-clamp-1 mt-0.5">
@@ -290,7 +336,10 @@ function coverTint(platform: string): string {
                   </div>
                 </td>
                 <td class="p-3.5 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-black/55 text-white">
+                  <span
+                    class="inline-flex w-24 items-center justify-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold text-white"
+                    :class="item.platform.toLowerCase() === 'youtube' ? 'bg-red-600' : 'bg-black/55'"
+                  >
                     {{ platformName(item.platform) }}
                   </span>
                 </td>
@@ -310,12 +359,12 @@ function coverTint(platform: string): string {
         </div>
 
         <!-- Card Viewport -->
-        <div v-else class="p-4 sm:p-5">
+        <div v-else class="p-0">
           <div v-if="isPending" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             <div
               v-for="i in 8"
               :key="i"
-              class="rounded-2xl border border-white/[0.04] bg-black/30 overflow-hidden"
+              class="rounded-[20px] border border-white/[0.04] bg-black/30 overflow-hidden"
             >
               <div class="aspect-video animate-pulse bg-white/[0.04]" />
               <div class="p-4 space-y-2">
@@ -328,7 +377,7 @@ function coverTint(platform: string): string {
           <div v-else-if="isError" class="rounded-2xl border border-rose-300/20 bg-rose-500/10 p-6 text-center text-xs text-rose-200">
             <p class="font-bold m-0">{{ t('Unable to load source data') }}</p>
             <p class="mt-1 text-white/50">{{ sourcesError?.message }}</p>
-            <button type="button" class="mt-3 rounded-lg bg-white px-3 py-1.5 text-[10px] font-bold text-slate-950" @click="refetch()">{{ t('Retry') }}</button>
+            <button type="button" class="mt-3 rounded-lg bg-[#ff4c2b] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#e84324]" @click="refetch()">{{ t('Retry') }}</button>
           </div>
 
           <div v-else-if="!paginatedSources.length" class="py-6">
@@ -345,7 +394,7 @@ function coverTint(platform: string): string {
               :href="item.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-black/30 no-underline transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/30 hover:bg-black/40"
+              class="group flex flex-col overflow-hidden rounded-[20px] bg-[#329dd2] no-underline transition duration-300 hover:-translate-y-0.5 hover:bg-[#2a8ab5]"
             >
               <div class="relative aspect-video overflow-hidden">
                 <img
@@ -376,7 +425,10 @@ function coverTint(platform: string): string {
                   </svg>
                 </div>
                 <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
-                <span class="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur">
+                <span
+                  class="absolute left-3 top-3 rounded-full px-2 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur"
+                  :class="item.platform.toLowerCase() === 'youtube' ? 'bg-red-600' : 'bg-black/60'"
+                >
                   {{ platformName(item.platform) }}
                 </span>
                 <span class="absolute right-3 top-3 rounded-full border border-white/10 bg-black/60 px-2 py-0.5 font-mono text-[10px] text-white backdrop-blur">
@@ -388,13 +440,19 @@ function coverTint(platform: string): string {
                 <h3 class="m-0 line-clamp-2 text-sm font-bold leading-snug text-white transition group-hover:text-cyan-300">
                   {{ item.title || item.url }}
                 </h3>
-                <p class="m-0 truncate font-mono text-[11px] text-sky-200/60">
+                <p class="m-0 truncate font-mono text-[11px] text-sky-100/75">
                   {{ item.channel_title || hostOf(item.url) }}
-                  <span v-if="item.view_count"> · {{ formatCount(item.view_count) }} {{ t('views') }}</span>
+                  <span v-if="item.view_count" class="inline-flex items-center gap-1">
+                    · {{ formatCount(item.view_count) }}
+                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="views">
+                      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                      <circle cx="12" cy="12" r="2.5" />
+                    </svg>
+                  </span>
                 </p>
-                <div class="mt-auto flex items-center justify-between border-t border-white/[0.06] pt-3">
-                  <span class="font-mono text-[11px] text-white/45">#{{ item.id }}</span>
-                  <span class="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-cyan-300 transition group-hover:text-white">
+                <div class="mt-auto flex items-center justify-between pt-3">
+                  <span class="font-mono text-[11px] text-white/60">#{{ item.id }}</span>
+                  <span class="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-white transition group-hover:text-sky-100">
                     {{ t('Source') }} <span aria-hidden="true">↗</span>
                   </span>
                 </div>
@@ -404,24 +462,24 @@ function coverTint(platform: string): string {
         </div>
 
         <!-- Pagination Footer -->
-        <div class="p-4 bg-black/35 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-white/80">
-          <div>
+        <div class="p-4 bg-transparent flex flex-col items-center gap-3 text-xs font-mono text-white/80 sm:flex-row sm:justify-between">
+          <div class="w-full text-center sm:w-auto sm:text-left">
             {{ t('Showing') }} {{ shownStart }}–{{ shownEnd }} {{ t('of') }} {{ filteredSources.length }} {{ t('records') }}
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex w-full flex-nowrap items-center gap-2 sm:w-auto">
             <button
               :disabled="currentPage === 1"
               @click="currentPage--"
-              class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+              class="inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl bg-[#0a3a4f] px-2 py-1.5 text-[11px] text-white transition hover:bg-[#0e4a63] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer sm:w-[112px] sm:flex-none sm:px-3.5 sm:text-xs"
             >
               ← {{ t('Previous') }}
             </button>
-            <span class="text-white/90">{{ t('Page') }} {{ currentPage }} / {{ totalPages }}</span>
+            <span class="shrink-0 whitespace-nowrap text-[11px] text-white/90 sm:text-xs">{{ t('Page') }} {{ currentPage }} / {{ totalPages }}</span>
             <button
               :disabled="currentPage >= totalPages"
               @click="currentPage++"
-              class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+              class="inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl bg-[#0a3a4f] px-2 py-1.5 text-[11px] text-white transition hover:bg-[#0e4a63] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer sm:w-[112px] sm:flex-none sm:px-3.5 sm:text-xs"
             >
               {{ t('Next') }} →
             </button>
@@ -429,5 +487,6 @@ function coverTint(platform: string): string {
         </div>
       </div>
     </div>
+
   </div>
 </template>

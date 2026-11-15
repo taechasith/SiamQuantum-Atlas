@@ -5,7 +5,6 @@ import {
   useAdminSubmissionsQuery,
   useAdminUpdateSubmissionMutation,
   useAdminUsersQuery,
-  useAdminUpdateUserRoleMutation,
   useAdminAuditLogQuery,
   type AdminSubmission,
   type AdminUser,
@@ -13,6 +12,7 @@ import {
 import AppTooltip from '@/components/ui/AppTooltip.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { t } from '@/composables/useLocale'
+import { THAI_PROVINCES } from '@/lib/provinces'
 
 const { data: authUser } = useAuthUserQuery()
 const isAdmin = computed(() => authUser.value?.role === 'admin')
@@ -29,21 +29,11 @@ const { mutateAsync: patchAdminSubmission, isPending: isUpdating } = useAdminUpd
 
 const { data: adminUsers, isPending: isUsersPending, refetch: refetchUsers } =
   useAdminUsersQuery(isAdmin, userSearch)
-const { mutateAsync: patchUserRole, isPending: isRoleUpdating } = useAdminUpdateUserRoleMutation()
 
 const { data: auditLog, isPending: isAuditPending } = useAdminAuditLogQuery(isAdmin)
 
 const errorMessage = computed(() => (error.value as Error | null)?.message ?? '')
 const adminCount = computed(() => (adminUsers.value ?? []).filter((user) => user.role === 'admin').length)
-
-async function updateUserRole(user: AdminUser, role: 'admin' | 'user') {
-  actionError.value = ''
-  try {
-    await patchUserRole({ id: user.id, role })
-  } catch (err: any) {
-    actionError.value = err?.message || t('Failed to update role')
-  }
-}
 
 const statusOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -78,13 +68,17 @@ function formatDate(value?: string) {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-async function patchSubmission(item: AdminSubmission, patch: Record<string, string>) {
+async function patchSubmission(item: AdminSubmission, patch: Record<string, unknown>) {
   actionError.value = ''
   try {
     await patchAdminSubmission({ id: item.id, patch })
   } catch (err: any) {
     actionError.value = err?.message || t('Failed to update submission')
   }
+}
+
+async function updateProvince(item: AdminSubmission, value: string) {
+  await patchSubmission(item, { province_code: value === 'none' ? null : value })
 }
 </script>
 
@@ -119,7 +113,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
     <div
       v-if="!isAdmin"
       class="rounded-[30px] p-6 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
-      style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+      style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
     >
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-2xl bg-black/40 flex items-center justify-center flex-shrink-0">
@@ -135,7 +129,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
       </div>
       <router-link
         to="/dashboard"
-        class="px-5 py-2.5 rounded-2xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-xs font-bold no-underline transition whitespace-nowrap"
+        class="px-5 py-2.5 rounded-2xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-mono text-xs font-bold no-underline transition whitespace-nowrap"
       >
         {{ t('Go to Dashboard') }}
       </router-link>
@@ -151,7 +145,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
           :class="activeTab === 'submissions' ? 'text-white' : 'text-white/50 hover:text-white/80'"
         >
           {{ t('Submissions') }}
-          <span v-if="activeTab === 'submissions'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-cyan-300" />
+          <span v-if="activeTab === 'submissions'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-[#ff4c2b]" />
         </button>
         <button
           type="button"
@@ -160,7 +154,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
           :class="activeTab === 'access' ? 'text-white' : 'text-white/50 hover:text-white/80'"
         >
           {{ t('Access Control') }}
-          <span v-if="activeTab === 'access'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-cyan-300" />
+          <span v-if="activeTab === 'access'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-[#ff4c2b]" />
         </button>
         <button
           type="button"
@@ -169,7 +163,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
           :class="activeTab === 'audit' ? 'text-white' : 'text-white/50 hover:text-white/80'"
         >
           {{ t('Audit Log') }}
-          <span v-if="activeTab === 'audit'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-cyan-300" />
+          <span v-if="activeTab === 'audit'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-[#ff4c2b]" />
         </button>
       </div>
 
@@ -181,7 +175,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
       <!-- Filters -->
       <section
         class="rounded-[26px] p-4 sm:p-5 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <div class="flex flex-wrap items-center gap-3">
           <Select v-model="status">
@@ -217,7 +211,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
 
         <button
           type="button"
-          class="self-start lg:self-auto px-4 py-2.5 rounded-xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-xs font-bold transition cursor-pointer flex items-center gap-2"
+          class="self-start lg:self-auto px-4 py-2.5 rounded-xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-mono text-xs font-bold transition cursor-pointer flex items-center gap-2"
           :disabled="isFetching"
           @click="refetch()"
         >
@@ -238,7 +232,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
         />
       </div>
 
-      <div v-else-if="isError" class="rounded-[26px] p-6 text-white" style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);">
+      <div v-else-if="isError" class="rounded-[26px] p-6 text-white" style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);">
         <p class="text-sm font-bold m-0">{{ t('Unable to load submissions') }}</p>
         <p class="text-xs text-sky-200/80 m-0 mt-1">{{ errorMessage }}</p>
       </div>
@@ -247,7 +241,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
       <div
         v-else-if="!submissions?.length"
         class="rounded-[26px] p-10 text-white text-center"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.35) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.35) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <p class="text-base font-bold m-0">{{ t('No submissions match the current filters') }}</p>
         <p class="text-xs text-sky-200/80 m-0 mt-1">{{ t('Try changing the status or category filter.') }}</p>
@@ -259,7 +253,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
           v-for="item in submissions"
           :key="item.id"
           class="rounded-[26px] p-5 text-white flex flex-col justify-between gap-4"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
         >
           <div class="space-y-3">
             <div class="flex items-start justify-between gap-3">
@@ -291,13 +285,31 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
                 {{ t('Open Source') }} ↗
               </a>
             </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono uppercase tracking-wider text-sky-200/70">{{ t('Province') }}</span>
+              <Select
+                :model-value="item.province_code ?? 'none'"
+                @update:model-value="(value) => updateProvince(item, String(value))"
+              >
+                <SelectTrigger class="h-8 w-[180px] text-[11px]">
+                  <SelectValue :placeholder="t('Not specified (country-level)')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{{ t('Not specified (country-level)') }}</SelectItem>
+                  <SelectItem v-for="province in THAI_PROVINCES" :key="province" :value="province">
+                    {{ province }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
             <button
               v-if="item.status !== 'approved'"
               type="button"
-              class="px-3.5 py-2 rounded-xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
+              class="px-3.5 py-2 rounded-xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50"
               :disabled="isUpdating"
               @click="patchSubmission(item, { status: 'approved' })"
             >
@@ -340,7 +352,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
       <div v-else-if="activeTab === 'access'" class="space-y-5">
         <section
           class="rounded-[26px] p-4 sm:p-5 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
         >
           <div class="flex flex-wrap items-center gap-3">
             <input
@@ -358,12 +370,16 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
           </div>
           <button
             type="button"
-            class="self-start lg:self-auto px-4 py-2.5 rounded-xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-xs font-bold transition cursor-pointer"
+            class="self-start lg:self-auto px-4 py-2.5 rounded-xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-mono text-xs font-bold transition cursor-pointer"
             @click="refetchUsers()"
           >
             {{ t('Refresh') }}
           </button>
         </section>
+
+        <p class="px-1 text-[11px] font-mono text-sky-200/70 m-0">
+          {{ t('Admin roles are provisioned directly in the database by an operator and cannot be changed from this page.') }}
+        </p>
 
         <div v-if="isUsersPending" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div v-for="i in 4" :key="i" class="rounded-[26px] h-28 animate-pulse bg-white/[0.04]" />
@@ -372,7 +388,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
         <div
           v-else-if="!adminUsers?.length"
           class="rounded-[26px] p-10 text-white text-center"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.35) 55%, rgba(29, 78, 216, 0) 100%);"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.35) 55%, rgba(50, 157, 210, 0) 100%);"
         >
           <p class="text-base font-bold m-0">{{ t('No users found') }}</p>
         </div>
@@ -382,7 +398,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
             v-for="user in adminUsers"
             :key="user.id"
             class="rounded-[26px] p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+            style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
           >
             <div class="min-w-0">
               <h2 class="text-base font-bold m-0 truncate">{{ user.display_name || user.email }}</h2>
@@ -396,24 +412,6 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
                 </span>
               </div>
             </div>
-            <button
-              v-if="user.role === 'admin'"
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-black/35 hover:bg-black/50 text-white font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50 flex-shrink-0"
-              :disabled="isRoleUpdating || (user.id === authUser?.id && adminCount <= 1)"
-              @click="updateUserRole(user, 'user')"
-            >
-              {{ t('Remove Admin') }}
-            </button>
-            <button
-              v-else
-              type="button"
-              class="px-3.5 py-2 rounded-xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-[11px] font-bold transition cursor-pointer disabled:opacity-50 flex-shrink-0"
-              :disabled="isRoleUpdating"
-              @click="updateUserRole(user, 'admin')"
-            >
-              {{ t('Make Admin') }}
-            </button>
           </article>
         </div>
       </div>
@@ -427,7 +425,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
         <div
           v-else-if="!auditLog?.length"
           class="rounded-[26px] p-10 text-white text-center"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.35) 55%, rgba(29, 78, 216, 0) 100%);"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.35) 55%, rgba(50, 157, 210, 0) 100%);"
         >
           <p class="text-base font-bold m-0">{{ t('No audit events yet.') }}</p>
         </div>
@@ -437,7 +435,7 @@ async function patchSubmission(item: AdminSubmission, patch: Record<string, stri
             v-for="event in auditLog"
             :key="event.id"
             class="rounded-[22px] p-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-            style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.35) 55%, rgba(29, 78, 216, 0) 100%);"
+            style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.35) 55%, rgba(50, 157, 210, 0) 100%);"
           >
             <div class="min-w-0 space-y-1">
               <div class="flex flex-wrap items-center gap-2">

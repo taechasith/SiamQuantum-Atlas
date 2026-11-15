@@ -17,7 +17,7 @@ const props = withDefaults(
     <SelectContent
       v-bind="props"
       :class="cn(
-        'relative z-[2600] max-h-[min(22rem,var(--reka-select-content-available-height))] min-w-[10rem] overflow-hidden rounded-xl border border-white/10 bg-[#0b1324] text-white shadow-2xl',
+        'relative z-[2600] max-h-[min(22rem,var(--reka-select-content-available-height))] min-w-[10rem] overflow-hidden rounded-xl border border-white/10 bg-[#080f1b] text-white shadow-2xl',
         props.class
       )"
     >

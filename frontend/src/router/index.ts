@@ -7,6 +7,7 @@ import AdminPage from '@/pages/AdminPage.vue'
 
 const AtlasPage = () => import('@/pages/AtlasPage.vue')
 const AboutPage = () => import('@/pages/AboutPage.vue')
+const DesignSystemPage = () => import('@/pages/DesignSystemPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -15,6 +16,7 @@ export const router = createRouter({
     { path: '/home', redirect: '/atlas' },
     { path: '/dashboard', name: 'dashboard', component: AnalyticsPage },
     { path: '/about', name: 'about', component: AboutPage },
+    { path: '/ci', name: 'ci', component: DesignSystemPage },
     { path: '/atlas', name: 'atlas', component: AtlasPage },
     { path: '/map', redirect: { path: '/atlas', query: { view: 'globe' } } },
     { path: '/network', redirect: { path: '/atlas', query: { view: 'network' } } },

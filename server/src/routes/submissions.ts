@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { sql } from '../db/client'
 import { profilePayload, requireAdmin, requireUser, type LocalUser } from '../lib/auth'
+import { THAI_PROVINCE_SET } from '../lib/provinces'
 import { fail, intParam, nowIso, ok, safeJsonParse } from '../lib/http'
 
 export const submissionRoutes = new Hono()
@@ -18,6 +19,7 @@ type SubmissionRow = {
   analysis_status: string
   analysis_result: string | null
   metadata: string | null
+  province_code: string | null
   created_at: string
   updated_at: string
 }
@@ -32,15 +34,31 @@ const submitSchema = z.object({
   url: z.string().trim().url(),
   category: z.string().trim().min(1).max(120),
   handle: z.string().trim().max(200).optional(),
+  province_code: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .nullable()
+    .refine((value) => !value || THAI_PROVINCE_SET.has(value), {
+      message: 'Invalid province.',
+    }),
 })
 
 const adminPatchSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
   analysis_status: z.enum(['queued', 'processing', 'completed', 'failed']).optional(),
   analysis_result: z.unknown().optional(),
+  province_code: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .nullable()
+    .refine((value) => !value || THAI_PROVINCE_SET.has(value), {
+      message: 'Invalid province.',
+    }),
 })
-
-const roleSchema = z.object({ role: z.enum(['admin', 'user']) })
 
 function submissionPayload(row: SubmissionRow) {
   const metadata = safeJsonParse<Record<string, unknown>>(row.metadata, {})
@@ -57,6 +75,7 @@ function submissionPayload(row: SubmissionRow) {
     analysis_status: row.analysis_status,
     analysis_result: analysisResult,
     metadata,
+    province_code: row.province_code,
     submitted_by: typeof metadata.submitted_by === 'string' ? metadata.submitted_by : null,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -111,12 +130,13 @@ submissionRoutes.post('/submitted-data', async (c) => {
     handle: parsed.data.handle || null,
     platform: parsed.data.url.includes('youtube') ? 'youtube' : 'web',
   }
+  const provinceCode = parsed.data.province_code?.trim() || null
   const [row] = await sql<SubmissionRow[]>`
     INSERT INTO local_submitted_data
-      (user_id, title, source_url, category, page_target, status, analysis_status, metadata, created_at, updated_at)
+      (user_id, title, source_url, category, page_target, status, analysis_status, metadata, province_code, created_at, updated_at)
     VALUES
       (${user.id}, ${parsed.data.title}, ${parsed.data.url}, ${parsed.data.category}, ${null},
-       'pending', 'queued', ${JSON.stringify(metadata)}, ${now}, ${now})
+       'pending', 'queued', ${JSON.stringify(metadata)}, ${provinceCode}, ${now}, ${now})
     RETURNING *
   `
   if (!row) return fail(c, 500, 'submission_failed', 'Failed to save the submission.')
@@ -189,9 +209,11 @@ submissionRoutes.patch('/admin/submitted-data/:id', async (c) => {
   const entries = Object.entries(parsed.data).filter(([, value]) => value !== undefined)
   if (entries.length === 0) return fail(c, 422, 'submission_patch_empty', 'No fields were provided.')
   const assignments = entries.map(([key], index) => `${key} = $${index + 1}`)
-  const values: any[] = entries.map(([key, value]) =>
-    key === 'analysis_result' && value !== null ? JSON.stringify(value) : value
-  )
+  const values: any[] = entries.map(([key, value]) => {
+    if (key === 'analysis_result' && value !== null) return JSON.stringify(value)
+    if (key === 'province_code') return value === '' ? null : value
+    return value
+  })
   const [row] = await sql.unsafe<SubmissionRow[]>(
     `UPDATE local_submitted_data SET ${assignments.join(', ')}, updated_at = $${values.length + 1}
      WHERE id = $${values.length + 2} RETURNING *`,
@@ -225,23 +247,12 @@ submissionRoutes.get('/admin/users', async (c) => {
 submissionRoutes.patch('/admin/users/:id', async (c) => {
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
-  const id = c.req.param('id')
-  const parsed = roleSchema.safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return fail(c, 422, 'role_invalid', 'Role must be admin or user.')
-  if (id === admin.id && parsed.data.role !== 'admin') {
-    const [countRow] = await sql<{ count: number }[]>`
-      SELECT COUNT(*)::int AS count FROM local_users WHERE role = 'admin'
-    `
-    if ((countRow?.count ?? 0) <= 1) return fail(c, 409, 'last_admin', 'Cannot remove the last admin.')
-  }
-  const [row] = await sql<AdminUserRow[]>`
-    UPDATE local_users SET role = ${parsed.data.role}, updated_at = ${nowIso()}
-    WHERE id = ${id}
-    RETURNING id, email, display_name, role, created_at, organization, focus
-  `
-  if (!row) return fail(c, 404, 'user_not_found', 'User not found.')
-  await logAdminAction(admin, 'update_user_role', 'user', id, { role: parsed.data.role })
-  return ok(c, row)
+  return fail(
+    c,
+    403,
+    'role_managed_in_database',
+    'Roles are provisioned directly in the database. Ask an operator to run the admin script.'
+  )
 })
 
 submissionRoutes.get('/admin/audit-log', async (c) => {

@@ -13,7 +13,7 @@ const props = withDefaults(
     variant: 'squares',
     width: 90,
     height: 28,
-    color: '#38BDF8',
+    color: '#329DD2',
   }
 )
 

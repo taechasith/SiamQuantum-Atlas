@@ -30,7 +30,7 @@ export const BREEDS: Record<CatBreed, {
     earOuter: 0x2d1a0e,  // Chocolate ears
     earInner: 0xe5a296,  // Soft warm peach inner ear
     eyeIris: '#00b4d8',  // Vivid sapphire aquamarine
-    eyeRim: '#023e8a',   // Deep royal navy limbal ring
+    eyeRim: '#0a3a4f',   // Deep royal navy limbal ring
     eyeCenter: '#caf0f8',// Sparkling crystal cyan core
     nose: 0xd9758c,      // Soft dusky rose leather
     sheen: 0xffffff,     // Velvet fur sheen
@@ -50,7 +50,7 @@ export const BREEDS: Record<CatBreed, {
     eyeRim: '#0e7490',
     eyeCenter: '#a5f3fc',
     nose: 0xf472b6,      // Kitten pink nose
-    sheen: 0xdbeafe,
+    sheen: 0xcfeef8,
   },
   ginger: {
     name: 'แมวส้มควอนตัม',
@@ -73,7 +73,7 @@ export const BREEDS: Record<CatBreed, {
     name: 'ชเรอดิงเจอร์ โฮโล',
     label: 'Schrödinger Holo',
     swatch: '#1e293b',
-    colors: ['#1e293b', '#38bdf8', '#10b981'],
+    colors: ['#1e293b', '#329dd2', '#10b981'],
     body: 0x1e293b,      // Dark quantum obsidian
     belly: 0x334155,
     point: 0x0f172a,

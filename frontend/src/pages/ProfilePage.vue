@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 import { useAuthUserQuery, useMySubmissionsQuery, type MySubmission } from '@/api/queries'
+import AuthMenu from '@/components/auth/AuthMenu.vue'
 import AppTooltip from '@/components/ui/AppTooltip.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { t } from '@/composables/useLocale'
 
+const queryClient = useQueryClient()
 const { data: authUser } = useAuthUserQuery()
 const { data: mySubmissions } = useMySubmissionsQuery(computed(() => Boolean(authUser.value)))
 
@@ -17,6 +20,7 @@ interface ProfileData {
   initials: string
   focus: string
   citation: string
+  avatarUrl: string
 }
 
 const guestProfile: ProfileData = {
@@ -28,6 +32,7 @@ const guestProfile: ProfileData = {
   initials: '?',
   focus: '—',
   citation: '—',
+  avatarUrl: '',
 }
 
 const defaultProfile: ProfileData = {
@@ -39,6 +44,7 @@ const defaultProfile: ProfileData = {
   initials: 'SQ',
   focus: '',
   citation: 'IEEE / BibTeX Standard',
+  avatarUrl: '',
 }
 
 const profile = ref<ProfileData>({ ...guestProfile })
@@ -71,6 +77,7 @@ function hydrateProfile() {
     organization: saved.organization || '',
     focus: saved.focus || '',
     citation: saved.citation || defaultProfile.citation,
+    avatarUrl: user.avatar_url || saved.avatarUrl || '',
   }
 }
 
@@ -125,14 +132,56 @@ const isEditOpen = ref(false)
 const editForm = ref<ProfileData>({ ...profile.value })
 const saveSuccess = ref(false)
 const saveError = ref('')
+const isDeleteConfirmOpen = ref(false)
+const isDeletingAccount = ref(false)
+const deleteError = ref('')
+
+const copiedEndpoint = ref('')
+
+async function copyEndpoint(path: string) {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}${path}`)
+    copiedEndpoint.value = path
+    window.setTimeout(() => {
+      if (copiedEndpoint.value === path) copiedEndpoint.value = ''
+    }, 1800)
+  } catch {
+    copiedEndpoint.value = ''
+  }
+}
 
 function openEditModal() {
   editForm.value = { ...profile.value }
+  isDeleteConfirmOpen.value = false
+  deleteError.value = ''
   isEditOpen.value = true
 }
 
 function closeEditModal() {
   isEditOpen.value = false
+  isDeleteConfirmOpen.value = false
+  deleteError.value = ''
+}
+
+async function deleteAccount() {
+  if (!authUser.value || isDeletingAccount.value) return
+  isDeletingAccount.value = true
+  deleteError.value = ''
+  try {
+    const response = await fetch('/api/auth/account', { method: 'DELETE' })
+    const json = await response.json().catch(() => null)
+    if (!response.ok || !json?.ok) {
+      throw new Error(json?.error?.message || t('Failed to delete account'))
+    }
+    localStorage.removeItem('sq_profile_data')
+    localStorage.removeItem('sq_profile_initials')
+    queryClient.setQueryData(['auth', 'me'], null)
+    isEditOpen.value = false
+    window.location.assign('/dashboard')
+  } catch (err: any) {
+    deleteError.value = err?.message || t('Failed to delete account')
+    isDeletingAccount.value = false
+  }
 }
 
 async function saveProfile() {
@@ -152,6 +201,7 @@ async function saveProfile() {
         organization: profile.value.organization || null,
         focus: profile.value.focus || null,
         citation: profile.value.citation || null,
+        avatar_url: profile.value.avatarUrl || null,
       }),
     })
     const json = await response.json().catch(() => null)
@@ -166,6 +216,7 @@ async function saveProfile() {
   localStorage.setItem('sq_profile_data', JSON.stringify(profile.value))
   localStorage.setItem('sq_profile_initials', profile.value.initials)
   window.dispatchEvent(new Event('sq_profile_updated'))
+  await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
   isEditOpen.value = false
   saveSuccess.value = true
   setTimeout(() => {
@@ -227,30 +278,17 @@ function timeAgo(value?: string): string {
       <button @click="saveSuccess = false" class="text-white/60 hover:text-white cursor-pointer">✕</button>
     </div>
 
-    <!-- Signed-out notice -->
-    <div
-      v-if="!authUser"
-      class="mb-4 p-3.5 rounded-2xl bg-[#1d4ed8]/20 border border-[#60a5fa]/25 text-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono lg:hidden"
-    >
-      <span>{{ t('You are not signed in. Sign in from the dashboard to manage your profile.') }}</span>
-      <router-link
-        to="/dashboard"
-        class="px-4 py-2 rounded-xl bg-white text-slate-950 font-bold no-underline whitespace-nowrap text-center"
-      >
-        {{ t('Go to Dashboard') }}
-      </router-link>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] gap-4 xl:gap-5 items-start lg:flex-1 lg:min-h-0 lg:items-stretch">
       <!-- ── LEFT: identity + tabs ─────────────────────────────────────── -->
       <section
         class="rounded-[28px] p-4 sm:p-5 xl:p-6 space-y-3 text-white lg:h-full lg:min-h-0 lg:overflow-hidden"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <!-- Identity header -->
         <header class="flex items-center gap-4 sm:gap-5">
-          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-4 border-white/15 flex items-center justify-center text-xl sm:text-2xl font-black font-mono text-cyan-300 flex-shrink-0">
-            {{ profile.initials }}
+          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 flex items-center justify-center text-xl sm:text-2xl font-black font-mono text-cyan-300 flex-shrink-0 overflow-hidden">
+            <img v-if="profile.avatarUrl" :src="profile.avatarUrl" alt="" class="h-full w-full object-cover">
+            <span v-else>{{ profile.initials }}</span>
           </div>
 
           <div class="min-w-0 flex-1">
@@ -297,7 +335,7 @@ function timeAgo(value?: string): string {
             :class="activeTab === 'overview' ? 'text-white' : 'text-white/50 hover:text-white/80'"
           >
             {{ t('Overview') }}
-            <span v-if="activeTab === 'overview'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-cyan-300" />
+            <span v-if="activeTab === 'overview'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-[#ff4c2b]" />
           </button>
           <button
             type="button"
@@ -306,7 +344,7 @@ function timeAgo(value?: string): string {
             :class="activeTab === 'apis' ? 'text-white' : 'text-white/50 hover:text-white/80'"
           >
             {{ t('APIs') }}
-            <span v-if="activeTab === 'apis'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-cyan-300" />
+            <span v-if="activeTab === 'apis'" class="absolute -bottom-px left-2 right-2 h-0.5 rounded-full bg-[#ff4c2b]" />
           </button>
         </div>
 
@@ -318,24 +356,9 @@ function timeAgo(value?: string): string {
               :key="card.label"
               class="rounded-2xl bg-black/30 p-3 min-h-[104px] flex flex-col justify-center gap-2"
             >
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-[10px] font-mono uppercase tracking-[0.12em] text-sky-200/80 leading-tight">
-                  {{ t(card.label) }}
-                </span>
-                <AppTooltip :content="t(card.hint)" side="top">
-                  <button
-                    type="button"
-                    class="inline-flex h-4 w-4 items-center justify-center rounded-full text-sky-200/60 hover:text-white hover:bg-white/10 transition cursor-pointer flex-shrink-0"
-                    :aria-label="t('More information')"
-                  >
-                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 16v-4" />
-                      <path d="M12 8h.01" />
-                    </svg>
-                  </button>
-                </AppTooltip>
-              </div>
+              <span class="text-[10px] font-mono uppercase tracking-[0.12em] text-sky-200/80 leading-tight">
+                {{ t(card.label) }}
+              </span>
               <strong class="text-[clamp(2rem,3.5vw,3rem)] font-black font-mono text-white leading-none">
                 {{ card.value }}
               </strong>
@@ -356,7 +379,7 @@ function timeAgo(value?: string): string {
             <article
               v-for="endpoint in apiEndpoints"
               :key="endpoint.path"
-              class="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2.5"
+              class="flex flex-col gap-2.5 rounded-2xl border border-white/10 bg-black/30 p-4"
             >
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-mono font-bold uppercase tracking-[0.1em] text-white">{{ endpoint.name }}</span>
@@ -366,6 +389,28 @@ function timeAgo(value?: string): string {
               </div>
               <code class="block text-[11px] font-mono text-cyan-300 break-all">{{ endpoint.path }}</code>
               <p class="text-[11px] text-sky-200/75 m-0 leading-relaxed">{{ t(endpoint.desc) }}</p>
+              <div class="mt-auto flex items-center gap-2 pt-1">
+                <a
+                  :href="endpoint.path"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="inline-flex items-center gap-1 rounded-lg bg-white/[0.06] px-2.5 py-1.5 font-mono text-[10px] font-bold text-white transition hover:bg-white/10"
+                >
+                  {{ t('Open') }}
+                  <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  class="rounded-lg bg-white/[0.06] px-2.5 py-1.5 font-mono text-[10px] font-bold text-white transition hover:bg-white/10"
+                  @click="copyEndpoint(endpoint.path)"
+                >
+                  {{ copiedEndpoint === endpoint.path ? t('Copied') : t('Copy URL') }}
+                </button>
+              </div>
             </article>
           </div>
         </div>
@@ -374,16 +419,11 @@ function timeAgo(value?: string): string {
       <!-- ── RIGHT: activity feed ──────────────────────────────────────── -->
       <aside
         class="rounded-[30px] xl:rounded-[34px] p-4 sm:p-5 text-white h-auto lg:h-full min-h-0 flex flex-col justify-between gap-3 overflow-hidden"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <header class="flex items-center justify-between flex-shrink-0 text-white pb-2 mb-1">
-          <h2 class="flex items-center gap-2.5 text-xl xl:text-[22px] font-bold tracking-tight whitespace-nowrap text-white m-0">
-            <svg class="w-5 h-5 xl:w-6 xl:h-6 text-white flex-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2.5 3.5h11v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2.5 12.5v-9Z" />
-              <path d="M2.5 8.5h3.2l1.3 2h2l1.3-2h3.2" />
-              <path d="M8 1.5v4.5M6 4l2 2 2-2" />
-            </svg>
-            <span>{{ t('Recent Ingestions') }}</span>
+          <h2 class="text-xl xl:text-[22px] font-bold tracking-tight whitespace-nowrap text-white m-0">
+            {{ t('Recent Ingestions') }}
           </h2>
         </header>
 
@@ -399,12 +439,7 @@ function timeAgo(value?: string): string {
           <p class="text-[11px] text-sky-200/80 m-0 leading-relaxed max-w-[240px]">
             {{ t('Recent ingestions are private and only visible to the account owner.') }}
           </p>
-          <router-link
-            to="/dashboard"
-            class="mt-1 px-4 py-2 rounded-xl bg-white text-blue-900 font-mono text-[11px] font-bold no-underline hover:bg-cyan-100 transition"
-          >
-            {{ t('Go to Dashboard') }}
-          </router-link>
+          <AuthMenu variant="profile" class="mt-1" />
         </div>
 
         <!-- Signed in: this account's own ingestions only -->
@@ -467,36 +502,21 @@ function timeAgo(value?: string): string {
     >
       <div
         v-if="isEditOpen"
-        class="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+        class="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-md flex items-start justify-center p-5 sm:p-6 overflow-y-auto"
         @click.self="closeEditModal"
       >
-        <div class="w-full max-w-2xl rounded-[28px] border border-white/[0.1] p-6 sm:p-8 text-white space-y-6 shadow-2xl my-6"
-          style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.70) 55%, rgba(15, 23, 42, 0.98) 100%);">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-cyan-300">
-                <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg sm:text-xl font-bold tracking-tight m-0">{{ t('Edit Researcher Profile') }}</h3>
-                <span class="text-[11px] font-mono text-cyan-300/80">{{ t('Researcher Profile & Workspace') }}</span>
-              </div>
+        <div class="my-auto w-full max-w-2xl rounded-[28px] p-6 sm:p-8 text-white space-y-6 shadow-2xl"
+          style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.70) 55%, rgba(15, 23, 42, 0.98) 100%);">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg sm:text-xl font-bold tracking-tight m-0">{{ t('Edit Researcher Profile') }}</h3>
+              <span class="text-[11px] font-mono text-cyan-300/80">{{ t('Researcher Profile & Workspace') }}</span>
             </div>
-            <button
-              type="button"
-              @click="closeEditModal"
-              class="w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/10 text-white text-base flex items-center justify-center transition cursor-pointer"
-            >
-              ✕
-            </button>
           </div>
 
           <form @submit.prevent="saveProfile" class="space-y-4 text-sm">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="sm:col-span-2 space-y-1.5">
+            <div class="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4">
+              <div class="space-y-1.5">
                 <label class="font-mono text-white/60 uppercase text-[10px] tracking-[0.12em] block">{{ t('Display Name') }}</label>
                 <input
                   v-model="editForm.displayName"
@@ -577,20 +597,55 @@ function timeAgo(value?: string): string {
               </div>
             </div>
 
-            <div class="pt-2 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                @click="closeEditModal"
-                class="px-5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/10 text-white font-mono text-xs font-bold transition cursor-pointer"
+            <div class="pt-2 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div v-if="authUser && !isDeleteConfirmOpen" class="flex w-full items-center justify-center sm:w-auto sm:justify-start">
+                <button
+                  type="button"
+                  @click="isDeleteConfirmOpen = true"
+                  class="w-full py-2 text-center font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-rose-300/70 transition hover:text-rose-200 cursor-pointer sm:w-auto sm:text-left"
+                >
+                  {{ t('Delete Account') }}
+                </button>
+              </div>
+              <div
+                class="flex w-full items-center justify-end gap-2 sm:w-auto sm:gap-3"
+                :class="isDeleteConfirmOpen ? 'sm:ml-auto' : ''"
               >
-                {{ t('Cancel') }}
-              </button>
-              <button
-                type="submit"
-                class="px-6 py-2.5 rounded-xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-xs font-bold transition cursor-pointer"
-              >
-                {{ t('Save Profile ✓') }}
-              </button>
+                <span v-if="deleteError" class="font-mono text-[10px] text-rose-200">{{ deleteError }}</span>
+                <template v-if="isDeleteConfirmOpen">
+                  <button
+                    type="button"
+                    :disabled="isDeletingAccount"
+                    @click="isDeleteConfirmOpen = false"
+                    class="inline-flex min-h-[44px] min-w-0 flex-1 basis-0 items-center justify-center whitespace-nowrap rounded-xl bg-white/[0.06] px-3 py-2.5 text-[11px] font-mono font-bold text-white transition hover:bg-white/10 disabled:opacity-50 cursor-pointer sm:flex-none sm:px-5 sm:text-xs"
+                  >
+                    {{ t('Cancel') }}
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="isDeletingAccount"
+                    @click="deleteAccount"
+                    class="inline-flex min-h-[44px] min-w-0 flex-1 basis-0 items-center justify-center whitespace-nowrap rounded-xl bg-rose-500/20 px-3 py-2.5 text-[11px] font-mono font-bold text-rose-200 transition hover:bg-rose-500/30 disabled:opacity-50 cursor-pointer sm:flex-none sm:px-6 sm:text-xs"
+                  >
+                    {{ isDeletingAccount ? t('Deleting...') : t('Delete') }}
+                  </button>
+                </template>
+                <template v-else>
+                  <button
+                    type="button"
+                    @click="closeEditModal"
+                    class="inline-flex min-h-[44px] min-w-0 flex-1 basis-0 items-center justify-center whitespace-nowrap rounded-xl bg-white/[0.06] px-3 py-2.5 text-[11px] font-mono font-bold text-white transition hover:bg-white/10 cursor-pointer sm:flex-none sm:px-5 sm:text-xs"
+                  >
+                    {{ t('Cancel') }}
+                  </button>
+                  <button
+                    type="submit"
+                    class="inline-flex min-h-[44px] min-w-0 flex-1 basis-0 items-center justify-center whitespace-nowrap rounded-xl bg-[#ff4c2b] px-3 py-2.5 text-[11px] font-mono font-bold text-white transition hover:bg-[#e84324] cursor-pointer sm:flex-none sm:px-6 sm:text-xs"
+                  >
+                    {{ t('Save Profile ✓') }}
+                  </button>
+                </template>
+              </div>
             </div>
           </form>
         </div>

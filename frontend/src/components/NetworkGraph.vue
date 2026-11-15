@@ -38,29 +38,32 @@ async function initGraph() {
 
   const width = containerRef.value.clientWidth || window.innerWidth
   const height = containerRef.value.clientHeight || window.innerHeight
+  const compact = width < 768
 
   graphInstance = ForceGraph()(containerRef.value)
-    .backgroundColor('#000000')
+    .backgroundColor('#080f1b')
     .width(width)
     .height(height)
     .nodeId('id')
     .nodeLabel('label')
-    .nodeVal('val')
-    .nodeRelSize(3.2)
+    .nodeVal((node: GraphNode) => Math.min(Number(node.val ?? 1), compact ? 8 : 14))
+    .nodeRelSize(compact ? 2.2 : 3.2)
     .nodeColor((node: GraphNode) => {
       const value = Number(node.val ?? 1)
       if (value >= 20) return '#e0f2fe'
-      if (value >= 8) return '#93c5fd'
-      if (value >= 3) return '#60a5fa'
-      return '#3b82f6'
+      if (value >= 8) return '#8fd5ec'
+      if (value >= 3) return '#329dd2'
+      return '#329dd2'
     })
     .linkSource('source')
     .linkTarget('target')
     .linkLabel('label')
     .linkColor(() => 'rgba(96, 165, 250, 0.24)')
     .linkWidth(0.9)
-    .cooldownTicks(140)
-    .d3VelocityDecay(0.32)
+    .cooldownTicks(300)
+    .cooldownTime(6000)
+    .d3AlphaDecay(0.014)
+    .d3VelocityDecay(0.25)
     .onNodeClick((node: GraphNode) => {
       emit('node-click', node)
     })
@@ -93,6 +96,22 @@ watch(
   }
 )
 
+function zoomIn() {
+  if (!graphInstance) return
+  graphInstance.zoom(graphInstance.zoom() * 1.35, 250)
+}
+
+function zoomOut() {
+  if (!graphInstance) return
+  graphInstance.zoom(graphInstance.zoom() / 1.35, 250)
+}
+
+function resetView() {
+  graphInstance?.zoomToFit(500, 72)
+}
+
+defineExpose({ zoomIn, zoomOut, resetView })
+
 onMounted(() => {
   initGraph()
 })
@@ -108,5 +127,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="relative h-full w-full overflow-hidden bg-black" />
+  <div ref="containerRef" class="graph-enter relative h-full w-full overflow-hidden bg-black" />
 </template>
+
+<style scoped>
+.graph-enter {
+  animation: graph-enter 700ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes graph-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-enter {
+    animation: none !important;
+  }
+}
+</style>

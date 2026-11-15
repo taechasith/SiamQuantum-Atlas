@@ -90,6 +90,7 @@ interface ProvinceLabel {
 const provinceLabels: ProvinceLabel[] = []
 const provinceLabelHeightPx = 14
 let resizeObserver: ResizeObserver | null = null
+let resizeFrame = 0
 let frameId = 0
 let pointerDownAt: { x: number; y: number } | null = null
 let autoRotateTimer: number | null = null
@@ -99,6 +100,7 @@ let cameraTween: {
   start: number
   duration: number
 } | null = null
+let previousCameraPosition: THREE.Vector3 | null = null
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const prefersReducedMotion =
@@ -192,7 +194,7 @@ function buildStars() {
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   const material = new THREE.PointsMaterial({
-    color: 0xdbeafe,
+    color: 0xcfeef8,
     size: 0.018,
     transparent: true,
     opacity: 0.55,
@@ -208,7 +210,7 @@ function buildGraticule() {
 
   const group = new THREE.Group()
   const material = new THREE.LineBasicMaterial({
-    color: 0x60a5fa,
+    color: 0x329dd2,
     transparent: true,
     opacity: 0.055,
     depthWrite: false,
@@ -250,7 +252,7 @@ function buildLandDots() {
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   const material = new THREE.PointsMaterial({
-    color: 0x93c5fd,
+    color: 0xff4c2b,
     size: 2,
     map: dotTexture,
     transparent: true,
@@ -295,13 +297,13 @@ function loadWorldLines() {
     if (!scene || disposed) return
 
     worldCoastMaterial = new THREE.LineBasicMaterial({
-      color: 0x93c5fd,
+      color: 0x8fd5ec,
       transparent: true,
       opacity: 0.34,
       depthWrite: false,
     })
     worldBorderMaterial = new THREE.LineBasicMaterial({
-      color: 0x60a5fa,
+      color: 0x329dd2,
       transparent: true,
       opacity: 0.26,
       depthWrite: false,
@@ -331,7 +333,7 @@ function buildThailandOutline() {
   if (!scene) return
 
   const material = new THREE.LineBasicMaterial({
-    color: 0x93c5fd,
+    color: 0x8fd5ec,
     transparent: true,
     opacity: 0.95,
     depthWrite: false,
@@ -370,7 +372,7 @@ function loadSubdistricts() {
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
     subdistrictMaterial = new THREE.LineBasicMaterial({
-      color: 0x7dd3fc,
+      color: 0x8fd5ec,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -398,7 +400,7 @@ function buildProvinceBoundaries() {
   if (!scene) return
 
   provinceBoundaryMaterial = new THREE.LineBasicMaterial({
-    color: 0x93c5fd,
+    color: 0x8fd5ec,
     transparent: true,
     opacity: 0,
     depthWrite: false,
@@ -477,7 +479,7 @@ function makeProvinceLabelTexture(text: string) {
   renderContext.textAlign = 'center'
   renderContext.textBaseline = 'middle'
   renderContext.fillStyle = 'rgba(219, 234, 254, 0.96)'
-  renderContext.shadowColor = 'rgba(2, 6, 23, 0.92)'
+  renderContext.shadowColor = 'rgba(8, 15, 27, 0.92)'
   renderContext.shadowBlur = 10
   renderContext.shadowOffsetY = 2
   renderContext.fillText(text, width / 2, height / 2)
@@ -617,7 +619,7 @@ function buildMarkers() {
       0.03,
       0.006 + Math.log10(cluster.items.length + 1) * 0.003
     )
-    const markerColor = cluster.exact ? '#7dd3fc' : '#94a3b8'
+    const markerColor = cluster.exact ? '#ff4c2b' : '#94a3b8'
     const material = new THREE.SpriteMaterial({
       map: markerTexture,
       color: new THREE.Color(markerColor),
@@ -650,24 +652,27 @@ function applySelection() {
     const baseScale = Number(sprite.userData.baseScale ?? 0.1)
     const selected = props.selectedKey === cluster.key
     const material = sprite.material as THREE.SpriteMaterial
-    material.color.set(selected ? '#ffffff' : cluster.exact ? '#7dd3fc' : '#94a3b8')
+    material.color.set(selected ? '#ffffff' : cluster.exact ? '#ff4c2b' : '#94a3b8')
     material.opacity = cluster.exact ? 1 : 0.7
     const scaleFactor = selected ? 1.25 : 1
     sprite.scale.set(baseScale * scaleFactor, baseScale * scaleFactor, 1)
   }
 }
 
-function animateCameraTo(lat: number, lng: number, distance: number, duration = 900) {
+function tweenCameraTo(position: THREE.Vector3, duration = 900) {
   if (!camera || !controls) return
 
-  const to = latLngToVector3(lat, lng, distance)
   cameraTween = {
     from: camera.position.clone(),
-    to,
+    to: position.clone(),
     start: performance.now(),
     duration,
   }
   controls.autoRotate = false
+}
+
+function animateCameraTo(lat: number, lng: number, distance: number, duration = 900) {
+  tweenCameraTo(latLngToVector3(lat, lng, distance), duration)
 }
 
 function focusThailand() {
@@ -811,15 +816,27 @@ function onWheel() {
   scheduleAutoRotate()
 }
 
-function resize() {
-  if (!renderer || !camera || !hostRef.value) return
+function applyResize() {
+  if (!renderer || !camera || !hostRef.value || !scene) return
 
   const width = hostRef.value.clientWidth || window.innerWidth
   const height = hostRef.value.clientHeight || window.innerHeight
-  renderer.setSize(width, height, false)
+  if (width <= 0 || height <= 0) return
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+  if (renderer.getPixelRatio() !== pixelRatio) renderer.setPixelRatio(pixelRatio)
+  renderer.setSize(width, height)
   camera.aspect = width / Math.max(height, 1)
   camera.updateProjectionMatrix()
   updateProvinceLabelScales()
+  renderer.render(scene, camera)
+}
+
+function resize() {
+  if (resizeFrame) return
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0
+    applyResize()
+  })
 }
 
 function updateControlSpeed() {
@@ -857,7 +874,7 @@ function init() {
   if (!hostRef.value) return
 
   scene = new THREE.Scene()
-  scene.background = new THREE.Color('#000000')
+  scene.background = new THREE.Color('#080f1b')
 
   camera = new THREE.PerspectiveCamera(42, 1, 0.01, 60)
   camera.position.copy(latLngToVector3(18, 80, 4.1))
@@ -892,18 +909,18 @@ function init() {
   dotTexture = makeRadialTexture(32, 0.35)
   markerTexture = makeMarkerTexture(128)
 
-  const ambient = new THREE.AmbientLight(0x3b82f6, 0.75)
+  const ambient = new THREE.AmbientLight(0x329dd2, 0.75)
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.25)
   keyLight.position.set(3, 2, 4)
-  const rimLight = new THREE.PointLight(0x3b82f6, 2.2, 8)
+  const rimLight = new THREE.PointLight(0x329dd2, 2.2, 8)
   rimLight.position.set(-3, -1, 2)
   scene.add(ambient, keyLight, rimLight)
 
   const globe = new THREE.Mesh(
     new THREE.SphereGeometry(globeRadius, 96, 96),
     new THREE.MeshPhongMaterial({
-      color: 0x030b1a,
-      emissive: 0x0b1f4a,
+      color: 0x080f1b,
+      emissive: 0x0a3a4f,
       emissiveIntensity: 0.72,
       shininess: 18,
       specular: 0x0f2a4a,
@@ -925,7 +942,7 @@ function init() {
         varying vec3 vNormal;
         void main() {
           float intensity = pow(0.66 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-          gl_FragColor = vec4(0.16, 0.43, 0.98, 1.0) * intensity;
+          gl_FragColor = vec4(0.196, 0.616, 0.824, 1.0) * intensity;
         }
       `,
       transparent: true,
@@ -970,14 +987,27 @@ watch(
   () => {
     applySelection()
     const selected = props.clusters.find((cluster) => cluster.key === props.selectedKey)
-    if (selected) focusCluster(selected)
-    else scheduleAutoRotate()
+    if (selected) {
+      if (!previousCameraPosition && camera) {
+        previousCameraPosition = camera.position.clone()
+      }
+      focusCluster(selected)
+      return
+    }
+
+    if (previousCameraPosition) {
+      tweenCameraTo(previousCameraPosition)
+      previousCameraPosition = null
+    } else {
+      scheduleAutoRotate()
+    }
   }
 )
 
 onUnmounted(() => {
   disposed = true
   cancelAnimationFrame(frameId)
+  if (resizeFrame) cancelAnimationFrame(resizeFrame)
   if (autoRotateTimer) window.clearTimeout(autoRotateTimer)
   resizeObserver?.disconnect()
   controls?.dispose()

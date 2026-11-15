@@ -47,7 +47,7 @@ function onSelectPoint(pt: GeoItem) {
 </script>
 
 <template>
-  <div class="h-full w-full relative overflow-hidden bg-[#000000]">
+  <div class="h-full w-full relative overflow-hidden bg-[#080f1b]">
     <!-- Fullscreen Map (Zero Padding, Zero Gap, Zero Border) -->
     <GeoMap
       :points="filteredPoints"

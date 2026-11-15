@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGeoListQuery, type GeoItem } from '@/api/queries'
 import QuantumGlobe from '@/components/globe/QuantumGlobe.vue'
 import GeoMap from '@/components/map/GeoMap.vue'
 import NetworkPage from '@/pages/NetworkPage.vue'
+import AppTooltip from '@/components/ui/AppTooltip.vue'
 import {
   Select as UiSelect,
   SelectContent as UiSelectContent,
@@ -17,7 +18,6 @@ import {
   DOMAIN_ORDER,
   aggregateGeoClusters,
   countryLabel,
-  domainColor,
   domainLabel,
   filterGeoItems,
   nearestPlaceLabel,
@@ -30,7 +30,7 @@ type AtlasMode = 'globe' | 'network'
 
 const route = useRoute()
 const router = useRouter()
-const { data: geoData, isPending, isError, error, refetch } = useGeoListQuery('strict')
+const { data: geoData, isError, error, refetch } = useGeoListQuery('strict')
 
 const mode = ref<AtlasMode>(route.query.view === 'network' ? 'network' : 'globe')
 const isGlobe = computed(() => mode.value === 'globe')
@@ -52,19 +52,49 @@ const selectedCluster = computed(() =>
 )
 const selectedItems = computed(() => selectedCluster.value?.items ?? [])
 const selectedSource = ref<GeoItem | null>(null)
+const panelRef = ref<HTMLElement | null>(null)
+let panelHeightTimer: number | null = null
+
+const panelState = computed(() =>
+  selectedSource.value ? 'source' : selectedCluster.value ? 'cluster' : 'clusters'
+)
+
+watch(panelState, async () => {
+  const panel = panelRef.value
+  if (!panel) return
+
+  const startHeight = panel.getBoundingClientRect().height
+  await nextTick()
+
+  const next = panelRef.value
+  if (!next) return
+
+  if (panelHeightTimer !== null) window.clearTimeout(panelHeightTimer)
+  next.style.transition = 'none'
+  next.style.height = `${startHeight}px`
+  next.style.height = 'auto'
+  const endHeight = next.getBoundingClientRect().height
+  next.style.height = `${startHeight}px`
+  void next.offsetHeight
+  next.style.transition = 'height 280ms cubic-bezier(0.2, 0, 0, 1)'
+  next.style.height = `${endHeight}px`
+
+  panelHeightTimer = window.setTimeout(() => {
+    next.style.transition = ''
+    next.style.height = ''
+    panelHeightTimer = null
+  }, 300)
+})
+
+onUnmounted(() => {
+  if (panelHeightTimer !== null) window.clearTimeout(panelHeightTimer)
+})
 
 const sourceCode = computed(() =>
   selectedSource.value ? `SQA-${selectedSource.value.source_id}` : ''
 )
 const sourceLocationLabel = computed(() =>
   selectedSource.value ? sourceLocation(selectedSource.value) : ''
-)
-const sourceDomainLabel = computed(() =>
-  selectedSource.value
-    ? selectedSource.value.quantum_domain
-      ? t(domainLabel(selectedSource.value.quantum_domain))
-      : t('Unclassified')
-    : ''
 )
 const sourceFocusTags = computed(() => {
   const item = selectedSource.value
@@ -83,61 +113,6 @@ const sourceFetchedAgo = computed(() => {
   if (!Number.isFinite(time)) return '—'
   const days = Math.max(0, Math.floor((Date.now() - time) / 86_400_000))
   return `${days}d`
-})
-const sourceTopology = computed(() => {
-  const item = selectedSource.value
-  if (!item) return []
-
-  const all = geoData.value ?? []
-  const clusterPeers = Math.max(0, (selectedCluster.value?.items.length ?? 1) - 1)
-  const platformPeers = Math.max(
-    0,
-    all.filter((candidate) => candidate.platform === item.platform).length - 1
-  )
-  const area =
-    item.region ||
-    item.city ||
-    nearestPlaceLabel(item.lat, item.lng) ||
-    countryLabel(item.channel_country)
-  const region = area || t('Unknown location')
-  const regionPeers = Math.max(
-    0,
-    all.filter((candidate) => {
-      if (item.is_approximate) {
-        return Boolean(
-          candidate.is_approximate &&
-            candidate.channel_country === item.channel_country
-        )
-      }
-      if (candidate.is_approximate) return false
-      if (item.region) return candidate.region === item.region
-      if (item.city) return candidate.city === item.city
-      return Boolean(area && nearestPlaceLabel(candidate.lat, candidate.lng) === area)
-    }).length - 1
-  )
-  const rows = [
-    {
-      title: `${selectedCluster.value?.label ?? sourceLocationLabel.value} ${t('cluster')}`,
-      meta: sourceLocationLabel.value,
-      peers: clusterPeers,
-    },
-    {
-      title: `${platformLabel(item.platform)} ${t('feed')}`,
-      meta: t('Same source type'),
-      peers: platformPeers,
-    },
-    {
-      title: `${region} ${t('region')}`,
-      meta: region || t('Unknown location'),
-      peers: regionPeers,
-    },
-  ]
-  const maxPeers = Math.max(...rows.map((row) => row.peers), 1)
-
-  return rows.map((row) => ({
-    ...row,
-    width: Math.max(4, Math.round((row.peers / maxPeers) * 100)),
-  }))
 })
 const activeFilterCount = computed(() => {
   let count = 0
@@ -179,13 +154,6 @@ function setMode(nextMode: AtlasMode) {
     path: '/atlas',
     query: { ...route.query, view: nextMode },
   })
-}
-
-function resetFilters() {
-  filters.query = ''
-  filters.platform = 'all'
-  filters.domain = 'all'
-  filters.year = 'all'
 }
 
 function selectCluster(cluster: GeoCluster) {
@@ -305,30 +273,34 @@ watch(mode, () => {
 
       <div class="pointer-events-none absolute inset-0 z-20">
         <header class="flex flex-wrap items-start justify-between gap-3 p-5 md:p-7">
-          <div class="pointer-events-auto flex items-center gap-3">
-            <h1 class="text-2xl font-black tracking-tight text-white sm:text-[36px] leading-tight m-0 uppercase">SIAM QUANTUM ATLAS</h1>
+          <div class="pointer-events-auto flex w-full items-center justify-between gap-3 lg:w-auto lg:justify-start">
+            <h1 class="pointer-events-auto whitespace-nowrap text-xl font-black tracking-tight text-white sm:text-2xl md:text-[36px] leading-tight m-0 uppercase lg:ml-6">SIAM QUANTUM ATLAS</h1>
             <button
               type="button"
-              class="rounded-full border border-white/15 bg-black/35 px-2.5 py-1 font-mono text-[10px] text-white/75 transition hover:border-white/35 hover:text-white lg:hidden"
+              class="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white lg:hidden"
+              :aria-label="t('Filters')"
               @click="filtersOpen = !filtersOpen"
             >
-              {{ t('Filters') }}{{ activeFilterCount ? ` (${activeFilterCount})` : '' }}
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M7 12h10M10 18h4" />
+              </svg>
+              <span v-if="activeFilterCount" class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#ff4c2b]" />
             </button>
           </div>
 
-          <div class="pointer-events-auto flex items-center gap-1 atlas-ci-bar rounded-2xl p-1">
+          <div class="pointer-events-auto flex w-full items-center overflow-hidden atlas-ci-bar rounded-full sm:w-auto">
             <button
               type="button"
-              class="rounded-xl px-3 py-2 text-xs font-bold transition"
-              :class="isGlobe ? 'bg-white text-slate-950' : 'text-white/60 hover:text-white'"
+              class="min-h-[40px] flex-1 justify-center rounded-full px-4 py-2.5 text-sm font-bold transition sm:flex-none"
+              :class="isGlobe ? 'bg-[#ff4c2b] text-white' : 'text-white/60 hover:text-white'"
               @click="setMode('globe')"
             >
               {{ t('Globe') }}
             </button>
             <button
               type="button"
-              class="rounded-xl px-3 py-2 text-xs font-bold transition"
-              :class="!isGlobe ? 'bg-white text-slate-950' : 'text-white/60 hover:text-white'"
+              class="min-h-[40px] flex-1 justify-center rounded-full px-4 py-2.5 text-sm font-bold transition sm:flex-none"
+              :class="!isGlobe ? 'bg-[#ff4c2b] text-white' : 'text-white/60 hover:text-white'"
               @click="setMode('network')"
             >
               {{ t('Network') }}
@@ -337,20 +309,12 @@ watch(mode, () => {
         </header>
 
         <aside
-          class="pointer-events-auto absolute left-5 top-32 w-[calc(100%-2.5rem)] max-w-[19rem] atlas-ci-panel rounded-[26px] p-4 text-white md:left-7 md:top-24"
+          class="pointer-events-auto absolute left-5 right-5 top-32 w-auto max-w-none atlas-ci-panel rounded-[26px] p-4 text-white md:left-7 md:right-auto md:top-24 md:max-w-[19rem] lg:ml-6"
           :class="filtersOpen ? 'block' : 'hidden lg:block'"
         >
           <div class="flex items-center justify-between gap-3">
-            <h2 class="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-sky-200/70">{{ t('Filters') }}</h2>
+            <h2 class="font-mono text-sm font-bold uppercase tracking-[0.2em] text-sky-200/70">{{ t('Filters') }}</h2>
             <div class="flex items-center gap-3">
-              <button
-                v-if="activeFilterCount"
-                type="button"
-                class="text-[10px] font-mono text-white/45 transition hover:text-white"
-                @click="resetFilters"
-              >
-                {{ t('Reset') }}
-              </button>
               <button
                 type="button"
                 class="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/65 transition hover:bg-white/20 hover:text-white lg:hidden"
@@ -363,25 +327,23 @@ watch(mode, () => {
           </div>
 
           <label class="mt-3 block">
-            <span class="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-white/40">{{ t('Search') }}</span>
             <input
               v-model="filters.query"
               type="search"
               :placeholder="t('Search sources, cities, channels...')"
-              class="h-10 w-full rounded-xl border border-white/10 bg-black/35 px-3 text-xs text-white outline-none transition placeholder:text-white/30 focus:border-sky-300/40"
+              class="h-11 w-full rounded-xl border border-white/10 bg-black/35 px-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-sky-300/40"
             />
           </label>
 
           <div class="mt-3 grid grid-cols-1 gap-3">
             <label class="block">
-              <span class="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-white/40">{{ t('Platform') }}</span>
               <UiSelect v-model="filters.platform">
-                <UiSelectTrigger class="h-10">
+                <UiSelectTrigger class="h-11 text-sm">
                   <UiSelectValue />
                 </UiSelectTrigger>
                 <UiSelectContent>
-                  <UiSelectItem value="all">{{ t('All platforms') }}</UiSelectItem>
-                  <UiSelectItem v-for="platform in platforms" :key="platform" :value="platform">
+                  <UiSelectItem value="all" class="text-sm">{{ t('All platforms') }}</UiSelectItem>
+                  <UiSelectItem v-for="platform in platforms" :key="platform" :value="platform" class="text-sm">
                     {{ t(platformLabel(platform)) }}
                   </UiSelectItem>
                 </UiSelectContent>
@@ -389,14 +351,13 @@ watch(mode, () => {
             </label>
 
             <label class="block">
-              <span class="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-white/40">{{ t('Domain') }}</span>
               <UiSelect v-model="filters.domain">
-                <UiSelectTrigger class="h-10">
+                <UiSelectTrigger class="h-11 text-sm">
                   <UiSelectValue />
                 </UiSelectTrigger>
                 <UiSelectContent>
-                  <UiSelectItem value="all">{{ t('All domains') }}</UiSelectItem>
-                  <UiSelectItem v-for="domain in domains" :key="domain" :value="domain">
+                  <UiSelectItem value="all" class="text-sm">{{ t('All domains') }}</UiSelectItem>
+                  <UiSelectItem v-for="domain in domains" :key="domain" :value="domain" class="text-sm">
                     {{ t(domainLabel(domain)) }}
                   </UiSelectItem>
                 </UiSelectContent>
@@ -404,28 +365,23 @@ watch(mode, () => {
             </label>
 
             <label class="block">
-              <span class="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-white/40">{{ t('Year') }}</span>
               <UiSelect v-model="filters.year">
-                <UiSelectTrigger class="h-10">
+                <UiSelectTrigger class="h-11 text-sm">
                   <UiSelectValue />
                 </UiSelectTrigger>
                 <UiSelectContent>
-                  <UiSelectItem value="all">{{ t('All years') }}</UiSelectItem>
-                  <UiSelectItem v-for="year in years" :key="year" :value="String(year)">
+                  <UiSelectItem value="all" class="text-sm">{{ t('All years') }}</UiSelectItem>
+                  <UiSelectItem v-for="year in years" :key="year" :value="String(year)" class="text-sm">
                     {{ year }}
                   </UiSelectItem>
                 </UiSelectContent>
               </UiSelect>
             </label>
           </div>
-
-          <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-3 font-mono text-[10px] text-white/45">
-            <span>{{ clusters.length }} {{ t('clusters') }}</span>
-            <span>{{ filteredItems.length }} {{ t('sources') }}</span>
-          </div>
         </aside>
 
         <section
+          ref="panelRef"
           class="pointer-events-auto absolute bottom-5 left-5 right-5 z-30 max-h-[42%] flex-col overflow-hidden atlas-ci-panel rounded-[26px] text-white md:bottom-auto md:right-7 md:left-auto md:top-24 md:max-h-[calc(100%-9rem)] md:w-[22rem]"
           :class="selectedCluster ? 'flex' : 'hidden md:flex'"
         >
@@ -433,12 +389,11 @@ watch(mode, () => {
             <div class="flex items-center justify-between gap-2 px-3 py-2.5">
               <button
                 type="button"
-                class="rounded-lg px-2 py-1.5 font-mono text-[11px] text-white/60 transition hover:bg-white/10 hover:text-white"
+                class="rounded-full px-4 py-2 font-mono text-sm font-bold text-white/80 transition hover:bg-white/10 hover:text-white"
                 @click="clearSelectedSource"
               >
                 ← {{ t('Back to sources') }}
               </button>
-              <span class="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-sky-200/60">{{ t('Details') }}</span>
               <button
                 type="button"
                 class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-sm text-white/70 transition hover:bg-white/20 hover:text-white"
@@ -449,13 +404,9 @@ watch(mode, () => {
               </button>
             </div>
 
-            <div class="min-h-0 flex-1 overflow-y-auto p-4">
-              <div class="flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-300">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.85)]" />
-                {{ t('Online • Synced') }}
-              </div>
-              <h2 class="mt-2 text-base font-black leading-snug text-white">{{ selectedSource.title }}</h2>
-              <p class="mt-1.5 font-mono text-[10px] text-white/45">{{ sourceCode }} • {{ sourceLocationLabel }}</p>
+            <div class="no-scrollbar scrollbar-hide min-h-0 flex-1 overflow-y-auto p-4">
+              <h2 class="m-0 text-base font-black leading-snug text-white">{{ selectedSource.title }}</h2>
+              <p class="mt-1.5 font-mono text-[10px] text-white/45">{{ sourceLocationLabel }}</p>
 
               <div
                 v-if="selectedSource.is_approximate"
@@ -470,7 +421,8 @@ watch(mode, () => {
                   <span
                     v-for="tag in sourceFocusTags"
                     :key="tag"
-                    class="rounded-md bg-white/[0.06] px-2 py-1 font-mono text-[9px] font-bold text-white/75"
+                    class="rounded-full px-2.5 py-1 font-mono text-[9px] font-bold"
+                    :class="tag.toUpperCase() === 'YOUTUBE' ? 'bg-red-600 text-white' : 'bg-white/[0.06] text-white/75'"
                   >
                     {{ tag }}
                   </span>
@@ -479,42 +431,15 @@ watch(mode, () => {
 
               <section class="mt-4">
                 <p class="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-sky-200/60">{{ t('Live Telemetry') }}</p>
-                <div class="mt-2 grid grid-cols-2 gap-2">
-                  <div class="rounded-lg bg-white/[0.035] px-2.5 py-2">
-                    <p class="font-mono text-[8px] uppercase tracking-wider text-white/35">{{ t('Source ID') }}</p>
-                    <p class="mt-0.5 font-mono text-xs font-bold text-white/85">{{ sourceCode }}</p>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                  <div class="flex aspect-square items-center justify-center rounded-lg bg-white/[0.035] px-2.5 py-2 text-center">
+                    <p class="font-mono text-xs font-bold text-white/85">{{ sourceCode }}</p>
                   </div>
-                  <div class="rounded-lg bg-white/[0.035] px-2.5 py-2">
-                    <p class="font-mono text-[8px] uppercase tracking-wider text-white/35">{{ t('Platform') }}</p>
-                    <p class="mt-0.5 font-mono text-xs font-bold uppercase text-white/85">{{ selectedSource.platform }}</p>
+                  <div class="flex aspect-square items-center justify-center rounded-lg bg-white/[0.035] px-2.5 py-2 text-center">
+                    <p class="font-mono text-xs font-bold text-white/85">{{ selectedSource.published_year ?? '—' }}</p>
                   </div>
-                  <div class="rounded-lg bg-white/[0.035] px-2.5 py-2">
-                    <p class="font-mono text-[8px] uppercase tracking-wider text-white/35">{{ t('Published') }}</p>
-                    <p class="mt-0.5 font-mono text-xs font-bold text-white/85">{{ selectedSource.published_year ?? '—' }}</p>
-                  </div>
-                  <div class="rounded-lg bg-white/[0.035] px-2.5 py-2">
-                    <p class="font-mono text-[8px] uppercase tracking-wider text-white/35">{{ t('Last Fetch') }}</p>
-                    <p class="mt-0.5 font-mono text-xs font-bold text-emerald-300">{{ sourceFetchedAgo }}</p>
-                  </div>
-                  <div class="col-span-2 rounded-lg bg-white/[0.035] px-2.5 py-2">
-                    <p class="font-mono text-[8px] uppercase tracking-wider text-white/35">{{ t('Quantum Domain') }}</p>
-                    <p class="mt-0.5 text-xs font-bold text-sky-200">{{ sourceDomainLabel }}</p>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mt-4">
-                <p class="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-sky-200/60">{{ t('Network Topology') }}</p>
-                <div class="mt-2 space-y-2">
-                  <div v-for="row in sourceTopology" :key="row.title" class="rounded-lg bg-white/[0.03] px-2.5 py-2">
-                    <p class="truncate text-[11px] font-bold text-white/80">{{ row.title }}</p>
-                    <div class="mt-1 flex items-center justify-between gap-2 font-mono text-[8px] text-white/35">
-                      <span class="truncate">{{ row.meta }}</span>
-                      <span class="flex-shrink-0">{{ row.peers }} {{ t('peers') }}</span>
-                    </div>
-                    <div class="mt-1.5 h-1 overflow-hidden rounded-full bg-white/10">
-                      <div class="h-full rounded-full bg-sky-300/70" :style="{ width: `${row.width}%` }" />
-                    </div>
+                  <div class="flex aspect-square items-center justify-center rounded-lg bg-white/[0.035] px-2.5 py-2 text-center">
+                    <p class="font-mono text-xs font-bold text-emerald-300">{{ sourceFetchedAgo }}</p>
                   </div>
                 </div>
               </section>
@@ -524,13 +449,13 @@ watch(mode, () => {
                   :href="selectedSource.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-white px-2.5 py-2 text-center text-[11px] font-bold text-slate-950 transition hover:bg-sky-100"
+                  class="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[#ff4c2b] px-2.5 py-2 text-center text-[11px] font-bold text-white transition hover:bg-[#e84324]"
                 >
                   {{ t('Open Source') }}
                 </a>
                 <router-link
                   :to="{ path: '/database', query: { q: selectedSource.title } }"
-                  class="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-white/[0.08] px-2.5 py-2 text-center text-[11px] font-bold text-white/80 transition hover:bg-white/15 hover:text-white"
+                  class="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-white/10 bg-transparent px-2.5 py-2 text-center text-[11px] font-bold text-[#ff8a70] transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
                 >
                   {{ t('View Library') }}
                 </router-link>
@@ -541,16 +466,17 @@ watch(mode, () => {
           <template v-else-if="selectedCluster">
             <div class="flex items-start justify-between gap-3 p-4">
               <div class="min-w-0">
-                <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-sky-200/65">
-                  {{ selectedCluster.exact ? t('Selected location') : t('Approximate location') }}
-                </p>
-                <h2 class="mt-1 truncate text-lg font-black tracking-tight">{{ selectedCluster.label }}</h2>
-                <p class="mt-1 font-mono text-[10px] text-white/45">
-                  {{ selectedCluster.items.length }} {{ selectedCluster.items.length === 1 ? t('source') : t('sources') }}
-                  <span v-if="selectedCluster.exact && selectedCluster.approximateCount">
-                    · {{ selectedCluster.approximateCount }} {{ t('approximate') }}
-                  </span>
-                </p>
+                <div class="flex min-w-0 items-baseline gap-2">
+                  <h2 class="m-0 min-w-0 truncate text-lg font-black tracking-tight">{{ selectedCluster.label }}</h2>
+                  <AppTooltip :content="t('Total sources in this cluster')" side="bottom">
+                    <p class="shrink-0 cursor-help whitespace-nowrap font-mono text-[11px] text-white/45">
+                      {{ selectedCluster.items.length }} {{ selectedCluster.items.length === 1 ? t('source') : t('sources') }}
+                      <span v-if="selectedCluster.exact && selectedCluster.approximateCount">
+                        · {{ selectedCluster.approximateCount }} {{ t('approximate') }}
+                      </span>
+                    </p>
+                  </AppTooltip>
+                </div>
                 <p
                   v-if="selectedCluster.approximateCount === selectedCluster.items.length"
                   class="mt-2 rounded-lg bg-amber-300/10 px-2 py-1.5 text-[10px] leading-relaxed text-amber-100/75"
@@ -568,15 +494,7 @@ watch(mode, () => {
               </button>
             </div>
 
-            <div class="min-h-0 flex-1 overflow-y-auto p-3">
-              <div class="mb-2 flex items-center gap-2 px-1">
-                <span class="h-2.5 w-2.5 rounded-full" :style="{ background: domainColor(selectedCluster.dominantDomain) }" />
-                <span class="text-xs font-bold">{{ t(domainLabel(selectedCluster.dominantDomain)) }}</span>
-                <span v-if="selectedCluster.approximateCount" class="ml-auto rounded-full bg-white/10 px-2 py-0.5 font-mono text-[9px] text-white/65">
-                  {{ t('approximate') }}
-                </span>
-              </div>
-
+            <div class="no-scrollbar scrollbar-hide min-h-0 flex-1 overflow-y-auto p-3">
               <div class="space-y-2">
                 <button
                   v-for="item in selectedItems"
@@ -586,29 +504,52 @@ watch(mode, () => {
                   @click="selectSource(item)"
                 >
                   <span class="min-w-0 flex-1">
-                    <span class="line-clamp-2 block text-xs font-semibold leading-snug text-white/90">{{ item.title }}</span>
-                    <span class="mt-2 flex flex-wrap items-center gap-1.5 font-mono text-[9px] text-white/45">
-                      <span class="rounded bg-white/[0.06] px-1.5 py-0.5 text-white/60">{{ t(platformLabel(item.platform)) }}</span>
+                    <span class="line-clamp-2 block text-sm font-semibold leading-snug text-white/90">{{ item.title }}</span>
+                    <span class="mt-2 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-white/45">
+                      <span
+                        class="rounded px-1.5 py-0.5 font-bold"
+                        :class="item.platform.toLowerCase() === 'youtube' ? 'bg-red-600 text-white' : 'bg-black/45 text-white'"
+                      >
+                        {{ t(platformLabel(item.platform)) }}
+                      </span>
                       <span>{{ item.published_year ?? '—' }}</span>
                       <span class="truncate">{{ sourceLocation(item) }}</span>
-                      <span v-if="item.is_approximate" class="rounded bg-amber-300/10 px-1.5 py-0.5 text-amber-200/70">{{ t('approximate') }}</span>
+                      <AppTooltip
+                        v-if="item.is_approximate"
+                        :content="t('Country-level location only')"
+                        side="top"
+                      >
+                        <span class="cursor-help rounded bg-black/45 px-1.5 py-0.5 text-white">{{ t('approximate') }}</span>
+                      </AppTooltip>
                     </span>
-                    <span class="mt-1.5 block truncate font-mono text-[9px] text-sky-200/55">{{ sourceDomain(item) }}</span>
+                    <span class="mt-1.5 block truncate font-mono text-[11px] text-sky-200/55">{{ sourceDomain(item) }}</span>
                   </span>
-                  <span class="mt-0.5 flex-shrink-0 font-mono text-xs text-sky-200/45 transition group-hover:text-sky-200">→</span>
+                  <span class="mt-0.5 flex-shrink-0 font-mono text-sm text-sky-200/45 transition group-hover:text-sky-200">→</span>
                 </button>
               </div>
             </div>
           </template>
 
           <template v-else>
-            <div class="min-h-0 flex-1 overflow-y-auto p-3">
+            <div class="no-scrollbar scrollbar-hide min-h-0 flex-1 overflow-y-auto p-3">
               <div class="mb-2 flex items-center justify-between px-1">
-                <div>
-                  <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-sky-200/65">{{ t('Source clusters') }}</p>
-                  <p class="mt-1 text-xs text-white/45">{{ t('Click a cluster to inspect its sources.') }}</p>
+                <div class="flex items-center gap-2">
+                  <p class="font-mono text-xs font-bold uppercase tracking-[0.18em] text-sky-200/70">{{ t('Source clusters') }}</p>
+                  <AppTooltip :content="t('Click a cluster to inspect its sources.')" side="bottom">
+                    <button
+                      type="button"
+                      class="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-sky-100/70 transition hover:bg-white/20 hover:text-white"
+                      :aria-label="t('More information')"
+                    >
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 11v5" />
+                        <circle cx="12" cy="7.5" r="0.8" fill="currentColor" stroke="none" />
+                      </svg>
+                    </button>
+                  </AppTooltip>
                 </div>
-                <span class="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[9px] text-white/55">{{ clusters.length }}</span>
+                <span class="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] text-white/55">{{ clusters.length }}</span>
               </div>
 
               <div v-if="clusters.length" class="space-y-2">
@@ -619,18 +560,14 @@ watch(mode, () => {
                   class="flex w-full items-center gap-3 rounded-xl bg-white/[0.035] p-3 text-left transition hover:bg-white/[0.07]"
                   @click="selectCluster(cluster)"
                 >
-                  <span
-                    class="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                    :style="{ background: cluster.exact ? domainColor(cluster.dominantDomain) : '#94a3b8' }"
-                  />
-                  <span class="min-w-0 flex-1">
-                    <span class="block truncate text-xs font-bold text-white/90">{{ cluster.label }}</span>
-                    <span class="mt-0.5 block font-mono text-[9px] text-white/45">
+                  <span class="min-w-0 flex-1 truncate text-sm font-bold text-white/90">{{ cluster.label }}</span>
+                  <span class="flex flex-shrink-0 items-center gap-2 font-mono text-[11px] text-white/45">
+                    <span class="whitespace-nowrap">
                       {{ cluster.items.length }} {{ cluster.items.length === 1 ? t('source') : t('sources') }}
                       <span v-if="cluster.approximateCount"> · {{ cluster.approximateCount }} {{ t('approximate') }}</span>
                     </span>
+                    <span class="text-sky-200/55">→</span>
                   </span>
-                  <span class="font-mono text-xs text-sky-200/55">→</span>
                 </button>
               </div>
 
@@ -647,47 +584,28 @@ watch(mode, () => {
           </template>
         </section>
 
-        <div class="pointer-events-none absolute bottom-5 left-5 z-30 hidden items-center gap-3 atlas-ci-bar rounded-xl px-3 py-2 font-mono text-[9px] text-white/55 md:flex">
-          <span class="flex items-center gap-1.5">
-            <span class="h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
-            {{ t('Exact location') }}
-          </span>
-          <span class="h-3 w-px bg-white/15" />
-          <span class="flex items-center gap-1.5">
-            <span class="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-            {{ t('Country-level approximation') }}
-          </span>
-          <span class="text-white/25">·</span>
-          <span>{{ t('Expands at high zoom') }}</span>
+        <div class="pointer-events-auto absolute bottom-5 left-5 z-30 hidden items-center gap-1 atlas-ci-panel rounded-full p-1.5 md:left-7 md:flex lg:ml-6">
+          <button
+            type="button"
+            class="rounded-full px-4 py-2 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
+            @click="globeRef?.resetView()"
+          >
+            {{ t('Reset view') }}
+          </button>
         </div>
 
-        <div class="pointer-events-auto absolute bottom-5 right-5 flex flex-col items-end gap-2 md:right-7">
-          <p class="hidden font-mono text-[9px] text-white/35 sm:block">{{ t('Drag to rotate · Scroll to zoom') }}</p>
-          <div class="flex items-center gap-1 atlas-ci-bar rounded-xl p-1">
+        <div
+          class="pointer-events-auto absolute right-5 z-40 flex flex-col items-end gap-2 md:hidden"
+          :class="selectedCluster ? 'bottom-[calc(42%+1.25rem)]' : 'bottom-5'"
+        >
+          <div class="flex items-center gap-1 atlas-ci-panel rounded-2xl p-1.5">
             <button
               type="button"
-              class="rounded-lg px-2.5 py-2 text-[10px] font-bold text-white/65 transition hover:bg-white/10 hover:text-white"
-              @click="globeRef?.focusThailand()"
-            >
-              {{ t('Focus Thailand') }}
-            </button>
-            <button
-              type="button"
-              class="rounded-lg px-2.5 py-2 text-[10px] font-bold text-white/65 transition hover:bg-white/10 hover:text-white"
+              class="rounded-lg px-3.5 py-2.5 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
               @click="globeRef?.resetView()"
             >
               {{ t('Reset view') }}
             </button>
-          </div>
-        </div>
-
-        <div
-          v-if="isPending"
-          class="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-black/55 backdrop-blur-sm"
-        >
-          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#040914]/90 px-4 py-3">
-            <span class="h-4 w-4 animate-spin rounded-full border-2 border-sky-300 border-t-transparent" />
-            <span class="font-mono text-xs text-white/70">{{ t('Loading geospatial sources...') }}</span>
           </div>
         </div>
 
@@ -699,7 +617,7 @@ watch(mode, () => {
           <p class="mt-1 text-xs text-white/50">{{ error?.message }}</p>
           <button
             type="button"
-            class="mt-4 rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-950"
+            class="mt-4 rounded-xl bg-[#ff4c2b] px-4 py-2 text-xs font-bold text-white hover:bg-[#e84324]"
             @click="() => refetch()"
           >
             {{ t('Retry') }}
@@ -712,21 +630,21 @@ watch(mode, () => {
       <div class="absolute inset-0">
         <NetworkPage />
       </div>
-      <div class="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 md:p-5">
-        <h1 class="pointer-events-auto hidden whitespace-nowrap text-2xl font-black tracking-tight text-white sm:block md:text-3xl">
+      <div class="pointer-events-none absolute inset-x-0 top-0 z-40 flex flex-wrap items-start justify-between gap-3 p-5 md:p-7">
+        <h1 class="pointer-events-auto whitespace-nowrap text-xl font-black tracking-tight text-white sm:text-2xl md:text-[36px] leading-tight m-0 uppercase lg:ml-6">
           SIAM QUANTUM ATLAS
         </h1>
-        <div class="pointer-events-auto flex flex-shrink-0 items-center gap-1 atlas-ci-bar rounded-2xl p-1">
+        <div class="pointer-events-auto flex w-full flex-shrink-0 items-center overflow-hidden atlas-ci-bar rounded-full sm:w-auto">
           <button
             type="button"
-            class="whitespace-nowrap rounded-xl px-3 py-2 text-xs font-bold transition text-white/60 hover:text-white"
+            class="min-h-[40px] flex-1 justify-center whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-bold transition text-white/60 hover:text-white sm:flex-none"
             @click="setMode('globe')"
           >
             {{ t('Globe') }}
           </button>
           <button
             type="button"
-            class="whitespace-nowrap rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-950"
+            class="min-h-[40px] flex-1 justify-center whitespace-nowrap rounded-full bg-[#ff4c2b] px-4 py-2.5 text-sm font-bold text-white sm:flex-none"
           >
             {{ t('Network') }}
           </button>
@@ -739,11 +657,26 @@ watch(mode, () => {
 
 <style scoped>
 .atlas-ci-panel {
-  background: #0b2a68;
+  background: #0a3a4f;
 }
 
 .atlas-ci-bar {
   background: rgba(5, 16, 40, 0.72);
   backdrop-filter: blur(18px);
+}
+
+.scrollbar-hide {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-color: transparent transparent !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar-track,
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 </style>

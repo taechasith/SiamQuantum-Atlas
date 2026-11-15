@@ -3,9 +3,11 @@ import { ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useAuthUserQuery, useSubmitDataMutation } from '@/api/queries'
 import Alert from '@/components/ui/Alert.vue'
+import AuthMenu from '@/components/auth/AuthMenu.vue'
 import AppTooltip from '@/components/ui/AppTooltip.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { t } from '@/composables/useLocale'
+import { THAI_PROVINCES } from '@/lib/provinces'
 
 const { data: authUser } = useAuthUserQuery()
 const queryClient = useQueryClient()
@@ -15,6 +17,7 @@ const title = ref('')
 const url = ref('')
 const category = ref('')
 const handle = ref('')
+const province = ref('none')
 const isSubmitting = ref(false)
 const statusMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -38,6 +41,7 @@ function submitResearch() {
       url: url.value.trim(),
       category: category.value,
       handle: handle.value.trim() || undefined,
+      province_code: province.value === 'none' ? null : province.value,
     },
     {
       onSuccess: () => {
@@ -49,6 +53,7 @@ function submitResearch() {
         url.value = ''
         category.value = ''
         handle.value = ''
+        province.value = 'none'
         isSubmitting.value = false
         queryClient.invalidateQueries({ queryKey: ['submitted-data', 'mine'] })
       },
@@ -89,16 +94,13 @@ function submitResearch() {
           </button>
         </AppTooltip>
       </div>
-      <span class="self-start sm:self-auto px-3 py-1 rounded-full bg-black/55 border border-white/10 text-[10px] font-mono font-bold uppercase tracking-[0.12em] text-white">
-        {{ t('Reviewed by Admin') }}
-      </span>
     </div>
 
     <!-- Signed out -->
     <div
       v-if="!authUser"
       class="rounded-[30px] p-6 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
-      style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+      style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
     >
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-2xl bg-black/40 flex items-center justify-center flex-shrink-0">
@@ -112,12 +114,7 @@ function submitResearch() {
           <p class="text-xs sm:text-sm text-sky-200/80 m-0 mt-1">{{ t('Sign in to unlock submission features and analyst privileges.') }}</p>
         </div>
       </div>
-      <router-link
-        to="/dashboard"
-        class="px-5 py-2.5 rounded-2xl bg-white hover:bg-cyan-100 text-blue-900 font-mono text-xs font-bold no-underline transition whitespace-nowrap"
-      >
-        {{ t('Go to Dashboard') }}
-      </router-link>
+      <AuthMenu variant="cta" />
     </div>
 
     <div v-else class="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5 items-stretch">
@@ -125,7 +122,7 @@ function submitResearch() {
       <form
         @submit.prevent="submitResearch"
         class="rounded-[30px] p-5 sm:p-7 text-white space-y-4"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.45) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.45) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <header class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2.5 min-w-0">
@@ -142,7 +139,7 @@ function submitResearch() {
         </header>
 
         <div class="space-y-1.5">
-          <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block">
+          <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block min-h-[2rem]">
             {{ t('Research Title') }} <span class="text-cyan-300">*</span>
           </label>
           <input
@@ -150,12 +147,12 @@ function submitResearch() {
             type="text"
             required
             :placeholder="t('e.g. Chulalongkorn launches quantum computing research center')"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
+            class="h-11 w-full min-w-0 px-3.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
           >
         </div>
 
         <div class="space-y-1.5">
-          <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block">
+          <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block min-h-[2rem]">
             {{ t('Source URL') }} <span class="text-cyan-300">*</span>
           </label>
           <input
@@ -163,17 +160,17 @@ function submitResearch() {
             type="url"
             required
             :placeholder="t('https://chula.ac.th/news/... or https://youtube.com/watch?v=...')"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
+            class="h-11 w-full min-w-0 px-3.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
           >
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="space-y-1.5">
+        <div class="grid grid-cols-1 sm:grid-cols-[repeat(3,minmax(0,1fr))] sm:grid-rows-[auto_auto] gap-3">
+          <div class="grid min-w-0 gap-1.5 sm:row-span-2 sm:grid-rows-subgrid">
             <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block">
               {{ t('Category') }} <span class="text-cyan-300">*</span>
             </label>
             <Select v-model="category">
-              <SelectTrigger class="w-full">
+              <SelectTrigger class="w-full min-w-0 h-11 text-sm overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
                 <SelectValue :placeholder="t('Select a category')" />
               </SelectTrigger>
               <SelectContent>
@@ -184,7 +181,24 @@ function submitResearch() {
             </Select>
           </div>
 
-          <div class="space-y-1.5">
+          <div class="grid min-w-0 gap-1.5 sm:row-span-2 sm:grid-rows-subgrid">
+            <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block">
+              {{ t('Province (Optional)') }}
+            </label>
+            <Select v-model="province">
+              <SelectTrigger class="w-full min-w-0 h-11 text-sm overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
+                <SelectValue :placeholder="t('Select a province')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{{ t('Not specified (country-level)') }}</SelectItem>
+                <SelectItem v-for="item in THAI_PROVINCES" :key="item" :value="item">
+                  {{ item }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="grid min-w-0 gap-1.5 sm:row-span-2 sm:grid-rows-subgrid">
             <label class="text-[10px] font-mono uppercase tracking-[0.12em] text-white/90 font-bold block">
               {{ t('Contributor Handle (Optional)') }}
             </label>
@@ -192,7 +206,7 @@ function submitResearch() {
               v-model="handle"
               type="text"
               :placeholder="t('@researcher_name or institution')"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
+              class="h-11 w-full min-w-0 px-3.5 rounded-xl bg-white/[0.1] hover:bg-white/[0.14] focus:bg-white/[0.18] text-sm text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 transition"
             >
           </div>
         </div>
@@ -206,9 +220,9 @@ function submitResearch() {
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="w-full py-3 rounded-2xl bg-white hover:bg-cyan-100 text-blue-900 font-bold font-mono uppercase tracking-[0.12em] text-xs transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+          class="w-full py-3 rounded-2xl bg-[#ff4c2b] hover:bg-[#e84324] text-white font-bold font-mono uppercase tracking-[0.12em] text-xs transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
         >
-          <span v-if="isSubmitting" class="w-3.5 h-3.5 rounded-full bg-blue-900/30 animate-ping" />
+          <span v-if="isSubmitting" class="w-3.5 h-3.5 rounded-full bg-white/50 animate-ping" />
           <span>{{ isSubmitting ? t('Evaluating & Ingesting...') : t('Submit to Atlas Pipeline') }}</span>
         </button>
       </form>
@@ -216,7 +230,7 @@ function submitResearch() {
       <!-- How it works -->
       <aside
         class="rounded-[30px] p-5 sm:p-7 text-white flex flex-col justify-between gap-5"
-        style="background: linear-gradient(180deg, #1d4ed8 0%, rgba(29, 78, 216, 0.35) 55%, rgba(29, 78, 216, 0) 100%);"
+        style="background: linear-gradient(180deg, #329dd2 0%, rgba(50, 157, 210, 0.35) 55%, rgba(50, 157, 210, 0) 100%);"
       >
         <div class="space-y-4">
           <header class="flex items-center gap-2.5">

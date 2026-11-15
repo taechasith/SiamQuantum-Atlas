@@ -42,6 +42,20 @@ function normalizeConcept(value: string): string {
 
 publicRoutes.get('/stats/summary', async (c) => {
   try {
+    const yearQuery = c.req.query('year')
+    const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
+    const platformQuery = c.req.query('platform')
+    const platform = platformQuery && platformQuery !== 'all' ? platformQuery : null
+    const domainQuery = c.req.query('domain')
+    const domain = domainQuery && domainQuery !== 'all' ? domainQuery : null
+    const searchQuery = c.req.query('q')?.trim() || null
+    const searchPattern = searchQuery ? `%${searchQuery}%` : null
+    const yearClause = year ? sql`s.published_year = ${year}` : sql`TRUE`
+    const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
+    const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
+    const searchClause = searchPattern
+      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      : sql`TRUE`
     const [stats] = await sql<
       {
         total_sources: number
@@ -52,22 +66,22 @@ publicRoutes.get('/stats/summary', async (c) => {
       }[]
     >`
       SELECT
-        (SELECT COUNT(*)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)}) AS total_sources,
-        (SELECT COUNT(*)::int FROM triplets) AS total_triplets,
-        (SELECT MIN(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)}) AS min_year,
-        (SELECT MAX(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)}) AS max_year,
+        (SELECT COUNT(*)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_sources,
+        (SELECT COUNT(*)::int FROM triplets t JOIN sources s ON s.id = t.source_id WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_triplets,
+        (SELECT MIN(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS min_year,
+        (SELECT MAX(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS max_year,
         (
           SELECT COUNT(DISTINCT g.source_id)::int
           FROM geo g JOIN sources s ON g.source_id = s.id
           WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
             AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
-            AND ${sql.unsafe(PUBLIC_SCOPE)}
+            AND ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
         ) AS real_geo
     `
     const platforms = await sql<{ platform: string; count: number }[]>`
       SELECT platform, COUNT(*)::int AS count
       FROM sources s
-      WHERE ${sql.unsafe(PUBLIC_SCOPE)}
+      WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY platform
       ORDER BY count DESC
     `
@@ -75,7 +89,7 @@ publicRoutes.get('/stats/summary', async (c) => {
       SELECT COUNT(*)::int AS count
       FROM sources s
       WHERE s.channel_country IS NOT NULL
-        AND ${sql.unsafe(PUBLIC_SCOPE)}
+        AND ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
         AND s.id NOT IN (
           SELECT g2.source_id FROM geo g2
           WHERE g2.lat IS NOT NULL AND g2.lng IS NOT NULL
@@ -100,10 +114,24 @@ publicRoutes.get('/stats/summary', async (c) => {
 
 publicRoutes.get('/stats/yearly', async (c) => {
   try {
+    const yearQuery = c.req.query('year')
+    const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
+    const platformQuery = c.req.query('platform')
+    const platform = platformQuery && platformQuery !== 'all' ? platformQuery : null
+    const domainQuery = c.req.query('domain')
+    const domain = domainQuery && domainQuery !== 'all' ? domainQuery : null
+    const searchQuery = c.req.query('q')?.trim() || null
+    const searchPattern = searchQuery ? `%${searchQuery}%` : null
+    const yearClause = year ? sql`s.published_year = ${year}` : sql`TRUE`
+    const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
+    const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
+    const searchClause = searchPattern
+      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      : sql`TRUE`
     const rows = await sql<{ published_year: number; platform: string; count: number }[]>`
       SELECT s.published_year, s.platform, COUNT(*)::int AS count
       FROM sources s
-      WHERE ${sql.unsafe(PUBLIC_SCOPE)}
+      WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY s.published_year, s.platform
       ORDER BY s.published_year
     `
@@ -128,8 +156,22 @@ publicRoutes.get('/stats/yearly', async (c) => {
 
 publicRoutes.get('/corpus/coverage', async (c) => {
   try {
+    const yearQuery = c.req.query('year')
+    const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
+    const platformQuery = c.req.query('platform')
+    const platform = platformQuery && platformQuery !== 'all' ? platformQuery : null
+    const domainQuery = c.req.query('domain')
+    const domain = domainQuery && domainQuery !== 'all' ? domainQuery : null
+    const searchQuery = c.req.query('q')?.trim() || null
+    const searchPattern = searchQuery ? `%${searchQuery}%` : null
+    const yearClause = year ? sql`s.published_year = ${year}` : sql`TRUE`
+    const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
+    const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
+    const searchClause = searchPattern
+      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      : sql`TRUE`
     const [totalRow] = await sql<{ total: number }[]>`
-      SELECT COUNT(*)::int AS total FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)}
+      SELECT COUNT(*)::int AS total FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
     `
     const byYear = await sql<{ published_year: number; platform: string; count: number }[]>`
       SELECT s.published_year, s.platform, COUNT(*)::int AS count
@@ -141,7 +183,7 @@ publicRoutes.get('/corpus/coverage', async (c) => {
     const byDomain = await sql<{ domain: string | null; count: number }[]>`
       SELECT s.quantum_domain AS domain, COUNT(*)::int AS count
       FROM sources s
-      WHERE s.quantum_domain IS NOT NULL AND ${sql.unsafe(PUBLIC_SCOPE)}
+      WHERE s.quantum_domain IS NOT NULL AND ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY s.quantum_domain
       ORDER BY count DESC
     `

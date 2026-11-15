@@ -4,8 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthUserQuery } from '@/api/queries'
 import AppTooltip from '@/components/ui/AppTooltip.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { lang, setLang, t } from '@/composables/useLocale'
+import { lang, toggleLang, t } from '@/composables/useLocale'
 import ProfilePage from '@/pages/ProfilePage.vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +16,7 @@ const { data: currentUser } = useAuthUserQuery()
 const profileName = ref('Guest Researcher')
 const profileRole = ref('Not signed in')
 const profileInitials = ref('?')
+const profileAvatar = ref('')
 
 function loadProfile() {
   const user = currentUser.value
@@ -22,6 +24,7 @@ function loadProfile() {
     profileName.value = 'Guest Researcher'
     profileRole.value = 'Not signed in'
     profileInitials.value = '?'
+    profileAvatar.value = ''
     return
   }
 
@@ -39,6 +42,7 @@ function loadProfile() {
   profileName.value = name
   profileRole.value = data.role || (user.role === 'admin' ? 'Administrator' : user.role) || 'Researcher'
   profileInitials.value = data.initials || name.slice(0, 2).toUpperCase() || 'SQ'
+  profileAvatar.value = user.avatar_url || data.avatarUrl || ''
 }
 
 watch(currentUser, loadProfile, { immediate: true })
@@ -58,7 +62,7 @@ onUnmounted(() => {
 })
 
 // Expandable sidebar dock state (desktop)
-const isExpanded = ref(false)
+const isExpanded = ref(true)
 function toggleSidebar() {
   isExpanded.value = !isExpanded.value
 }
@@ -145,20 +149,20 @@ const mobileTabs = [
 ]
 
 const dockOffsetStyle = computed(() => ({
-  '--dock-offset': isExpanded.value ? '342px' : '120px',
+  '--dock-offset': isExpanded.value ? '322px' : '100px',
 } as Record<string, string>))
 </script>
 
 <template>
   <TooltipProvider>
-    <div class="h-screen w-screen bg-[#000000] text-zinc-100 flex flex-col lg:flex-row overflow-hidden font-sans antialiased">
+    <div class="h-screen w-screen bg-[#080f1b] text-zinc-100 flex flex-col lg:flex-row overflow-hidden font-sans antialiased">
       <!-- ── EXPANDABLE SIDEBAR / DOCK (w-[108px] collapsed, w-[330px] expanded) ────────────────── -->
       <div
         class="hidden lg:flex h-full flex-col flex-shrink-0 relative transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
-        :class="isExpanded ? 'w-[330px]' : 'w-[108px]'"
+        :class="isExpanded ? 'w-[310px]' : 'w-[88px]'"
       >
       <aside
-        class="flex-1 min-h-0 w-full bg-[#070709] flex flex-col justify-between py-5 shadow-2xl z-50 select-none border-r border-white/[0.08] relative overflow-hidden"
+        class="flex-1 min-h-0 w-full bg-[#080f1b] flex flex-col justify-between py-5 shadow-2xl z-50 select-none border-r border-white/[0.08] relative overflow-hidden"
         :class="expandedView ? 'px-4' : 'px-3'"
       >
         <!-- Top: Brand Logo / Toggle Button (Smooth Accordion Transition) -->
@@ -190,7 +194,7 @@ const dockOffsetStyle = computed(() => ({
             >
             <router-link
               :to="item.path"
-              class="h-[58px] rounded-[20px] flex items-center transition-colors duration-200 group relative w-full overflow-hidden"
+              class="h-[58px] rounded-[20px] flex items-center transition-colors duration-200 group relative w-full"
               :class="[
                 expandedView ? 'px-2.5 justify-start' : 'px-0 justify-center',
                 route.path === item.path
@@ -199,7 +203,7 @@ const dockOffsetStyle = computed(() => ({
               ]"
             >
               <!-- Fixed Icon Box (58px) -->
-              <div class="w-[58px] h-[58px] flex-shrink-0 flex items-center justify-center">
+              <div class="w-[58px] min-w-[58px] h-[58px] flex-shrink-0 flex items-center justify-center transform-gpu">
                 <!-- Dashboard Icon -->
                 <svg v-if="item.icon === 'dashboard'" class="w-7 h-7 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="3" width="7" height="7" rx="2" />
@@ -290,28 +294,28 @@ const dockOffsetStyle = computed(() => ({
           </AppTooltip>
 
           <!-- Language Toggle Row -->
-          <div class="flex w-full mb-3 justify-center">
+          <div class="w-full mb-3">
             <AppTooltip :content="t('Switch language')" side="top">
-              <div class="flex items-center gap-0.5 rounded-xl bg-white/[0.06] border border-white/[0.08] p-1">
-                <button
-                  type="button"
-                  @click="setLang('th')"
-                  :aria-pressed="lang === 'th'"
-                  class="px-2 py-1.5 rounded-lg font-mono text-xs font-bold transition cursor-pointer"
-                  :class="lang === 'th' ? 'bg-white text-slate-950 shadow-sm' : 'text-zinc-400 hover:text-white'"
-                >
-                  TH
-                </button>
-                <button
-                  type="button"
-                  @click="setLang('en')"
-                  :aria-pressed="lang === 'en'"
-                  class="px-2 py-1.5 rounded-lg font-mono text-xs font-bold transition cursor-pointer"
-                  :class="lang === 'en' ? 'bg-white text-slate-950 shadow-sm' : 'text-zinc-400 hover:text-white'"
-                >
-                  EN
-                </button>
-              </div>
+              <button
+                type="button"
+                class="flex h-10 w-full items-center gap-2 rounded-[14px] bg-white/[0.04] px-2.5 text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
+                :class="expandedView ? 'justify-between' : 'justify-center'"
+                :aria-label="t('Switch language')"
+                @click="toggleLang"
+              >
+                <span v-if="expandedView" class="flex min-w-0 items-center gap-2">
+                  <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
+                  </svg>
+                  <span class="truncate text-xs font-medium">{{ lang === 'th' ? 'Thailand' : 'English' }}</span>
+                </span>
+                <span class="inline-flex items-center justify-center text-white/75">
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 7h10l-3-3M17 17H7l3 3" />
+                  </svg>
+                </span>
+              </button>
             </AppTooltip>
           </div>
 
@@ -320,20 +324,21 @@ const dockOffsetStyle = computed(() => ({
           <button
             type="button"
             @click="openProfilePopup"
-            class="rounded-[20px] p-2 flex items-center transition-all duration-300 overflow-hidden w-full group cursor-pointer bg-transparent border-0"
+            class="rounded-[20px] px-2.5 py-2 flex items-center transition-all duration-300 overflow-hidden w-full group cursor-pointer bg-transparent border-0"
             :class="[
               isProfilePopupOpen ? 'bg-white/15' : 'bg-white/[0.04] hover:bg-white/[0.08]',
-              expandedView ? 'gap-3 px-2.5' : 'justify-center'
+              expandedView ? 'gap-4 px-2.5' : 'justify-center'
             ]"
           >
             <div
-              class="w-11 h-11 rounded-full bg-[#12141a] flex items-center justify-center text-white text-sm font-bold font-mono flex-shrink-0 group-hover:scale-105 transition"
+              class="w-11 h-11 rounded-full bg-[#080f1b] flex items-center justify-center text-white text-sm font-bold font-mono flex-shrink-0 group-hover:scale-105 transition overflow-hidden"
               :class="isProfilePopupOpen ? 'ring-2 ring-cyan-300 text-cyan-300' : 'ring-2 ring-indigo-500/80'"
             >
-              {{ profileInitials }}
+              <img v-if="profileAvatar" :src="profileAvatar" alt="" class="h-full w-full object-cover">
+              <span v-else>{{ profileInitials }}</span>
             </div>
             <div
-              class="min-w-0 flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+              class="min-w-0 flex flex-col items-start text-left whitespace-nowrap overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
               :class="expandedView ? 'opacity-100 max-w-[170px]' : 'opacity-0 max-w-0 pointer-events-none'"
             >
               <span class="text-sm font-bold text-white group-hover:text-cyan-300 transition truncate">{{ profileName }}</span>
@@ -352,7 +357,7 @@ const dockOffsetStyle = computed(() => ({
         <button
           @click="toggleSidebar"
           :aria-label="isExpanded ? t('Collapse Sidebar') : t('Expand Sidebar')"
-          class="hidden lg:flex absolute top-4 left-full z-[60] w-8 h-16 rounded-r-2xl border border-white/[0.08] bg-[#070709] text-zinc-400 hover:text-white hover:bg-white/[0.10] items-center justify-center transition cursor-pointer shadow-lg"
+          class="hidden lg:flex absolute top-4 left-full z-[60] w-8 h-16 rounded-r-2xl border border-white/[0.08] bg-[#080f1b] text-zinc-400 hover:text-white hover:bg-white/[0.10] items-center justify-center transition cursor-pointer shadow-lg"
         >
           <svg
             class="w-4 h-4 transition-transform duration-300 ease-out"
@@ -371,16 +376,16 @@ const dockOffsetStyle = computed(() => ({
       <!-- ── MAIN VIEWPORT (Zero-Scroll on Dashboard Desktop, Natural Scroll on Mobile/Tablet) ───── -->
       <div class="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
         <main
-          class="flex-1 min-h-0 min-w-0 ml-0 lg:ml-3 overflow-hidden flex flex-col [scrollbar-gutter:stable_both-edges]"
+          class="flex-1 min-h-0 min-w-0 mx-0 overflow-hidden flex flex-col [scrollbar-gutter:stable_both-edges]"
 
           :class="[
             route.path === '/atlas' || route.path === '/map' || route.path === '/network'
               ? 'p-0 overflow-hidden'
               : route.path === '/dashboard'
-                ? 'overflow-y-auto p-5 md:p-7'
+                ? 'overflow-y-auto p-5 md:p-7 lg:pl-12'
                 : route.path === '/profile'
-                  ? 'overflow-y-auto p-5 md:p-7 lg:overflow-hidden'
-                  : 'overflow-y-auto p-5 md:p-7'
+                  ? 'overflow-y-auto p-5 md:p-7 lg:overflow-hidden lg:pl-12'
+                  : 'overflow-y-auto p-5 md:p-7 lg:pl-12'
           ]"
         >
           <router-view />
@@ -389,7 +394,7 @@ const dockOffsetStyle = computed(() => ({
 
       <!-- ── MOBILE TABS ───────────────────────────────────────────────── -->
       <nav
-        class="lg:hidden flex-none z-50 border-t border-white/[0.08] bg-[#070709]/95 backdrop-blur-xl"
+        class="lg:hidden flex-none z-50 border-t border-white/[0.08] bg-[#080f1b]/95 backdrop-blur-xl"
         aria-label="Mobile navigation"
       >
         <div class="flex w-full items-stretch justify-around px-1.5 pb-[env(safe-area-inset-bottom)]">
@@ -435,25 +440,9 @@ const dockOffsetStyle = computed(() => ({
                 <path d="M4 21a8 8 0 0 1 16 0" />
               </svg>
             </span>
-            <span class="truncate max-w-full">{{ t(tab.shortName ?? tab.name) }}</span>
           </router-link>
         </div>
       </nav>
-
-      <!-- ── MOBILE RESEARCH INPUT FAB ─────────────────────────────────── -->
-      <router-link
-        v-if="route.path !== '/submit-data' && route.path !== '/atlas' && route.path !== '/map' && route.path !== '/network' && route.path !== '/about'"
-        to="/submit-data"
-        class="lg:hidden fixed bottom-24 right-4 z-40 h-12 px-4 rounded-full bg-white text-blue-900 shadow-xl flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] no-underline active:scale-95 transition"
-        aria-label="Research Input"
-      >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-        {{ t('Research Input') }}
-      </router-link>
 
       <!-- ── DESKTOP PROFILE POPUP ─────────────────────────────────────── -->
       <Teleport to="body">
@@ -473,19 +462,21 @@ const dockOffsetStyle = computed(() => ({
             aria-label="Profile"
             @click.self="closeProfilePopup"
           >
-            <div class="relative w-full max-w-[1200px] max-h-[calc(100vh-2rem)] rounded-[28px] border border-white/[0.12] bg-[#070709] shadow-2xl overflow-hidden transition-all duration-300 ease-out">
+            <div class="relative w-full max-w-[1200px]">
               <button
                 type="button"
                 @click="closeProfilePopup"
-                class="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 border border-white/15 text-white flex items-center justify-center transition cursor-pointer"
+                class="absolute -right-2 -top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#080f1b] text-white/70 shadow-lg transition hover:bg-white/10 hover:text-white sm:-right-3 sm:-top-3"
                 aria-label="Close profile"
               >
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
-              <div class="max-h-[calc(100vh-2rem)] overflow-hidden p-4 sm:p-6 lg:p-7">
-                <ProfilePage />
+              <div class="max-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-[28px] border border-white/[0.12] bg-[#080f1b] shadow-2xl transition-all duration-300 ease-out">
+                <div class="max-h-[calc(100vh-2rem)] overflow-hidden p-4 sm:p-6 lg:p-7">
+                  <ProfilePage />
+                </div>
               </div>
             </div>
           </div>

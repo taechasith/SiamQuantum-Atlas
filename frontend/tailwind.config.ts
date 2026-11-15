@@ -10,14 +10,14 @@ export default {
     extend: {
       colors: {
         sq: {
-          bg: '#070B17',
-          sidebar: '#060A15',
+          bg: '#080f1b',
+          sidebar: '#080f1b',
           surface: '#131B2E',
           'surface-2': '#192338',
           'surface-hover': '#202D46',
-          primary: '#38BDF8',
+          primary: '#329DD2',
           secondary: '#10B981',
-          tertiary: '#60A5FA',
+          tertiary: '#329DD2',
           warning: '#F59E0B',
           danger: '#F87171',
         },

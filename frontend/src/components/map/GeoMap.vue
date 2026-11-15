@@ -92,7 +92,7 @@ function renderMarkers(L: any) {
 
     const count = group.length
     const approximate = group.every((item) => item.is_approximate)
-    const color = approximate ? '251,191,36' : '56,189,248'
+    const color = approximate ? '251,191,36' : '255,76,43'
 
     // At high zoom, fan every record out around its shared coordinate so all
     // overlapping records are individually visible and clickable.
@@ -102,7 +102,7 @@ function renderMarkers(L: any) {
         const icon = L.divIcon({
           className: 'custom-geo-marker expanded-geo-marker',
           html: `
-            <div class="cursor-pointer" style="width:14px;height:14px;border-radius:9999px;background:rgb(${color});box-shadow:0 0 9px rgba(${color},0.85);border:1.5px solid rgba(7,11,23,0.9);transition:transform 120ms ease" onmouseover="this.style.transform='scale(1.45)'" onmouseout="this.style.transform='scale(1)'"></div>
+            <div class="cursor-pointer" style="width:14px;height:14px;border-radius:9999px;background:rgb(${color});box-shadow:0 0 9px rgba(${color},0.85);border:1.5px solid rgba(8,15,27,0.9);transition:transform 120ms ease" onmouseover="this.style.transform='scale(1.45)'" onmouseout="this.style.transform='scale(1)'"></div>
           `,
           iconSize: [14, 14],
           iconAnchor: [7, 7],
@@ -116,14 +116,14 @@ function renderMarkers(L: any) {
 
     // At normal zoom, one marker per shared coordinate with a record count.
     const badge = count > 1
-      ? `<span class="absolute -right-4 -top-4 min-w-[20px] rounded-full border border-black/50 bg-[#07111f] px-1.5 font-mono text-[11px] font-bold leading-5 text-white shadow-lg">${count > 999 ? '999+' : count}</span>`
+      ? `<span class="absolute -right-4 -top-4 min-w-[20px] rounded-full border border-black/50 bg-[#080f1b] px-1.5 font-mono text-[11px] font-bold leading-5 text-white shadow-lg">${count > 999 ? '999+' : count}</span>`
       : ''
 
     const customIcon = L.divIcon({
       className: 'custom-geo-marker',
       html: `
         <div class="relative group cursor-pointer" style="--marker-rgb:${color}">
-          <div style="width:20px;height:20px;border-radius:9999px;background:rgb(${color});box-shadow:0 0 18px rgba(${color},0.95);border:2px solid rgba(7,11,23,0.9);transition:transform 160ms ease" class="group-hover:scale-125"></div>
+          <div style="width:20px;height:20px;border-radius:9999px;background:rgb(${color});box-shadow:0 0 18px rgba(${color},0.95);border:2px solid rgba(8,15,27,0.9);transition:transform 160ms ease" class="group-hover:scale-125"></div>
           <div style="position:absolute;top:-4px;left:-4px;width:26px;height:26px;border-radius:9999px;background:rgba(${color},0.18)" class="animate-ping"></div>
           ${badge}
         </div>
@@ -179,6 +179,6 @@ onUnmounted(() => {
   border: none;
 }
 .leaflet-container {
-  background-color: #070B17 !important;
+  background-color: #080f1b !important;
 }
 </style>
