@@ -1,0 +1,98 @@
+{
+  "ok": true,
+  "data": {
+    "total": 164,
+    "by_year": {
+      "2016": {
+        "manual_seed": 1
+      },
+      "2017": {
+        "manual_seed": 1
+      },
+      "2018": {
+        "manual_seed": 1
+      },
+      "2019": {
+        "manual_seed": 1
+      },
+      "2020": {
+        "gdelt": 6,
+        "youtube": 14
+      },
+      "2021": {
+        "gdelt": 10,
+        "manual_seed": 1,
+        "web": 2,
+        "youtube": 57
+      },
+      "2022": {
+        "gdelt": 18,
+        "manual_seed": 1,
+        "youtube": 23
+      },
+      "2023": {
+        "gdelt": 2,
+        "manual_seed": 2,
+        "web": 1,
+        "youtube": 5
+      },
+      "2024": {
+        "manual_seed": 3
+      },
+      "2025": {
+        "manual_seed": 1,
+        "youtube": 3
+      },
+      "2026": {
+        "gdelt": 1,
+        "manual_seed": 2,
+        "web": 2,
+        "youtube": 6
+      }
+    },
+    "by_domain": [
+      {
+        "domain": "quantum_computing",
+        "count": 65
+      },
+      {
+        "domain": "quantum_fundamentals",
+        "count": 38
+      },
+      {
+        "domain": "quantum_education",
+        "count": 35
+      },
+      {
+        "domain": "quantum_policy_industry",
+        "count": 16
+      },
+      {
+        "domain": "quantum_communication",
+        "count": 7
+      },
+      {
+        "domain": "quantum_materials",
+        "count": 2
+      },
+      {
+        "domain": "quantum_sensing",
+        "count": 1
+      }
+    ],
+    "years": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ]
+  },
+  "error": null
+}

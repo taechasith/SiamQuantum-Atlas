@@ -5,7 +5,8 @@ import { fail, nowIso } from './http'
 
 export const SESSION_COOKIE = 'sq_local_session'
 const SESSION_DAYS = 30
-const PBKDF2_ITERATIONS = 120_000
+const PBKDF2_ITERATIONS = 100_000
+const LEGACY_PBKDF2_ITERATIONS = 120_000
 
 export interface LocalUser {
   id: string
@@ -24,15 +25,33 @@ export interface LocalUser {
   updated_at: string
 }
 
+function derivePassword(password: string, salt: string, iterations: number): string {
+  return pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('hex')
+}
+
+function matchesHash(expected: string, actual: string): boolean {
+  const a = new Uint8Array(Buffer.from(expected, 'utf8'))
+  const b = new Uint8Array(Buffer.from(actual, 'utf8'))
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
 export function hashPassword(password: string, salt: string): string {
-  return pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256').toString('hex')
+  return derivePassword(password, salt, PBKDF2_ITERATIONS)
 }
 
 export function verifyPassword(password: string, user: LocalUser): boolean {
-  const expected = hashPassword(password, user.password_salt)
-  const a = new Uint8Array(Buffer.from(expected, 'utf8'))
-  const b = new Uint8Array(Buffer.from(user.password_hash, 'utf8'))
-  return a.length === b.length && timingSafeEqual(a, b)
+  if (matchesHash(derivePassword(password, user.password_salt, PBKDF2_ITERATIONS), user.password_hash)) {
+    return true
+  }
+
+  try {
+    return matchesHash(
+      derivePassword(password, user.password_salt, LEGACY_PBKDF2_ITERATIONS),
+      user.password_hash
+    )
+  } catch {
+    return false
+  }
 }
 
 export function newSalt(): string {

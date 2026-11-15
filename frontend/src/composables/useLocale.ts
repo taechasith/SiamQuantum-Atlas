@@ -66,6 +66,9 @@ const th: Record<string, string> = {
   'No Matching Records': 'ไม่พบรายการที่ตรงกัน',
   'No quantum sources found matching the current search parameters.':
     'ไม่พบแหล่งข้อมูลควอนตัมที่ตรงกับเงื่อนไขการค้นหาปัจจุบัน',
+  'Clear filters': 'ล้างตัวกรอง',
+  'Try a different keyword or clear the filters to see all sources.':
+    'ลองเปลี่ยนคำค้นหาหรือล้างตัวกรองเพื่อดูแหล่งข้อมูลทั้งหมด',
   Source: 'ต้นทาง',
   'Source thumbnail': 'ภาพปกแหล่งข้อมูล',
   Showing: 'แสดง',

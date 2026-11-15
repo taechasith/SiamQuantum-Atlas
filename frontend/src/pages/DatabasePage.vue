@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSourcesQuery, type SourceItem } from '@/api/queries'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { t } from '@/composables/useLocale'
 
 const route = useRoute()
+const router = useRouter()
 const { data: sources, isPending, isError, error: sourcesError, refetch } = useSourcesQuery()
 
 const searchQuery = ref(String(route.query.q ?? ''))
@@ -94,6 +95,18 @@ watch(
 watch(totalPages, (pages) => {
   if (currentPage.value > pages) currentPage.value = pages
 })
+
+function resetFilters() {
+  searchQuery.value = ''
+  selectedPlatform.value = 'all'
+  selectedYear.value = 'all'
+  currentPage.value = 1
+  if (route.query.q) {
+    const query = { ...route.query }
+    delete query.q
+    void router.replace({ query })
+  }
+}
 
 const platformNames: Record<string, string> = {
   youtube: 'YouTube',
@@ -317,8 +330,18 @@ function coverTint(platform: string): string {
                 <td colspan="5" class="p-8">
                   <EmptyState
                     :title="t('No Matching Records')"
-                    :message="t('No quantum sources found matching the current search parameters.')"
-                  />
+                    :message="t('Try a different keyword or clear the filters to see all sources.')"
+                  >
+                    <template #actions>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-white transition hover:border-cyan-300/40 hover:bg-white/[0.1]"
+                        @click="resetFilters"
+                      >
+                        {{ t('Clear filters') }}
+                      </button>
+                    </template>
+                  </EmptyState>
                 </td>
               </tr>
               <tr
@@ -383,8 +406,18 @@ function coverTint(platform: string): string {
           <div v-else-if="!paginatedSources.length" class="py-6">
             <EmptyState
               :title="t('No Matching Records')"
-              :message="t('No quantum sources found matching the current search parameters.')"
-            />
+              :message="t('Try a different keyword or clear the filters to see all sources.')"
+            >
+              <template #actions>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-white transition hover:border-cyan-300/40 hover:bg-white/[0.1]"
+                  @click="resetFilters"
+                >
+                  {{ t('Clear filters') }}
+                </button>
+              </template>
+            </EmptyState>
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">

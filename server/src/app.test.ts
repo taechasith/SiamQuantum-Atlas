@@ -42,6 +42,26 @@ describe('SiamQuantum Hono API', () => {
     expect(response.status).toBe(401)
   })
 
+  it('registers and logs in a local user', async () => {
+    const email = `test-${Date.now()}@example.com`
+    const password = 'testpass123'
+    const register = await app.request('/api/auth/local/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    expect(register.status).toBe(201)
+
+    const login = await app.request('/api/auth/local/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    expect(login.status).toBe(200)
+    const body = (await login.json()) as any
+    expect(body.data.user.email).toBe(email)
+  })
+
   it('serves the core public corpus endpoints', async () => {
     for (const path of ['/api/stats/summary', '/api/stats/yearly', '/api/corpus/coverage', '/api/sources', '/api/geo/list', '/api/graph']) {
       const response = await app.request(path)

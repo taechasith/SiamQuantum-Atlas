@@ -7,6 +7,7 @@
     "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
+    "build:snapshots": "bun scripts/build-snapshots.ts",
     "check:r2": "bun scripts/check-r2.ts"
   },
   "dependencies": {

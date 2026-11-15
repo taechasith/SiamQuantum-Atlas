@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "data": {
+    "total_sources": 164,
+    "total_triplets": 497,
+    "year_range": [
+      2016,
+      2026
+    ],
+    "geo_count": 7,
+    "geo_real_count": 7,
+    "geo_approximate_count": 0,
+    "platforms": [
+      {
+        "platform": "youtube",
+        "count": 108
+      },
+      {
+        "platform": "gdelt",
+        "count": 37
+      },
+      {
+        "platform": "manual_seed",
+        "count": 14
+      },
+      {
+        "platform": "web",
+        "count": 5
+      }
+    ]
+  },
+  "error": null
+}

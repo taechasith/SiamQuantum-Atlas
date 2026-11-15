@@ -1,6 +1,27 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 
+async function fetchData<T>(url: string, errorMessage: string): Promise<T> {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(errorMessage)
+  const json = await res.json()
+  return (json.data ?? json) as T
+}
+
+async function fetchSnapshot<T>(snapshotUrl: string, apiUrl: string, errorMessage: string): Promise<T> {
+  const res = await fetch(snapshotUrl)
+  if (res.ok) {
+    const json = await res.json()
+    return json.data as T
+  }
+  return fetchData<T>(apiUrl, errorMessage)
+}
+
+function hasActiveFilters(filters?: Ref<AnalyticsFilters | undefined>): boolean {
+  const value = filters?.value
+  return Boolean(value?.year || value?.platform || value?.domain || value?.q?.trim())
+}
+
 export interface SummaryStats {
   total_sources: number
   total_triplets: number
@@ -84,15 +105,22 @@ export function useStatsSummaryQuery(filters?: Ref<AnalyticsFilters | undefined>
     ]),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<SummaryStats> => {
+      if (!hasActiveFilters(filters)) {
+        return fetchSnapshot<SummaryStats>(
+          '/data/stats-summary.json',
+          '/api/stats/summary',
+          'Failed to load stats summary'
+        )
+      }
       const params = new URLSearchParams()
       if (filters?.value?.year && filters.value.year !== 'all') params.set('year', filters.value.year)
       if (filters?.value?.platform && filters.value.platform !== 'all') params.set('platform', filters.value.platform)
       if (filters?.value?.domain && filters.value.domain !== 'all') params.set('domain', filters.value.domain)
       if (filters?.value?.q?.trim()) params.set('q', filters.value.q.trim())
-      const res = await fetch(`/api/stats/summary${params.size ? `?${params}` : ''}`)
-      if (!res.ok) throw new Error('Failed to load stats summary')
-      const json = await res.json()
-      return json.data
+      return fetchData<SummaryStats>(
+        `/api/stats/summary${params.size ? `?${params}` : ''}`,
+        'Failed to load stats summary'
+      )
     },
   })
 }
@@ -105,12 +133,12 @@ export interface YearlyStatsData {
 export function useYearlyStatsQuery() {
   return useQuery({
     queryKey: ['stats', 'yearly'],
-    queryFn: async (): Promise<YearlyStatsData> => {
-      const res = await fetch('/api/stats/yearly')
-      if (!res.ok) throw new Error('Failed to load yearly stats')
-      const json = await res.json()
-      return json.data
-    },
+    queryFn: async (): Promise<YearlyStatsData> =>
+      fetchSnapshot<YearlyStatsData>(
+        '/data/stats-yearly.json',
+        '/api/stats/yearly',
+        'Failed to load yearly stats'
+      ),
   })
 }
 
@@ -133,15 +161,22 @@ export function useCorpusCoverageQuery(filters?: Ref<AnalyticsFilters | undefine
     ]),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<CorpusCoverageData> => {
+      if (!hasActiveFilters(filters)) {
+        return fetchSnapshot<CorpusCoverageData>(
+          '/data/corpus-coverage.json',
+          '/api/corpus/coverage',
+          'Failed to load corpus coverage'
+        )
+      }
       const params = new URLSearchParams()
       if (filters?.value?.year && filters.value.year !== 'all') params.set('year', filters.value.year)
       if (filters?.value?.platform && filters.value.platform !== 'all') params.set('platform', filters.value.platform)
       if (filters?.value?.domain && filters.value.domain !== 'all') params.set('domain', filters.value.domain)
       if (filters?.value?.q?.trim()) params.set('q', filters.value.q.trim())
-      const res = await fetch(`/api/corpus/coverage${params.size ? `?${params}` : ''}`)
-      if (!res.ok) throw new Error('Failed to load corpus coverage')
-      const json = await res.json()
-      return json.data
+      return fetchData<CorpusCoverageData>(
+        `/api/corpus/coverage${params.size ? `?${params}` : ''}`,
+        'Failed to load corpus coverage'
+      )
     },
   })
 }
@@ -150,10 +185,11 @@ export function useGeoListQuery(scope: string = 'th') {
   return useQuery({
     queryKey: ['geo', 'list', scope],
     queryFn: async (): Promise<GeoItem[]> => {
-      const res = await fetch(`/api/geo/list?scope=${encodeURIComponent(scope)}`)
-      if (!res.ok) throw new Error('Failed to load geographic data')
-      const json = await res.json()
-      return json.data || []
+      const apiUrl = `/api/geo/list?scope=${encodeURIComponent(scope)}`
+      if (['strict', 'th', 'quantum', 'all'].includes(scope)) {
+        return fetchSnapshot<GeoItem[]>(`/data/geo-${scope}.json`, apiUrl, 'Failed to load geographic data')
+      }
+      return fetchData<GeoItem[]>(apiUrl, 'Failed to load geographic data')
     },
   })
 }
@@ -161,12 +197,8 @@ export function useGeoListQuery(scope: string = 'th') {
 export function useNetworkGraphQuery() {
   return useQuery({
     queryKey: ['network', 'graph'],
-    queryFn: async (): Promise<NetworkData> => {
-      const res = await fetch('/api/graph')
-      if (!res.ok) throw new Error('Failed to load network graph')
-      const json = await res.json()
-      return json.data || { nodes: [], links: [] }
-    },
+    queryFn: async (): Promise<NetworkData> =>
+      fetchSnapshot<NetworkData>('/data/graph.json', '/api/graph', 'Failed to load network graph'),
   })
 }
 
@@ -174,6 +206,15 @@ export function useSourcesQuery(params: { year?: string; platform?: string; q?: 
   return useQuery({
     queryKey: ['sources', params],
     queryFn: async (): Promise<SourceItem[]> => {
+      if (!params.year && !params.platform && !params.q) {
+        const data = await fetchSnapshot<{ items?: SourceItem[] }>(
+          '/data/sources.json',
+          '/api/sources?page=1&page_size=1000',
+          'Failed to load sources'
+        )
+        return data.items ?? []
+      }
+
       const buildQuery = (page: number) => {
         const query = new URLSearchParams()
         if (params.year) query.set('year', params.year)
