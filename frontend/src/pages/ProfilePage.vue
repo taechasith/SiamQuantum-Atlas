@@ -135,6 +135,9 @@ const saveError = ref('')
 const isDeleteConfirmOpen = ref(false)
 const isDeletingAccount = ref(false)
 const deleteError = ref('')
+const avatarInput = ref<HTMLInputElement | null>(null)
+const isUploadingAvatar = ref(false)
+const avatarError = ref('')
 
 const copiedEndpoint = ref('')
 
@@ -154,6 +157,7 @@ function openEditModal() {
   editForm.value = { ...profile.value }
   isDeleteConfirmOpen.value = false
   deleteError.value = ''
+  avatarError.value = ''
   isEditOpen.value = true
 }
 
@@ -161,6 +165,50 @@ function closeEditModal() {
   isEditOpen.value = false
   isDeleteConfirmOpen.value = false
   deleteError.value = ''
+  avatarError.value = ''
+}
+
+async function uploadAvatar(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || isUploadingAvatar.value) return
+
+  avatarError.value = ''
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    avatarError.value = t('Avatar must be a PNG, JPEG, or WebP image.')
+    input.value = ''
+    return
+  }
+  if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
+    avatarError.value = t('Avatar must be between 1 byte and 5 MB.')
+    input.value = ''
+    return
+  }
+
+  isUploadingAvatar.value = true
+  try {
+    const form = new FormData()
+    form.append('avatar', file)
+    const response = await fetch('/api/profile/avatar', { method: 'POST', body: form })
+    const json = await response.json().catch(() => null)
+    if (!response.ok || !json?.ok) {
+      throw new Error(json?.error?.message || t('Failed to upload profile picture'))
+    }
+
+    const avatarUrl = json?.data?.profile?.avatar_url
+    if (!avatarUrl) throw new Error(t('Failed to upload profile picture'))
+
+    profile.value.avatarUrl = avatarUrl
+    editForm.value.avatarUrl = avatarUrl
+    localStorage.setItem('sq_profile_data', JSON.stringify(profile.value))
+    window.dispatchEvent(new Event('sq_profile_updated'))
+    await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+  } catch (err: any) {
+    avatarError.value = err?.message || t('Failed to upload profile picture')
+  } finally {
+    isUploadingAvatar.value = false
+    input.value = ''
+  }
 }
 
 async function deleteAccount() {
@@ -511,6 +559,32 @@ function timeAgo(value?: string): string {
             <div>
               <h3 class="text-lg sm:text-xl font-bold tracking-tight m-0">{{ t('Edit Researcher Profile') }}</h3>
               <span class="text-[11px] font-mono text-cyan-300/80">{{ t('Researcher Profile & Workspace') }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 rounded-2xl bg-black/20 p-3">
+            <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/40 font-mono text-lg font-black text-cyan-300">
+              <img v-if="editForm.avatarUrl" :src="editForm.avatarUrl" alt="" class="h-full w-full object-cover">
+              <span v-else>{{ editForm.initials || 'SQ' }}</span>
+            </div>
+            <div class="min-w-0">
+              <button
+                type="button"
+                :disabled="isUploadingAvatar"
+                class="rounded-xl bg-white/[0.08] px-3.5 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-white/[0.14] disabled:opacity-50"
+                @click="avatarInput?.click()"
+              >
+                {{ isUploadingAvatar ? t('Uploading...') : t('Change profile picture') }}
+              </button>
+              <input
+                ref="avatarInput"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                class="hidden"
+                @change="uploadAvatar"
+              >
+              <p class="mt-1 text-[10px] text-white/45">{{ t('JPG, PNG or WebP up to 5 MB') }}</p>
+              <p v-if="avatarError" class="mt-1 text-[10px] text-rose-200">{{ avatarError }}</p>
             </div>
           </div>
 

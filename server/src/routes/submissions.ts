@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { sql } from '../db/client'
+import { getSql, type AppEnv, type SqlClient } from '../db/client'
 import { profilePayload, requireAdmin, requireUser, type LocalUser } from '../lib/auth'
 import { THAI_PROVINCE_SET } from '../lib/provinces'
 import { fail, intParam, nowIso, ok, safeJsonParse } from '../lib/http'
 
-export const submissionRoutes = new Hono()
+export const submissionRoutes = new Hono<AppEnv>()
 
 type SubmissionRow = {
   id: number
@@ -83,6 +83,7 @@ function submissionPayload(row: SubmissionRow) {
 }
 
 async function logAdminAction(
+  sql: SqlClient,
   admin: LocalUser,
   action: string,
   targetType: string,
@@ -96,6 +97,7 @@ async function logAdminAction(
 }
 
 submissionRoutes.get('/submitted-data/mine', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   const limit = intParam(c.req.query('limit'), 100, 1, 500)
@@ -109,6 +111,7 @@ submissionRoutes.get('/submitted-data/mine', async (c) => {
 })
 
 submissionRoutes.get('/submitted-data/public', async (c) => {
+  const sql = getSql(c)
   const limit = intParam(c.req.query('limit'), 50, 1, 200)
   const rows = await sql<SubmissionRow[]>`
     SELECT * FROM local_submitted_data
@@ -120,6 +123,7 @@ submissionRoutes.get('/submitted-data/public', async (c) => {
 })
 
 submissionRoutes.post('/submitted-data', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   const parsed = submitSchema.safeParse(await c.req.json().catch(() => ({})))
@@ -144,6 +148,7 @@ submissionRoutes.post('/submitted-data', async (c) => {
 })
 
 submissionRoutes.post('/submitted-data/analyze-url', async (c) => {
+  const sql = getSql(c)
   return fail(
     c,
     501,
@@ -153,6 +158,7 @@ submissionRoutes.post('/submitted-data/analyze-url', async (c) => {
 })
 
 submissionRoutes.get('/categories', async (c) => {
+  const sql = getSql(c)
   const rows = await sql<{ id: number; name: string; slug: string; description: string | null }[]>`
     SELECT id, name, slug, description FROM local_categories ORDER BY name
   `
@@ -160,6 +166,7 @@ submissionRoutes.get('/categories', async (c) => {
 })
 
 submissionRoutes.post('/categories', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   const body = await c.req.json().catch(() => ({}))
@@ -176,6 +183,7 @@ submissionRoutes.post('/categories', async (c) => {
 })
 
 submissionRoutes.get('/admin/submitted-data', async (c) => {
+  const sql = getSql(c)
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
   const status = c.req.query('status')
@@ -200,6 +208,7 @@ submissionRoutes.get('/admin/submitted-data', async (c) => {
 })
 
 submissionRoutes.patch('/admin/submitted-data/:id', async (c) => {
+  const sql = getSql(c)
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
   const id = Number.parseInt(c.req.param('id'), 10)
@@ -220,11 +229,12 @@ submissionRoutes.patch('/admin/submitted-data/:id', async (c) => {
     [...values, nowIso(), id]
   )
   if (!row) return fail(c, 404, 'submission_not_found', 'Submission not found.')
-  await logAdminAction(admin, 'update_submission', 'submission', String(id), parsed.data)
+  await logAdminAction(sql, admin, 'update_submission', 'submission', String(id), parsed.data)
   return ok(c, submissionPayload(row))
 })
 
 submissionRoutes.get('/admin/users', async (c) => {
+  const sql = getSql(c)
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
   const q = c.req.query('q')?.trim()
@@ -233,7 +243,7 @@ submissionRoutes.get('/admin/users', async (c) => {
     ? await sql<AdminUserRow[]>`
         SELECT id, email, display_name, role, created_at, organization, focus
         FROM local_users
-        WHERE email ILIKE ${`%${q}%`} OR display_name ILIKE ${`%${q}%`}
+        WHERE email LIKE ${`%${q}%`} OR display_name LIKE ${`%${q}%`}
         ORDER BY created_at DESC LIMIT ${limit}
       `
     : await sql<AdminUserRow[]>`
@@ -245,6 +255,7 @@ submissionRoutes.get('/admin/users', async (c) => {
 })
 
 submissionRoutes.patch('/admin/users/:id', async (c) => {
+  const sql = getSql(c)
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
   return fail(
@@ -256,6 +267,7 @@ submissionRoutes.patch('/admin/users/:id', async (c) => {
 })
 
 submissionRoutes.get('/admin/audit-log', async (c) => {
+  const sql = getSql(c)
   const admin = await requireAdmin(c)
   if (admin instanceof Response) return admin
   const limit = intParam(c.req.query('limit'), 100, 1, 500)

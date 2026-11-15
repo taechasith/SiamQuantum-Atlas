@@ -1,5 +1,20 @@
-import { describe, expect, it } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { Database } from 'bun:sqlite'
 import { app } from './app'
+import { setLocalSqlExecutor } from './db/client'
+import { createBunSqliteExecutor, ensureSqliteSchema } from './db/sqlite'
+
+const database = new Database(':memory:')
+
+beforeAll(() => {
+  ensureSqliteSchema(database)
+  setLocalSqlExecutor(createBunSqliteExecutor(database))
+})
+
+afterAll(() => {
+  setLocalSqlExecutor(undefined)
+  database.close()
+})
 
 describe('SiamQuantum Hono API', () => {
   it('responds to health checks', async () => {

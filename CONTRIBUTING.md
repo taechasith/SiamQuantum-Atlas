@@ -5,7 +5,7 @@
 - Bun 1.4+
 - Hono + TypeScript in `server/`
 - Vue 3 + Vite in `frontend/`
-- PostgreSQL 16 via Docker Compose
+- SQLite corpus in `data/processed/` (D1-compatible schema)
 - Caddy in `deploy/Caddyfile`
 
 No Python runtime is used.
@@ -17,13 +17,12 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Apply migrations and import the bundled SQLite snapshot when needed:
+The API opens the SQLite corpus directly. If the file is missing, it creates an empty schema automatically:
 
 ```bash
 cd server
 bun install
-bun run migrate
-bun run import
+bun run dev
 ```
 
 ## Checks

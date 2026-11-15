@@ -1,7 +1,6 @@
 import { createHash, pbkdf2Sync, randomBytes, timingSafeEqual } from 'node:crypto'
-import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
-import { sql } from '../db/client'
+import { getSql, type AppContext } from '../db/client'
 import { fail, nowIso } from './http'
 
 export const SESSION_COOKIE = 'sq_local_session'
@@ -65,7 +64,8 @@ export function profilePayload(user: LocalUser) {
   }
 }
 
-export async function currentUser(c: Context): Promise<LocalUser | null> {
+export async function currentUser(c: AppContext): Promise<LocalUser | null> {
+  const sql = getSql(c)
   const token = getCookie(c, SESSION_COOKIE)
   if (!token) return null
   const rows = await sql<LocalUser[]>`
@@ -73,27 +73,30 @@ export async function currentUser(c: Context): Promise<LocalUser | null> {
     FROM local_sessions s
     JOIN local_users u ON u.id = s.user_id
     WHERE s.token = ${token}
-      AND (s.expires_at IS NULL OR s.expires_at::timestamptz > now())
+      AND (s.expires_at IS NULL OR s.expires_at > ${new Date().toISOString()})
     LIMIT 1
   `
   return rows[0] ?? null
 }
 
-export async function requireUser(c: Context): Promise<LocalUser | Response> {
+export async function requireUser(c: AppContext): Promise<LocalUser | Response> {
   const user = await currentUser(c)
   if (!user) return fail(c, 401, 'auth_required', 'Login is required for this action.')
   return user
 }
 
-export async function requireAdmin(c: Context): Promise<LocalUser | Response> {
+export async function requireAdmin(c: AppContext): Promise<LocalUser | Response> {
   const user = await currentUser(c)
   if (!user) return fail(c, 401, 'auth_required', 'Login is required for this action.')
   if (user.role !== 'admin') return fail(c, 403, 'admin_required', 'Admin access is required.')
   return user
 }
 
-export function setSessionCookie(c: Context, token: string): void {
-  const secure = process.env.SESSION_COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production'
+export function setSessionCookie(c: AppContext, token: string): void {
+  const secure =
+    c.env?.SESSION_COOKIE_SECURE === 'true' ||
+    c.env?.NODE_ENV === 'production' ||
+    new URL(c.req.url).protocol === 'https:'
   setCookie(c, SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'Lax',
@@ -103,11 +106,12 @@ export function setSessionCookie(c: Context, token: string): void {
   })
 }
 
-export function clearSessionCookie(c: Context): void {
+export function clearSessionCookie(c: AppContext): void {
   deleteCookie(c, SESSION_COOKIE, { path: '/' })
 }
 
-export async function createSession(userId: string): Promise<string> {
+export async function createSession(c: AppContext, userId: string): Promise<string> {
+  const sql = getSql(c)
   const token = newSessionToken()
   const created = nowIso()
   const expires = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString()

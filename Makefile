@@ -1,4 +1,4 @@
-.PHONY: install dev migrate import frontend test typecheck
+.PHONY: install dev frontend test typecheck
 
 install:
 	cd server && bun install
@@ -6,12 +6,6 @@ install:
 
 dev:
 	cd server && bun run dev
-
-migrate:
-	cd server && bun run migrate
-
-import:
-	cd server && bun run import
 
 frontend:
 	cd frontend && npm run dev

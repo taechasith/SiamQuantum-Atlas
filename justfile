@@ -12,12 +12,6 @@ down:
 logs:
     docker compose logs -f hono
 
-migrate:
-    cd server && bun run migrate
-
-import:
-    cd server && bun run import
-
 api-dev:
     cd server && bun run dev
 

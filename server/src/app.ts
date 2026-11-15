@@ -7,8 +7,10 @@ import { authRoutes } from './routes/auth'
 import { submissionRoutes } from './routes/submissions'
 import { exportRoutes } from './routes/export'
 import { systemRoutes } from './routes/system'
+import { avatarRoutes } from './routes/avatar'
+import type { AppEnv } from './db/client'
 
-export const app = new Hono()
+export const app = new Hono<AppEnv>()
 
 app.use('*', logger())
 app.use('*', secureHeaders())
@@ -30,10 +32,17 @@ app.use(
 )
 
 app.get('/', (c) => c.text('SiamQuantum Atlas Hono API'))
-app.get('/healthz', (c) => c.json({ ok: true, data: { status: 'ok', runtime: 'bun', service: 'hono' }, error: null }))
+app.get('/healthz', (c) =>
+  c.json({
+    ok: true,
+    data: { status: 'ok', runtime: c.env?.DB ? 'cloudflare' : 'bun', service: 'hono' },
+    error: null,
+  })
+)
 
 app.route('/api', publicRoutes)
 app.route('/api', authRoutes)
+app.route('/api', avatarRoutes)
 app.route('/api', submissionRoutes)
 app.route('/api', exportRoutes)
 app.route('/api', systemRoutes)

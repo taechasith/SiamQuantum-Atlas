@@ -1,8 +1,15 @@
 import { Hono } from 'hono'
-import { sql, PUBLIC_SCOPE, relevanceMeta, scopeClause } from '../db/client'
+import { getSql, PUBLIC_SCOPE, relevanceMeta, scopeClause, type AppEnv } from '../db/client'
 import { fail, intParam, ok } from '../lib/http'
+import { cacheResponse } from '../lib/cache'
 
-export const publicRoutes = new Hono()
+export const publicRoutes = new Hono<AppEnv>()
+
+publicRoutes.use('/stats/summary', cacheResponse(300, 600))
+publicRoutes.use('/stats/yearly', cacheResponse(300, 600))
+publicRoutes.use('/corpus/coverage', cacheResponse(300, 600))
+publicRoutes.use('/geo/list', cacheResponse(600, 1200))
+publicRoutes.use('/graph', cacheResponse(3600, 7200))
 
 type SourceRow = Record<string, unknown>
 type GeoRow = Record<string, unknown>
@@ -41,6 +48,7 @@ function normalizeConcept(value: string): string {
 }
 
 publicRoutes.get('/stats/summary', async (c) => {
+  const sql = getSql(c)
   try {
     const yearQuery = c.req.query('year')
     const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
@@ -54,7 +62,7 @@ publicRoutes.get('/stats/summary', async (c) => {
     const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
     const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
     const searchClause = searchPattern
-      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      ? sql`(s.title LIKE ${searchPattern} OR s.raw_text LIKE ${searchPattern} OR s.url LIKE ${searchPattern})`
       : sql`TRUE`
     const [stats] = await sql<
       {
@@ -66,12 +74,12 @@ publicRoutes.get('/stats/summary', async (c) => {
       }[]
     >`
       SELECT
-        (SELECT COUNT(*)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_sources,
-        (SELECT COUNT(*)::int FROM triplets t JOIN sources s ON s.id = t.source_id WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_triplets,
-        (SELECT MIN(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS min_year,
-        (SELECT MAX(published_year)::int FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS max_year,
+        (SELECT CAST(COUNT(*) AS INTEGER) FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_sources,
+        (SELECT CAST(COUNT(*) AS INTEGER) FROM triplets t JOIN sources s ON s.id = t.source_id WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS total_triplets,
+        (SELECT CAST(MIN(published_year) AS INTEGER) FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS min_year,
+        (SELECT CAST(MAX(published_year) AS INTEGER) FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}) AS max_year,
         (
-          SELECT COUNT(DISTINCT g.source_id)::int
+          SELECT CAST(COUNT(DISTINCT g.source_id) AS INTEGER)
           FROM geo g JOIN sources s ON g.source_id = s.id
           WHERE g.lat IS NOT NULL AND g.lng IS NOT NULL
             AND (g.is_cdn_resolved = 0 OR g.is_cdn_resolved IS NULL)
@@ -79,14 +87,14 @@ publicRoutes.get('/stats/summary', async (c) => {
         ) AS real_geo
     `
     const platforms = await sql<{ platform: string; count: number }[]>`
-      SELECT platform, COUNT(*)::int AS count
+      SELECT platform, CAST(COUNT(*) AS INTEGER) AS count
       FROM sources s
       WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY platform
       ORDER BY count DESC
     `
     const approximate = await sql<{ count: number }[]>`
-      SELECT COUNT(*)::int AS count
+      SELECT CAST(COUNT(*) AS INTEGER) AS count
       FROM sources s
       WHERE s.channel_country IS NOT NULL
         AND ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
@@ -95,7 +103,7 @@ publicRoutes.get('/stats/summary', async (c) => {
           WHERE g2.lat IS NOT NULL AND g2.lng IS NOT NULL
             AND (g2.is_cdn_resolved = 0 OR g2.is_cdn_resolved IS NULL)
         )
-        AND s.channel_country = ANY(${sql.array(Object.keys(COUNTRY_CENTROIDS))})
+        AND s.channel_country IN (${Object.keys(COUNTRY_CENTROIDS).map((key) => `'${key.replace(/'/g, "''")}'`).join(', ')})
     `
     const geoCount = (stats?.real_geo ?? 0) + (approximate[0]?.count ?? 0)
     return ok(c, {
@@ -113,6 +121,7 @@ publicRoutes.get('/stats/summary', async (c) => {
 })
 
 publicRoutes.get('/stats/yearly', async (c) => {
+  const sql = getSql(c)
   try {
     const yearQuery = c.req.query('year')
     const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
@@ -126,10 +135,10 @@ publicRoutes.get('/stats/yearly', async (c) => {
     const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
     const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
     const searchClause = searchPattern
-      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      ? sql`(s.title LIKE ${searchPattern} OR s.raw_text LIKE ${searchPattern} OR s.url LIKE ${searchPattern})`
       : sql`TRUE`
     const rows = await sql<{ published_year: number; platform: string; count: number }[]>`
-      SELECT s.published_year, s.platform, COUNT(*)::int AS count
+      SELECT s.published_year, s.platform, CAST(COUNT(*) AS INTEGER) AS count
       FROM sources s
       WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY s.published_year, s.platform
@@ -155,6 +164,7 @@ publicRoutes.get('/stats/yearly', async (c) => {
 })
 
 publicRoutes.get('/corpus/coverage', async (c) => {
+  const sql = getSql(c)
   try {
     const yearQuery = c.req.query('year')
     const year = yearQuery && /^\d{4}$/.test(yearQuery) ? Number(yearQuery) : null
@@ -168,20 +178,20 @@ publicRoutes.get('/corpus/coverage', async (c) => {
     const platformClause = platform ? sql`s.platform = ${platform}` : sql`TRUE`
     const domainClause = domain ? sql`s.quantum_domain = ${domain}` : sql`TRUE`
     const searchClause = searchPattern
-      ? sql`(s.title ILIKE ${searchPattern} OR s.raw_text ILIKE ${searchPattern} OR s.url ILIKE ${searchPattern})`
+      ? sql`(s.title LIKE ${searchPattern} OR s.raw_text LIKE ${searchPattern} OR s.url LIKE ${searchPattern})`
       : sql`TRUE`
     const [totalRow] = await sql<{ total: number }[]>`
-      SELECT COUNT(*)::int AS total FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
+      SELECT CAST(COUNT(*) AS INTEGER) AS total FROM sources s WHERE ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
     `
     const byYear = await sql<{ published_year: number; platform: string; count: number }[]>`
-      SELECT s.published_year, s.platform, COUNT(*)::int AS count
+      SELECT s.published_year, s.platform, CAST(COUNT(*) AS INTEGER) AS count
       FROM sources s
       WHERE ${sql.unsafe(PUBLIC_SCOPE)}
       GROUP BY s.published_year, s.platform
       ORDER BY s.published_year
     `
     const byDomain = await sql<{ domain: string | null; count: number }[]>`
-      SELECT s.quantum_domain AS domain, COUNT(*)::int AS count
+      SELECT s.quantum_domain AS domain, CAST(COUNT(*) AS INTEGER) AS count
       FROM sources s
       WHERE s.quantum_domain IS NOT NULL AND ${sql.unsafe(PUBLIC_SCOPE)} AND ${yearClause} AND ${platformClause} AND ${domainClause} AND ${searchClause}
       GROUP BY s.quantum_domain
@@ -205,6 +215,7 @@ publicRoutes.get('/corpus/coverage', async (c) => {
 })
 
 publicRoutes.get('/sources', async (c) => {
+  const sql = getSql(c)
   try {
     const page = intParam(c.req.query('page'), 1, 1, 100000)
     const pageSize = intParam(c.req.query('page_size'), 20, 1, 1000)
@@ -225,14 +236,14 @@ publicRoutes.get('/sources', async (c) => {
     const domain = c.req.query('quantum_domain')
     if (domain) add((p) => `s.quantum_domain = ${p}`, domain)
     const search = c.req.query('search')?.trim()
-    if (search) add((p) => `(s.title ILIKE ${p} OR s.raw_text ILIKE ${p} OR s.url ILIKE ${p})`, `%${search}%`)
+    if (search) add((p) => `(s.title LIKE ${p} OR s.raw_text LIKE ${p} OR s.url LIKE ${p})`, `%${search}%`)
     const contentType = c.req.query('content_type')
     if (contentType) add((p) => `e.content_type = ${p}`, contentType)
 
     const where = `WHERE ${conditions.join(' AND ')}`
     const offset = (page - 1) * pageSize
     const [totalRow] = await sql.unsafe<{ total: number }[]>(
-      `SELECT COUNT(*)::int AS total FROM sources s LEFT JOIN entities e ON e.source_id = s.id ${where}`,
+      `SELECT CAST(COUNT(*) AS INTEGER) AS total FROM sources s LEFT JOIN entities e ON e.source_id = s.id ${where}`,
       params
     )
     const items = await sql.unsafe<SourceRow[]>(
@@ -258,7 +269,7 @@ publicRoutes.get('/sources', async (c) => {
         page_size: pageSize,
         items,
       },
-      { relevance: await relevanceMeta() }
+      { relevance: await relevanceMeta(sql) }
     )
   } catch (error) {
     return fail(c, 500, 'sources_query_failed', error instanceof Error ? error.message : 'Failed to load sources')
@@ -266,6 +277,7 @@ publicRoutes.get('/sources', async (c) => {
 })
 
 publicRoutes.get('/geo/list', async (c) => {
+  const sql = getSql(c)
   try {
     const cdn = c.req.query('cdn') === 'true'
     const scope = c.req.query('scope') ?? 'strict'
@@ -339,7 +351,7 @@ publicRoutes.get('/geo/list', async (c) => {
         count: items.length,
         real_count: realIds.size,
         approximate_count: items.length - realIds.size,
-        relevance: await relevanceMeta(),
+        relevance: await relevanceMeta(sql),
       }
     )
   } catch (error) {
@@ -348,6 +360,7 @@ publicRoutes.get('/geo/list', async (c) => {
 })
 
 publicRoutes.get('/graph', async (c) => {
+  const sql = getSql(c)
   try {
     const includeFiltered = c.req.query('include_filtered') !== 'false'
     const where = includeFiltered ? '1=1' : PUBLIC_SCOPE
@@ -401,7 +414,7 @@ publicRoutes.get('/graph', async (c) => {
       const [source, target] = key.split('\u0000') as [string, string]
       return { source, target, label: value.relation, value: value.count }
     })
-    const response = ok(c, { nodes, links }, { relevance: await relevanceMeta() })
+    const response = ok(c, { nodes, links }, { relevance: await relevanceMeta(sql) })
     response.headers.set('Cache-Control', 'public, max-age=3600')
     return response
   } catch (error) {

@@ -1,19 +1,21 @@
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE IF NOT EXISTS sources (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   platform TEXT NOT NULL,
   url TEXT UNIQUE NOT NULL,
   title TEXT,
   raw_text TEXT,
   published_year INTEGER NOT NULL,
   fetched_at TEXT NOT NULL,
-  view_count BIGINT,
-  like_count BIGINT,
-  comment_count BIGINT,
+  view_count INTEGER,
+  like_count INTEGER,
+  comment_count INTEGER,
   is_quantum_tech INTEGER,
   is_thailand_related INTEGER,
   quantum_domain TEXT,
   rejection_reason TEXT,
-  relevance_confidence DOUBLE PRECISION,
+  relevance_confidence REAL,
   relevance_checked_at TEXT,
   channel_id TEXT,
   channel_title TEXT,
@@ -23,10 +25,10 @@ CREATE TABLE IF NOT EXISTS sources (
 );
 
 CREATE TABLE IF NOT EXISTS geo (
-  source_id BIGINT PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+  source_id INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
   ip TEXT,
-  lat DOUBLE PRECISION,
-  lng DOUBLE PRECISION,
+  lat REAL,
+  lng REAL,
   city TEXT,
   region TEXT,
   isp TEXT,
@@ -35,7 +37,7 @@ CREATE TABLE IF NOT EXISTS geo (
 );
 
 CREATE TABLE IF NOT EXISTS entities (
-  source_id BIGINT PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+  source_id INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
   content_type TEXT,
   production_type TEXT,
   area TEXT,
@@ -47,12 +49,12 @@ CREATE TABLE IF NOT EXISTS entities (
 );
 
 CREATE TABLE IF NOT EXISTS triplets (
-  id BIGSERIAL PRIMARY KEY,
-  source_id BIGINT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
   subject TEXT NOT NULL,
   relation TEXT NOT NULL,
   object TEXT NOT NULL,
-  confidence DOUBLE PRECISION NOT NULL DEFAULT 1.0
+  confidence REAL NOT NULL DEFAULT 1.0
 );
 
 CREATE TABLE IF NOT EXISTS stats_cache (
@@ -62,7 +64,7 @@ CREATE TABLE IF NOT EXISTS stats_cache (
 );
 
 CREATE TABLE IF NOT EXISTS community_submissions (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   handle TEXT,
   url TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
@@ -71,23 +73,23 @@ CREATE TABLE IF NOT EXISTS community_submissions (
 
 CREATE TABLE IF NOT EXISTS denstream_state (
   id INTEGER PRIMARY KEY,
-  snapshot BYTEA NOT NULL,
+  snapshot BLOB NOT NULL,
   updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pipeline_runs (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   flow_name TEXT NOT NULL,
   task_name TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'running',
-  started_at TEXT NOT NULL DEFAULT (now()::text),
+  started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   finished_at TEXT,
-  duration_s DOUBLE PRECISION,
+  duration_s REAL,
   error_text TEXT
 );
 
 CREATE TABLE IF NOT EXISTS nlp_abstentions (
-  source_id BIGINT PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+  source_id INTEGER PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
   status TEXT NOT NULL,
   reason TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -124,7 +126,7 @@ CREATE TABLE IF NOT EXISTS local_sessions (
 );
 
 CREATE TABLE IF NOT EXISTS local_categories (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   slug TEXT NOT NULL UNIQUE,
   description TEXT,
@@ -133,7 +135,7 @@ CREATE TABLE IF NOT EXISTS local_categories (
 );
 
 CREATE TABLE IF NOT EXISTS local_submitted_data (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id TEXT NOT NULL REFERENCES local_users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
@@ -144,12 +146,13 @@ CREATE TABLE IF NOT EXISTS local_submitted_data (
   analysis_status TEXT NOT NULL DEFAULT 'queued',
   analysis_result TEXT,
   metadata TEXT NOT NULL DEFAULT '{}',
+  province_code TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS admin_audit_log (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   admin_user_id TEXT NOT NULL,
   admin_email TEXT,
   action TEXT NOT NULL,
@@ -160,20 +163,20 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
 );
 
 CREATE TABLE IF NOT EXISTS algo_runs (
-  id BIGSERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   algo_name TEXT NOT NULL,
   algo_version TEXT NOT NULL,
   input_hash TEXT NOT NULL,
-  duration_ms DOUBLE PRECISION NOT NULL,
+  duration_ms REAL NOT NULL,
   ok INTEGER NOT NULL,
-  validation_score DOUBLE PRECISION,
+  validation_score REAL,
   error TEXT,
   ts TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
   filename TEXT PRIMARY KEY,
-  applied_at TEXT NOT NULL DEFAULT (now()::text)
+  applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_sources_year ON sources(published_year);

@@ -1,12 +1,12 @@
 # SiamQuantum Atlas
 
-SiamQuantum Atlas is a Thai quantum intelligence platform: a Vue 3 analytics SPA backed by a Hono API and PostgreSQL. It maps sources, evidence, concepts, and trends from the Thai quantum ecosystem.
+SiamQuantum Atlas is a Thai quantum intelligence platform: a Vue 3 analytics SPA backed by a Hono API and SQLite. It maps sources, evidence, concepts, and trends from the Thai quantum ecosystem.
 
 ## Stack
 
 - Bun 1.4+
 - Hono + TypeScript in `server/`
-- PostgreSQL 16 in Docker
+- SQLite corpus in `data/processed/` (D1-compatible schema)
 - Vue 3 + Vite SPA in `frontend/`
 - Caddy ingress on `http://localhost:8765`
 - No Python runtime
@@ -20,12 +20,7 @@ docker compose up -d --build
 
 Open `http://localhost:8765`.
 
-The first database start applies `server/migrations/001_schema.sql`. The app then starts with an empty database unless you import a legacy SQLite snapshot that you keep locally:
-
-```bash
-cd server
-DATABASE_URL=postgres://siamquantum:changeme-dev-password@127.0.0.1:5432/siamquantum_atlas bun run import
-```
+The API reads `data/processed/siamquantum_atlas.db` directly. If the file is missing, it creates an empty schema automatically. Copy an existing corpus snapshot to that path to load real data.
 
 ## Development
 
@@ -33,7 +28,6 @@ DATABASE_URL=postgres://siamquantum:changeme-dev-password@127.0.0.1:5432/siamqua
 # API
 cd server
 bun install
-bun run migrate
 bun run dev
 
 # Frontend
@@ -73,13 +67,36 @@ Key Hono endpoints:
 - `POST /api/submitted-data`
 - `GET /api/export/xlsx`
 
-## Database
+## Profile pictures (R2)
 
-PostgreSQL is the single source of truth. The legacy SQLite snapshot is not bundled in this repository; if you have it locally, import it with:
+Set the R2 S3 credentials on the API host:
+
+```env
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=qatlas-storage
+```
+
+Create an R2 API token with **Object Read & Write** for the bucket. The browser only talks to the Hono API; credentials never reach the frontend.
+
+- `POST /api/profile/avatar` — authenticated multipart upload
+- `GET /api/avatar/:userId/:file` — public cached image
+- The object key is stored as `/api/avatar/...` in `local_users.avatar_url`
+
+When Hono runs on Cloudflare Pages/Workers, the existing `STORAGE` binding is used instead of S3 credentials.
+
+Verify the S3 credentials:
 
 ```bash
 cd server
-bun run import
+bun run check:r2
 ```
 
-Do not commit `.env`, database dumps, or credentials.
+## Database
+
+SQLite is the single source of truth for the local/server runtime. The corpus file is not bundled in this repository; copy it to `data/processed/siamquantum_atlas.db`.
+
+The same SQLite schema is used for Cloudflare D1 under `server/migrations/d1/`.
+
+Do not commit `.env`, database files, database dumps, or credentials.

@@ -12,7 +12,7 @@ export function ok<T>(c: Context, data: T, extra: Record<string, unknown> = {}) 
 
 export function fail(
   c: Context,
-  status: 400 | 401 | 403 | 404 | 409 | 422 | 500 | 501,
+  status: 400 | 401 | 403 | 404 | 409 | 422 | 500 | 501 | 503,
   code: string,
   message: string,
   details?: unknown

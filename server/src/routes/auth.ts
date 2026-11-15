@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { sql } from '../db/client'
+import { getSql, type AppEnv } from '../db/client'
 import {
   clearSessionCookie,
   createSession,
@@ -16,7 +16,7 @@ import {
 } from '../lib/auth'
 import { fail, nowIso, ok } from '../lib/http'
 
-export const authRoutes = new Hono()
+export const authRoutes = new Hono<AppEnv>()
 
 const credentialsSchema = z.object({
   email: z.string().trim().email(),
@@ -28,8 +28,12 @@ const avatarUrlSchema = z
   .trim()
   .max(400_000)
   .refine(
-    (value) => value === '' || /^https?:\/\//i.test(value) || /^data:image\/(?:png|jpe?g|webp);base64,/i.test(value),
-    'Avatar must be an HTTP(S) URL or a PNG/JPEG/WebP data URL.'
+    (value) =>
+      value === '' ||
+      /^https?:\/\//i.test(value) ||
+      /^\/api\/avatar\/[a-f0-9]{32}\/[A-Za-z0-9._-]+$/i.test(value) ||
+      /^data:image\/(?:png|jpe?g|webp);base64,/i.test(value),
+    'Avatar must be an HTTP(S) URL, a local avatar URL, or a PNG/JPEG/WebP data URL.'
   )
 
 const profilePatchSchema = z.object({
@@ -68,6 +72,7 @@ authRoutes.get('/auth/config', (c) =>
 )
 
 authRoutes.post('/auth/local/register', async (c) => {
+  const sql = getSql(c)
   try {
     const parsed = credentialsSchema.safeParse(await c.req.json())
     if (!parsed.success) {
@@ -90,7 +95,7 @@ authRoutes.post('/auth/local/register', async (c) => {
       RETURNING *
     `
     if (!user) return fail(c, 500, 'register_failed', 'Failed to create the account.')
-    const token = await createSession(user.id)
+    const token = await createSession(c, user.id)
     setSessionCookie(c, token)
     return c.json({ ok: true, data: userResponse(user), error: null }, 201)
   } catch (error) {
@@ -99,6 +104,7 @@ authRoutes.post('/auth/local/register', async (c) => {
 })
 
 authRoutes.post('/auth/local/login', async (c) => {
+  const sql = getSql(c)
   try {
     const parsed = credentialsSchema.safeParse(await c.req.json())
     if (!parsed.success) return fail(c, 401, 'auth_invalid', 'Invalid email or password.')
@@ -108,7 +114,7 @@ authRoutes.post('/auth/local/login', async (c) => {
     if (!user || !user.password_hash || !user.password_salt || !verifyPassword(parsed.data.password, user)) {
       return fail(c, 401, 'auth_invalid', 'Invalid email or password.')
     }
-    const token = await createSession(user.id)
+    const token = await createSession(c, user.id)
     setSessionCookie(c, token)
     return ok(c, userResponse(user))
   } catch (error) {
@@ -117,6 +123,7 @@ authRoutes.post('/auth/local/login', async (c) => {
 })
 
 authRoutes.post('/auth/local/logout', async (c) => {
+  const sql = getSql(c)
   const token = c.req.header('cookie')?.match(/sq_local_session=([^;]+)/)?.[1]
   if (token) await sql`DELETE FROM local_sessions WHERE token = ${decodeURIComponent(token)}`
   clearSessionCookie(c)
@@ -124,6 +131,7 @@ authRoutes.post('/auth/local/logout', async (c) => {
 })
 
 authRoutes.delete('/auth/account', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   const [deleted] = await sql<{ id: string }[]>`
@@ -135,24 +143,28 @@ authRoutes.delete('/auth/account', async (c) => {
 })
 
 authRoutes.get('/auth/me', async (c) => {
+  const sql = getSql(c)
   const user = await currentUser(c)
   if (!user) return ok(c, { user: null, profile: null })
   return ok(c, userResponse(user))
 })
 
 authRoutes.post('/auth/sync-profile', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   return ok(c, { profile: profilePayload(user) })
 })
 
 authRoutes.get('/profile', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   return ok(c, { profile: profilePayload(user) })
 })
 
 authRoutes.patch('/profile', async (c) => {
+  const sql = getSql(c)
   const user = await requireUser(c)
   if (user instanceof Response) return user
   const parsed = profilePatchSchema.safeParse(await c.req.json().catch(() => ({})))

@@ -45,6 +45,8 @@ dist/
 build/
 
 # temp
+.wrangler/
+.dev.vars
 .cache/
 
 # tools

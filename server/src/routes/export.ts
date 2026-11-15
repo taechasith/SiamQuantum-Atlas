@@ -1,10 +1,11 @@
 import { Hono } from 'hono'
 import ExcelJS from 'exceljs'
-import { sql } from '../db/client'
+import { getSql, type AppEnv } from '../db/client'
 
-export const exportRoutes = new Hono()
+export const exportRoutes = new Hono<AppEnv>()
 
 exportRoutes.get('/export/xlsx', async (c) => {
+  const sql = getSql(c)
   const conditions: string[] = []
   const params: any[] = []
   const year = c.req.query('year')

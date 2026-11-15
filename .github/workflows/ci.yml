@@ -2,30 +2,13 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "deploy"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "deploy"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: siamquantum
-          POSTGRES_PASSWORD: changeme-dev-password
-          POSTGRES_DB: siamquantum_atlas
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U siamquantum -d siamquantum_atlas"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-
-    env:
-      DATABASE_URL: postgres://siamquantum:changeme-dev-password@127.0.0.1:5432/siamquantum_atlas
 
     steps:
       - uses: actions/checkout@v4
@@ -42,10 +25,6 @@ jobs:
         working-directory: server
         run: bun run typecheck
 
-      - name: Apply PostgreSQL migrations
-        working-directory: server
-        run: bun run migrate
-
       - name: API tests
         working-directory: server
         run: bun test
@@ -53,7 +32,7 @@ jobs:
       - name: API smoke test
         working-directory: server
         run: |
-          bun src/index.ts &
+          SQLITE_PATH=/tmp/siamquantum_atlas.db bun src/index.ts &
           API_PID=$!
           sleep 2
           curl --fail http://127.0.0.1:8766/healthz

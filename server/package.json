@@ -5,15 +5,14 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "migrate": "bun scripts/migrate.ts",
-    "import": "bun scripts/import-sqlite.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "check:r2": "bun scripts/check-r2.ts"
   },
   "dependencies": {
+    "aws4fetch": "^1.0.20",
     "exceljs": "^4.4.0",
     "hono": "^4.9.2",
-    "postgres": "^3.4.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -1,0 +1,16 @@
+name = "siamquantum-atlas"
+pages_build_output_dir = "frontend/dist"
+compatibility_date = "2026-11-15"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "qatlas_db"
+database_id = "8dac1c14-08d5-401e-a1bf-f603c650cbb2"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "qatlas-storage"
+
+[vars]
+SESSION_COOKIE_SECURE = "true"
