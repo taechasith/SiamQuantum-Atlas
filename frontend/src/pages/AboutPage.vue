@@ -9,7 +9,7 @@ const { data: stats } = useStatsSummaryQuery()
 const isThai = computed(() => lang.value === 'th')
 const yearRange = computed(() => {
   const range = stats.value?.year_range
-  return range ? `${range[0]}—${range[1]}` : '2016—2026'
+  return range ? `${range[0]}—${range[1]}` : '—'
 })
 
 const copy = computed(() =>
@@ -134,19 +134,19 @@ const copy = computed(() =>
 
     <section class="relative pb-10 pt-6">
       <div class="relative grid w-full grid-cols-2 gap-3 sm:gap-4 md:grid-rows-2 md:min-h-[calc(100dvh-56px)]">
-        <article class="rounded-[22px] p-5 text-white flex flex-col items-center justify-center gap-2 text-center min-h-[124px]">
-          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo :value="stats?.total_sources ?? 170" :duration="1000" /></strong>
+        <article class="rounded-[22px] p-5 text-white flex flex-col items-start justify-center gap-2 text-left min-h-[124px]">
+          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo v-if="stats" :value="stats.total_sources" :duration="1000" /><span v-else>—</span></strong>
           <span class="!text-[10px] sm:!text-[clamp(1.5rem,3.2vw,3.75rem)] font-mono uppercase tracking-[0.12em] text-white leading-tight">{{ copy.stats.sources }}</span>
         </article>
-        <article class="rounded-[22px] p-5 text-white flex flex-col items-center justify-center gap-2 text-center min-h-[124px]">
-          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo :value="stats?.total_triplets ?? 2090" format :duration="1200" /></strong>
+        <article class="rounded-[22px] p-5 text-white flex flex-col items-start justify-center gap-2 text-left min-h-[124px]">
+          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo v-if="stats" :value="stats.total_triplets" format :duration="1200" /><span v-else>—</span></strong>
           <span class="!text-[10px] sm:!text-[clamp(1.5rem,3.2vw,3.75rem)] font-mono uppercase tracking-[0.12em] text-white leading-tight">{{ copy.stats.triplets }}</span>
         </article>
-        <article class="rounded-[22px] p-5 text-white flex flex-col items-center justify-center gap-2 text-center min-h-[124px]">
-          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo :value="stats?.geo_count ?? 36" :duration="900" /></strong>
+        <article class="rounded-[22px] p-5 text-white flex flex-col items-start justify-center gap-2 text-left min-h-[124px]">
+          <strong class="whitespace-nowrap !text-[36px] sm:!text-[clamp(3.5rem,7.5vw,9rem)] font-black font-mono text-white leading-none"><CountTo v-if="stats" :value="stats.geo_count" :duration="900" /><span v-else>—</span></strong>
           <span class="!text-[10px] sm:!text-[clamp(1.5rem,3.2vw,3.75rem)] font-mono uppercase tracking-[0.12em] text-white leading-tight">{{ copy.stats.sites }}</span>
         </article>
-        <article class="rounded-[22px] p-5 text-white flex flex-col items-center justify-center gap-2 text-center min-h-[124px]">
+        <article class="rounded-[22px] p-5 text-white flex flex-col items-start justify-center gap-2 text-left min-h-[124px]">
           <strong class="whitespace-nowrap !text-[28px] sm:!text-[clamp(3rem,6vw,7rem)] font-black font-mono text-white leading-none">{{ yearRange }}</strong>
           <span class="!text-[10px] sm:!text-[clamp(1.5rem,3.2vw,3.75rem)] font-mono uppercase tracking-[0.12em] text-white leading-tight">{{ copy.stats.span }}</span>
         </article>
