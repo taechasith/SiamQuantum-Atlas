@@ -340,8 +340,8 @@ function timeAgo(value?: string): string {
           </div>
 
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 sm:gap-3">
-              <h2 class="text-lg sm:text-2xl xl:text-3xl font-black tracking-tight uppercase m-0 break-words">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h2 class="min-w-0 text-lg sm:text-2xl xl:text-3xl font-black tracking-tight uppercase m-0 break-words">
                 {{ profile.displayName }}
               </h2>
               <AppTooltip v-if="authUser" :content="t('Edit profile')" side="top">
@@ -360,7 +360,7 @@ function timeAgo(value?: string): string {
               <router-link
                 v-if="authUser?.role === 'admin'"
                 to="/admin"
-                class="px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-[0.08em] text-white no-underline hover:bg-black/70 transition flex-shrink-0"
+                class="whitespace-nowrap px-2.5 py-1 rounded-full bg-black/55 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-[0.08em] text-white no-underline hover:bg-black/70 transition flex-shrink-0"
               >
                 {{ t('Admin Panel') }}
               </router-link>
